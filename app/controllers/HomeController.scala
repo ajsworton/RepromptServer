@@ -16,8 +16,8 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 @Singleton
 class HomeController @Inject()(
-      userDao: UserDao,
-      cc: ControllerComponents
+      cc: ControllerComponents,
+      userDao: UserDao
       )(implicit ec: ExecutionContext)
   extends AbstractController(cc){
 
