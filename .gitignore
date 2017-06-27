@@ -70,7 +70,6 @@ local.properties
 .idea/dictionaries
 
 # Sensitive or high-churn files:
-application.conf
 .idea/
 .idea/**/dataSources/
 .idea/**/dataSources.ids
