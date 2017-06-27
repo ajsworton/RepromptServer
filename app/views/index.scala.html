@@ -1,5 +1,11 @@
-@()
+@(users: Seq[User])
 
-@main("Welcome to Play") {
-  <h1>Welcome to Play!</h1>
-}
+@main("Reprompt") {
+  <h1>Welcome to Reprompt!</h1>
+  <ul>
+  @for(user <- users){
+    <li>@user.firstName @user.surName</li>
+  }
+  </ul>
+
+  }
