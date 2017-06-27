@@ -1,4 +1,5 @@
 name := """RepromptServer"""
+
 organization := "com.reprompt"
 
 version := "1.0-SNAPSHOT"
@@ -15,6 +16,8 @@ libraryDependencies ++= Seq(
   "mysql" % "mysql-connector-java" % "6.0.6",
   "org.mindrot" % "jbcrypt" % "0.4"
 )
+
+enablePlugins(JavaAppPackaging)
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.reprompt.controllers._"
