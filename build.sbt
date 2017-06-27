@@ -17,7 +17,7 @@ libraryDependencies ++= Seq(
   "org.mindrot" % "jbcrypt" % "0.4"
 )
 
-enablePlugins(JavaAppPackaging)
+enablePlugins(JavaServerAppPackaging)
 
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.reprompt.controllers._"
