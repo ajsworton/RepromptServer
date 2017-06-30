@@ -25,6 +25,8 @@ class UserDao @Inject()
 
   def all(): Future[Seq[User]] = db.run(Users.result)
 
+  def get(id: Int): Future[User] = db.run(Users.filter(u => u.id === id).result.head)
+
   def insert(user: User): Future[Unit] = db.run(Users += user).map { _ => () }
 
   private class UsersTable(tag: Tag) extends Table[User](tag, "USERS") {
