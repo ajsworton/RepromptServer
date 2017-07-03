@@ -1,3 +1,4 @@
+import libraries.Auth
 import org.mindrot.jbcrypt.BCrypt
 import org.scalatest.FunSpec
 
@@ -13,7 +14,7 @@ class ExampleSpec extends FunSpec {
     it("should respond with failure when provided with non-matching passwords") {
       val password = "password"
       val encrypted = BCrypt.hashpw("somethingElse", BCrypt.gensalt)
-      assert(!Auth.login("aUser", password, encrypted))
+      assert(!(Auth.login("aUser", password, encrypted)))
     }
   }
 }
