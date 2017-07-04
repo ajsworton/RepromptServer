@@ -14,30 +14,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package models
+package modules
 
-import java.time.{ LocalDate, LocalDateTime }
-import javax.inject.Inject
+import com.google.inject.AbstractModule
+import models.dao.{ AuthTokenDao, AuthTokenDaoImpl }
+import models.services.{ AuthTokenService, AuthTokenServiceImpl }
+import net.codingwell.scalaguice.ScalaModule
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
-import com.mohiva.play.silhouette.api.services.IdentityService
-import dao.UserDao
+/**
+ * The base Guice module.
+ */
+class BaseModule extends AbstractModule with ScalaModule {
 
-import scala.concurrent.Future
-
-case class User(
-  id: Option[Int],
-  userName: String,
-  firstName: String,
-  surName: String,
-  email: String,
-  isEmailVerified: Boolean,
-  authHash: String,
-  authResetCode: Option[String],
-  authResetExpiry: Option[LocalDate],
-  authToken: Option[String],
-  authExpire: Option[LocalDateTime],
-  isEducator: Boolean,
-  isAdministrator: Boolean,
-  avatarUrl: Option[String]
-) extends Identity
+  /**
+   * Configures the module.
+   */
+  def configure(): Unit = {
+    bind[AuthTokenDao].to[AuthTokenDaoImpl]
+    bind[AuthTokenService].to[AuthTokenServiceImpl]
+  }
+}

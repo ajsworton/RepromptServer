@@ -14,25 +14,29 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dto
+package models.dto
 
+import akka.http.scaladsl.model.headers.CacheDirectives.public
 import models.User
-import play.api.libs.json.{Format, Json, __}
+import play.api.data._
+import play.api.data.Forms._
+import play.api.data.Forms.{ mapping, text }
+import play.api.libs.json.{ Format, Json, __ }
 
 /**
-  * @author Alexander Worton.
-  */
+ * @author Alexander Worton.
+ */
 case class UserDto(
-                    id: Int,
-                    userName: String,
-                    firstName: String,
-                    surName: String,
-                    email: String,
-                    isEmailVerified: Boolean,
-                    isEducator: Boolean,
-                    isAdministrator: Boolean
-                  )
-
+  id: Option[Int],
+  userName: String,
+  firstName: String,
+  surName: String,
+  email: String,
+  isEmailVerified: Boolean,
+  isEducator: Boolean,
+  isAdministrator: Boolean,
+  avatarUrl: Option[String]
+)
 
 object UserDto {
 
@@ -45,10 +49,24 @@ object UserDto {
       user.email,
       user.isEmailVerified,
       user.isEducator,
-      user.isAdministrator)
+      user.isAdministrator,
+      user.avatarUrl)
   }
+
+  def userForm: Form[UserDto] = Form(
+    mapping(
+      "id" -> optional(number),
+      "userName" -> nonEmptyText,
+      "firstName" -> nonEmptyText,
+      "surName" -> nonEmptyText,
+      "email" -> nonEmptyText,
+      "isEmailVerified" -> boolean,
+      "isEducator" -> boolean,
+      "isAdministrator" -> boolean,
+      "avatarUrl" -> optional(text)
+    )(UserDto.apply)(UserDto.unapply)
+  )
 
   implicit val userDtoFormat = Json.format[UserDto]
 }
-
 

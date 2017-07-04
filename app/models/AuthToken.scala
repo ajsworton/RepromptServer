@@ -16,28 +16,18 @@
 
 package models
 
-import java.time.{ LocalDate, LocalDateTime }
-import javax.inject.Inject
+import java.time.LocalDateTime
+import java.util.UUID
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
-import com.mohiva.play.silhouette.api.services.IdentityService
-import dao.UserDao
-
-import scala.concurrent.Future
-
-case class User(
-  id: Option[Int],
-  userName: String,
-  firstName: String,
-  surName: String,
-  email: String,
-  isEmailVerified: Boolean,
-  authHash: String,
-  authResetCode: Option[String],
-  authResetExpiry: Option[LocalDate],
-  authToken: Option[String],
-  authExpire: Option[LocalDateTime],
-  isEducator: Boolean,
-  isAdministrator: Boolean,
-  avatarUrl: Option[String]
-) extends Identity
+/**
+ * A token to authenticate a user against an endpoint for a short time period.
+ *
+ * @param tokenId The unique token ID.
+ * @param userId The unique ID of the user the token is associated with.
+ * @param expiry The date-time the token expires.
+ */
+case class AuthToken(
+  tokenId: UUID,
+  userId: Int,
+  expiry: LocalDateTime
+)

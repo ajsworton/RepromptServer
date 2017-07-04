@@ -14,30 +14,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package models
-
-import java.time.{ LocalDate, LocalDateTime }
-import javax.inject.Inject
-
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
-import com.mohiva.play.silhouette.api.services.IdentityService
-import dao.UserDao
-
-import scala.concurrent.Future
-
-case class User(
-  id: Option[Int],
-  userName: String,
-  firstName: String,
-  surName: String,
-  email: String,
-  isEmailVerified: Boolean,
-  authHash: String,
-  authResetCode: Option[String],
-  authResetExpiry: Option[LocalDate],
-  authToken: Option[String],
-  authExpire: Option[LocalDateTime],
-  isEducator: Boolean,
-  isAdministrator: Boolean,
-  avatarUrl: Option[String]
-) extends Identity
+//package modules
+//
+//import jobs.{ AuthTokenCleaner, Scheduler }
+//import net.codingwell.scalaguice.ScalaModule
+//import play.api.libs.concurrent.AkkaGuiceSupport
+//
+///**
+//  * The job module.
+//  */
+//class JobModule extends ScalaModule with AkkaGuiceSupport {
+//
+//  /**
+//    * Configures the module.
+//    */
+//  def configure() = {
+//    bindActor[AuthTokenCleaner]("auth-token-cleaner")
+//    bind[Scheduler].asEagerSingleton()
+//  }
+//}

@@ -14,30 +14,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package models
+package env
 
-import java.time.{ LocalDate, LocalDateTime }
-import javax.inject.Inject
+import com.mohiva.play.silhouette.api.Env
+import com.mohiva.play.silhouette.impl.authenticators.{ JWTAuthenticator }
+import models.User
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
-import com.mohiva.play.silhouette.api.services.IdentityService
-import dao.UserDao
-
-import scala.concurrent.Future
-
-case class User(
-  id: Option[Int],
-  userName: String,
-  firstName: String,
-  surName: String,
-  email: String,
-  isEmailVerified: Boolean,
-  authHash: String,
-  authResetCode: Option[String],
-  authResetExpiry: Option[LocalDate],
-  authToken: Option[String],
-  authExpire: Option[LocalDateTime],
-  isEducator: Boolean,
-  isAdministrator: Boolean,
-  avatarUrl: Option[String]
-) extends Identity
+/**
+ * The JWT env.
+ */
+trait JWTEnv extends Env {
+  type I = User
+  type A = JWTAuthenticator
+}

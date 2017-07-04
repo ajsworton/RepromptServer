@@ -14,30 +14,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package models
+package settings
 
-import java.time.{ LocalDate, LocalDateTime }
-import javax.inject.Inject
+import com.mohiva.play.silhouette.api.util.RequestPart
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
-import com.mohiva.play.silhouette.api.services.IdentityService
-import dao.UserDao
+import scala.concurrent.duration._
 
-import scala.concurrent.Future
-
-case class User(
-  id: Option[Int],
-  userName: String,
-  firstName: String,
-  surName: String,
-  email: String,
-  isEmailVerified: Boolean,
-  authHash: String,
-  authResetCode: Option[String],
-  authResetExpiry: Option[LocalDate],
-  authToken: Option[String],
-  authExpire: Option[LocalDateTime],
-  isEducator: Boolean,
-  isAdministrator: Boolean,
-  avatarUrl: Option[String]
-) extends Identity
+case class JWTAuthenticatorSettings(
+  fieldName: String = "Reprompt-Auth-Token",
+  requestParts: Option[Seq[RequestPart.Value]] = Some(Seq(RequestPart.Headers)),
+  issuerClaim: String = "reprompt-sps",
+  authenticatorIdleTimeout: Option[FiniteDuration] = None,
+  authenticatorExpiry: FiniteDuration = 12 hours,
+  sharedSecret: String
+)

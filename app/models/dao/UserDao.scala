@@ -14,34 +14,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package dao
+package models.dao
 
-import java.sql.{Date, Timestamp}
-import java.time.{LocalDate, LocalDateTime}
+import java.sql.{ Date, Timestamp }
+import java.time.{ LocalDate, LocalDateTime }
 import javax.inject._
 
+import com.mohiva.play.silhouette.api.LoginInfo
 import slick.jdbc.JdbcProfile
 import models.User
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.lifted.ProvenShape
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
-class UserDao @Inject()
-    (protected val dbConfigProvider: DatabaseConfigProvider)
-    (implicit executionContext: ExecutionContext)
-    extends HasDatabaseConfigProvider[JdbcProfile]
-{
+class UserDao @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
+  extends HasDatabaseConfigProvider[JdbcProfile] {
   import profile.api._
 
   private val Users = TableQuery[UsersTable]
 
   def all(): Future[Seq[User]] = db.run(Users.result)
 
-  def get(id: Int): Future[User] = db.run(Users.filter(u => u.id === id).result.head)
+  def find(id: Int): Future[Option[User]] = db.run(Users.filter(u => u.id === id).result.headOption)
 
-  def insert(user: User): Future[Unit] = db.run(Users += user).map { _ => () }
+  def find(login: LoginInfo): Future[Option[User]] = db.run(Users.filter(u => u.id === login
+    .providerKey.asInstanceOf[Int])
+    .result.headOption)
+
+  def save(user: User): Future[User] = {
+    db.run(Users returning Users += user)
+  }
 
   private class UsersTable(tag: Tag) extends Table[User](tag, "USERS") {
     implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
@@ -54,12 +58,11 @@ class UserDao @Inject()
       d => d.toLocalDateTime
     )
 
-    def id: Rep[Int] = column[Int]("Id", O.PrimaryKey)
+    def id: Rep[Option[Int]] = column[Option[Int]]("Id", O.PrimaryKey)
     def userName: Rep[String] = column[String]("UserName")
     def firstName: Rep[String] = column[String]("FirstName")
-    def surName: Rep[String] = column[String]("UserName")
-    def email: Rep[String] = column[String]("UserName")
-    def UserName: Rep[String] = column[String]("UserName")
+    def surName: Rep[String] = column[String]("surName")
+    def email: Rep[String] = column[String]("Email")
     def isEmailVerified: Rep[Boolean] = column[Boolean]("IsEmailVerified")
     def authHash: Rep[String] = column[String]("AuthHash")
     def authResetCode: Rep[Option[String]] = column[Option[String]]("AuthResetCode")
@@ -68,6 +71,7 @@ class UserDao @Inject()
     def authExpire: Rep[Option[LocalDateTime]] = column[Option[LocalDateTime]]("AuthExpire")
     def isEducator: Rep[Boolean] = column[Boolean]("IsEducator")
     def isAdministrator: Rep[Boolean] = column[Boolean]("IsAdministrator")
+    def avatarUrl: Rep[Option[String]] = column[Option[String]]("AvatarUrl")
 
     def * : ProvenShape[User] = (
       id,
@@ -82,6 +86,7 @@ class UserDao @Inject()
       authToken,
       authExpire,
       isEducator,
-      isAdministrator) <> (User.tupled, User.unapply _)
+      isAdministrator,
+      avatarUrl) <> (User.tupled, User.unapply _)
   }
 }

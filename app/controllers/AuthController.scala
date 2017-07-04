@@ -16,30 +16,40 @@
 
 package controllers
 
-import dao.UserDao
-import javax.inject._
-import play.api.mvc._
+import javax.inject.{ Inject, Singleton }
+
+import com.mohiva.play.silhouette.api._
+import com.mohiva.play.silhouette.api.services.AvatarService
+import com.mohiva.play.silhouette.api.util.PasswordHasherRegistry
+import models.dto.UserDto
+import env.JWTEnv
+import play.api.libs.json.Json
+import play.api.libs.mailer.MailerClient
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MessagesRequest }
+
 import scala.concurrent.ExecutionContext
 
-/**
-  * @author Alexander Worton.
-  */
 @Singleton
-class AuthController @Inject()(
-                                  userDao: UserDao,
-                                  cc: ControllerComponents
-                                )(implicit ec: ExecutionContext)
-  extends AbstractController(cc){
+class AuthController @Inject() (
+  messagesAction: MessagesActionBuilder,
+  cc: ControllerComponents,
+  //silhouette: Silhouette[JWTEnv],
+  //userService: UserService,
+  //authInfoRepository: AuthInfoRepository,
+  //authTokenService: AuthTokenService,
+  avatarService: AvatarService,
+  //passwordHasherRegistry: PasswordHasherRegistry,
+  mailerClient: MailerClient)(implicit ec: ExecutionContext)
+  extends AbstractController(cc) {
 
-  /**
-    * Create an Action to render a JSON response page.
-    *
-    * The configuration in the `routes` file means that this method
-    * will be called when the application receives a `GET` request with
-    * a path of `/auth`.
-    */
-  def login(userName: String): Action[AnyContent] = Action {
-    Ok(s"All Good, $userName!")
+  def login: Action[AnyContent] = messagesAction { implicit request: MessagesRequest[AnyContent] =>
+    UserDto.userForm.bindFromRequest.fold(
+      formWithErrors => {
+        Ok("Error with data")
+      },
+      user => {
+        Ok(Json.toJson(user))
+      }
+    )
   }
-
 }

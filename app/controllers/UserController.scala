@@ -16,13 +16,13 @@
 
 package controllers
 
-import dao.UserDao
-import dto.UserDto
+import models.dao.UserDao
+import models.dto.UserDto
 import javax.inject._
 
-import play.api.mvc.{Action, AnyContent}
+import play.api.mvc.{ Action, AnyContent }
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, ControllerComponents}
+import play.api.mvc.{ AbstractController, ControllerComponents }
 
 import scala.concurrent.ExecutionContext
 
@@ -31,23 +31,23 @@ import scala.concurrent.ExecutionContext
  * application's home page.
  */
 @Singleton
-class UserController @Inject()(
-      cc: ControllerComponents,
-      userDao: UserDao
-      )(implicit ec: ExecutionContext)
-  extends AbstractController(cc){
+class UserController @Inject() (
+  cc: ControllerComponents,
+  userDao: UserDao
+)(implicit ec: ExecutionContext)
+  extends AbstractController(cc) {
 
   def getAll: Action[AnyContent] = Action async {
     userDao.all().map(users => Ok(Json.toJson(users.map(u => UserDto(u)))))
   }
 
   def get(id: Int): Action[AnyContent] = Action.async {
-    userDao.get(id).map(user => Ok(Json.toJson(UserDto(user))))
+    userDao.find(id).map(user => Ok(Json.toJson(UserDto(user.get))))
   }
 
-//  def create(fname: String, sname: String) = Action {
-//        val user = new UserDao()
-//    implicit request: Request[AnyContent] => Ok(views.html.user())
-//  }
+  //  def create(fname: String, sname: String) = Action {
+  //        val user = new UserDao()
+  //    implicit request: Request[AnyContent] => Ok(views.html.user())
+  //  }
 
 }
