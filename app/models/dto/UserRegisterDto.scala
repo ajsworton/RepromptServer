@@ -16,61 +16,41 @@
 
 package models.dto
 
-import models.User
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.Forms.{ mapping, text }
 import play.api.libs.json.Json
 
 /**
- *
- * @param id                 The user's Id
+ * @param userName           The user's Handle
+ * @param password           The user's Password
  * @param firstName          The user's first name
  * @param surName            The user's last name
  * @param email              The user's email address
- * @param isEmailVerified    The user's email verification status
- * @param isEducator         The user's educator group status
- * @param isAdministrator    The user's administrator status
  * @param avatarUrl          The user's avatarUrl
  */
-case class UserDto(
-  id: Option[Int],
+case class UserRegisterDto(
+  userName: String,
+  password: String,
   firstName: String,
   surName: String,
   email: String,
-  isEmailVerified: Boolean,
-  isEducator: Boolean,
-  isAdministrator: Boolean,
   avatarUrl: Option[String]
 )
 
-object UserDto {
+object UserRegisterDto {
 
-  def apply(user: User): UserDto = {
-    new UserDto(
-      Some(user.id),
-      user.firstName,
-      user.surName,
-      user.email,
-      user.isEmailVerified,
-      user.isEducator,
-      user.isAdministrator,
-      user.avatarUrl)
-  }
-
-  def userForm: Form[UserDto] = Form(
+  def registerForm: Form[UserRegisterDto] = Form(
     mapping(
-      "id" -> optional(number),
+      "userName" -> nonEmptyText,
+      "password" -> nonEmptyText,
       "firstName" -> nonEmptyText,
       "surName" -> nonEmptyText,
       "email" -> nonEmptyText,
-      "isEmailVerified" -> boolean,
-      "isEducator" -> boolean,
-      "isAdministrator" -> boolean,
       "avatarUrl" -> optional(text)
-    )(UserDto.apply)(UserDto.unapply)
+    )(UserRegisterDto.apply)(UserRegisterDto.unapply)
   )
 
-  implicit val userDtoFormat = Json.format[UserDto]
+  implicit val userRegisterDtoFormat = Json.format[UserRegisterDto]
 }
 

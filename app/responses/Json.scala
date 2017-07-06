@@ -14,16 +14,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package env
+package responses
 
-import com.mohiva.play.silhouette.api.Env
-import com.mohiva.play.silhouette.impl.authenticators.JWTAuthenticator
-import models.User
+import play.api.libs.json.Json
 
-/**
- * The JWT env.
- */
-trait JWTEnv extends Env {
-  type I = User
-  type A = JWTAuthenticator
+case class JsonErrorResponse(response: String = "Error")
+
+object JsonErrorResponse {
+
+  implicit val JsonErrorResponseFormat = Json.format[JsonErrorResponse]
+
 }

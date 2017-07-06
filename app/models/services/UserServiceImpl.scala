@@ -22,16 +22,16 @@
 
 package models.services
 
-import java.time.{ LocalDate, LocalDateTime }
+import java.time.{LocalDate, LocalDateTime}
 import java.util.UUID
 import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
-import models.User
-import models.dao.UserDao
+import models.{Profile, User}
+import models.dao.UserDaoSlick
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 /**
  * Handles actions to users.
@@ -39,7 +39,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param userDao The user DAO implementation.
  * @param ex      The execution context.
  */
-class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext)
+class UserServiceImpl @Inject() (userDao: UserDaoSlick)(implicit ex: ExecutionContext)
   extends UserService {
 
   /**
@@ -113,4 +113,5 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
 
   //    }
   //  }
+  override def save(profile: Profile): Future[User] = ???
 }

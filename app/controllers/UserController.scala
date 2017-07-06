@@ -16,7 +16,7 @@
 
 package controllers
 
-import models.dao.UserDao
+import models.dao.UserDaoSlick
 import models.dto.UserDto
 import javax.inject._
 
@@ -33,7 +33,7 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class UserController @Inject() (
   cc: ControllerComponents,
-  userDao: UserDao
+  userDao: UserDaoSlick
 )(implicit ec: ExecutionContext)
   extends AbstractController(cc) {
 

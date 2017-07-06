@@ -1,7 +1,8 @@
 # ``>Reprompt``
 #### Exam preparation e-learning tool
 
-![Build Status][logo]
+![Build Status][logo] 
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 [logo]: https://travis-ci.com/aworton/RepromptServer.svg?token=YXYYZLRjrctLryxGJPeQ&branch=master
 
@@ -22,5 +23,5 @@ authentication framework.
 #### Testing
 
 Testing is handled by Jasmine, Karma and Protractor in the client application and Scalatest for 
-the server.`
+the server.
 

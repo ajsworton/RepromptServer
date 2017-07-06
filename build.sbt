@@ -32,6 +32,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.play" %% "play-mailer-guice" % "6.0.0",
   "com.mohiva" %% "play-silhouette-persistence" % "5.0.0-RC2",
   "com.mohiva" %% "play-silhouette-testkit" % "5.0.0-RC2" % "test",
+  "org.mockito" % "mockito-core" % "2.8.47" % "test",
   ws
 )
 
