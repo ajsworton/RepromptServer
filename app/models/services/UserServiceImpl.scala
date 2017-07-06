@@ -22,12 +22,9 @@
 
 package models.services
 
-import java.time.{LocalDate, LocalDateTime}
-import java.util.UUID
 import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import com.mohiva.play.silhouette.impl.providers.CommonSocialProfile
 import models.{Profile, User}
 import models.dao.UserDaoSlick
 
@@ -66,52 +63,50 @@ class UserServiceImpl @Inject() (userDao: UserDaoSlick)(implicit ex: ExecutionCo
    */
   override def save(user: User): Future[User] = userDao.save(user)
 
-  //  /**
-  //   * Saves the social profile for a user.
-  //   *
-  //   * If a user exists for this profile then update the user, otherwise create a new user with the
-  //   * given profile.
-  //   *
-  //   * @param profile The social profile to save.
-  //   * @return The user for whom the profile was saved.
-  //   */
-  //  def save(profile: CommonSocialProfile, authHashSupplied: String = ""): Future[User] = {
-  //    userDao.find(profile.loginInfo).flatMap {
-  //      case Some(user) => // Update user with profile
-  //        userDao.save(user.copy(
-  //          firstName = profile.firstName,
-  //          lastName = profile.lastName,
-  //          fullName = profile.fullName,
-  //          email = profile.email,
-  //          avatarUrl = profile.avatarURL
-  //        ))
-  //      case None => // Insert a new user
-  //        userDao.save(User(
-  //          id = None,
-  //          userName = profile.loginInfo,
-  //          firstName = profile.firstName,
-  //          surName = profile.lastName,
-  //          email = profile.email,
-  //          authHash = authHashSupplied,
-  //          avatarUrl = profile.avatarURL,
-  //        ))
-  //
-  //        id: Option[Int],
-  //      userName: String,
-  //      firstName: String,
-  //      surName: String,
-  //      email: String,
-  //      isEmailVerified: Boolean,
-  //      authHash: String,
-  //      authResetCode: Option[String],
-  //      authResetExpiry: Option[LocalDate],
-  //      authToken: Option[String],
-  //      authExpire: Option[LocalDateTime],
-  //      isEducator: Boolean,
-  //      isAdministrator: Boolean,
-  //      avatarUrl: Option[String]
+  /**
+   * Saves the social profile for a user.
+   *
+   * If a user exists for this profile then update the user, otherwise create a new user with the
+   * given profile.
+   *
+   * @param profile The social profile to save.
+   * @return The user for whom the profile was saved.
+   */
+  def save(profile: Profile, authHashSupplied: String = ""): Future[User] = {
+    userDao.find(profile.loginInfo).flatMap {
+      case Some(user) => // Update user with profile
+        userDao.save(user.copy(
+          firstName = profile.firstName.get,
+          surName = profile.lastName.get,
+          email = profile.email.get,
+          profiles = (user.profiles.map((p: Profile) => if(profile == p) profile)
+            .asInstanceOf[List[Profile]])
+        ))
 
-  //    }
-  //  }
+
+
+
+
+//          user.copy(
+//          firstName = profile.firstName.get,
+//          surName = profile.lastName,
+//          fullName = profile.fullName,
+//          email = profile.email,
+//          avatarUrl = profile.avatarURL
+
+      //TODO!!!!
+//      case None => // Insert a new user
+//        userDao.save(User(
+//          id = None,
+//          userName = profile.loginInfo,
+//          firstName = profile.firstName,
+//          surName = profile.lastName,
+//          email = profile.email,
+//          authHash = authHashSupplied,
+//          avatarUrl = profile.avatarURL,
+//        ))
+
+    }
+  }
   override def save(profile: Profile): Future[User] = ???
 }

@@ -18,11 +18,11 @@ package models
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.PasswordInfo
-import com.mohiva.play.silhouette.impl.providers.{ OAuth1Info, OAuth2Info }
-import play.api.libs.json.{ JsSuccess, Json, OFormat }
+import com.mohiva.play.silhouette.impl.providers.{OAuth1Info, OAuth2Info, SocialProfile}
+import play.api.libs.json.{JsSuccess, Json, OFormat}
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import slick.lifted.{PrimaryKey, ProvenShape}
 
 case class Profile(
   userId: Option[Int],
@@ -36,7 +36,7 @@ case class Profile(
   oauth1Info: Option[OAuth1Info],
   oauth2Info: Option[OAuth2Info],
   avatarUrl: Option[String]
-)
+) extends SocialProfile
 
 object Profile {
   class ProfileTable(tag: Tag) extends Table[Profile](tag, "PROFILE") {
