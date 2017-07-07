@@ -16,16 +16,16 @@
 
 package models
 
-import java.sql.{Date, Timestamp}
-import java.time.{LocalDate, LocalDateTime}
+import java.sql.{ Date, Timestamp }
+import java.time.{ LocalDate, LocalDateTime }
 
-import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
+import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.ProvenShape
 
 case class User(
-  id: Option[Int],
+  id: Option[Int] = None,
   profiles: List[Profile] = Nil,
   firstName: String,
   surName: String,
@@ -63,32 +63,19 @@ object User {
     def * : ProvenShape[User] = (id, firstName, surName, email, isEmailVerified,
       isEducator, isAdministrator, avatarUrl) <> ((constructUser _).tupled, deconstructUser)
 
-
-    def constructUser(
-                       id: Option[Int],
-                       firstName: String,
-                       surName: String,
-                       email: String,
-                       isEmailVerified: Boolean,
-                       isEducator: Boolean,
-                       isAdministrator: Boolean,
-                       avatarUrl: Option[String]
-                     ) = {
-      User(
-        id = id,
-        firstName = firstName,
-        surName = surName,
-        email = email,
-        isEmailVerified = isEmailVerified,
-        isEducator = isEducator,
-        isAdministrator = isAdministrator,
-        avatarUrl = avatarUrl)
-    }
+    def constructUser(id: Option[Int], firstName: String, surName: String, email: String,
+      isEmailVerified: Boolean, isEducator: Boolean, isAdministrator: Boolean,
+      avatarUrl: Option[String]) =
+      {
+        User(id = id, firstName = firstName, surName = surName, email = email,
+          isEmailVerified = isEmailVerified, isEducator = isEducator,
+          isAdministrator = isAdministrator, avatarUrl = avatarUrl)
+      }
 
     def deconstructUser(user: User) = user match {
       case User(id: Option[Int], profiles: List[Profile], firstName: String, surName: String,
-      email: String, isEmailVerified: Boolean, isEducator: Boolean, isAdministrator: Boolean,
-      avatarUrl: Option[String]) => {
+        email: String, isEmailVerified: Boolean, isEducator: Boolean, isAdministrator: Boolean,
+        avatarUrl: Option[String]) => {
         Option(id, firstName, surName, email, isEmailVerified, isEducator, isAdministrator,
           avatarUrl)
       }

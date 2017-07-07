@@ -16,45 +16,82 @@
 
 package models.dao
 
-import java.sql.{ Date, Timestamp }
-import java.time.{ LocalDate, LocalDateTime }
 import javax.inject._
 
 import com.mohiva.play.silhouette.api.LoginInfo
+import models.Profile.ProfileTable
 import models.User.UsersTable
-import slick.jdbc.JdbcProfile
 import models.{ Profile, User }
 import play.api.db.slick.DatabaseConfigProvider
 import play.api.db.slick.HasDatabaseConfigProvider
-import slick.lifted.{ ProvenShape, Tag }
+import slick.jdbc.JdbcProfile
+import slick.jdbc.MySQLProfile.api._
+import slick.lifted.TableQuery
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends UserDao with HasDatabaseConfigProvider[JdbcProfile] {
-  import profile.api._
 
   private val Users = TableQuery[UsersTable]
+  private val Profiles = TableQuery[ProfileTable]
 
   def all(): Future[Seq[User]] = db.run(Users.result)
 
-  def find(id: Int): Future[Option[User]] = db.run(Users.filter(u => u.id === id).result.headOption)
+  def find(id: Int): Future[Option[User]] = db.run(Users.filter(_.id === id).result.headOption)
 
-  def find(login: LoginInfo): Future[Option[User]] = db.run(Users.filter(u => u.id === login
-    .providerKey.asInstanceOf[Int])
-    .result.headOption)
+  def find(loginInfo: LoginInfo): Future[Option[User]] = {
+    val query = for {
+      p <- Profiles if matchOnLoginInfo(p, loginInfo)
+      u <- Users if u.id === p.userId
+    } yield (u)
 
-  def save(user: User): Future[User] = {
-    db.run(Users returning Users += user)
+    db.run(query.result.headOption)
+
+    //    val response = db.run(query.result).flatMap((u, p) => (u, p).groupBy(u))
+    //    db.run(Users.filter(u => u.id === login
+    //      .providerKey.asInstanceOf[Int])
+    //      .result.headOption)
   }
 
-  override def delete(userId: Int): Unit = ???
+  override def save(user: User): Future[Option[User]] = {
+    val returned = db.run(Users returning Users += user)
+    returned.flatMap(u => Future(Some(u)))
+  }
 
-  override def delete(loginInfo: LoginInfo): Future[User] = ???
+  override def delete(userId: Int): Future[Int] = db.run(Users.filter(_.id === userId).delete)
 
-  override def confirm(loginInfo: LoginInfo): Future[User] = ???
+  override def delete(loginInfo: LoginInfo): Future[Int] = {
+    db.run(Profiles.filter(p => matchOnLoginInfo(p, loginInfo)).delete)
+  }
 
-  override def link(user: User, profile: Profile): Future[User] = ???
+  override def confirm(loginInfo: LoginInfo): Future[Int] = {
+    val query = for {
+      p <- Profiles if matchOnLoginInfo(p, loginInfo)
+    } yield p.confirmed
 
-  override def update(profile: Profile): Future[User] = ???
+    db.run(query.update(true))
+  }
+
+  override def link(user: User, profile: Profile): Future[Option[User]] = {
+    if (!user.id.isDefined) {
+      Future(None)
+    } else {
+      db.run(Profiles += profile.copy(userId = user.id))
+      find(user.id.get)
+    }
+  }
+
+  override def update(profile: Profile): Future[Option[User]] = {
+    if (!profile.userId.isDefined) {
+      Future(None)
+    } else {
+      db.run(Profiles.update(profile))
+      find(profile.userId.get)
+    }
+  }
+
+  def matchOnLoginInfo(p: Profile.ProfileTable, loginInfo: LoginInfo) = {
+    p.providerId === loginInfo.providerID && p.providerKey === loginInfo.providerKey
+  }
 }

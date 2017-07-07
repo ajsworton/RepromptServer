@@ -14,21 +14,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-/**
- * This code substantially based on the silhouette framework exemplar
- * accessed 04/07/2017
- * https://github.com/mohiva/play-silhouette-seed/
- */
-
 package models.services
 
 import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import models.{Profile, User}
-import models.dao.UserDaoSlick
+import models.{ Profile, User }
+import models.dao.{ UserDao }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * Handles actions to users.
@@ -36,7 +30,7 @@ import scala.concurrent.{ExecutionContext, Future}
  * @param userDao The user DAO implementation.
  * @param ex      The execution context.
  */
-class UserServiceImpl @Inject() (userDao: UserDaoSlick)(implicit ex: ExecutionContext)
+class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext)
   extends UserService {
 
   /**
@@ -61,7 +55,7 @@ class UserServiceImpl @Inject() (userDao: UserDaoSlick)(implicit ex: ExecutionCo
    * @param user The user to save.
    * @return The saved user.
    */
-  override def save(user: User): Future[User] = userDao.save(user)
+  override def save(user: User): Future[Option[User]] = userDao.save(user)
 
   /**
    * Saves the social profile for a user.
@@ -72,41 +66,55 @@ class UserServiceImpl @Inject() (userDao: UserDaoSlick)(implicit ex: ExecutionCo
    * @param profile The social profile to save.
    * @return The user for whom the profile was saved.
    */
-  def save(profile: Profile, authHashSupplied: String = ""): Future[User] = {
+  override def save(profile: Profile): Future[Option[User]] = {
     userDao.find(profile.loginInfo).flatMap {
-      case Some(user) => // Update user with profile
-        userDao.save(user.copy(
-          firstName = profile.firstName.get,
-          surName = profile.lastName.get,
-          email = profile.email.get,
-          profiles = (user.profiles.map((p: Profile) => if(profile == p) profile)
-            .asInstanceOf[List[Profile]])
-        ))
-
-
-
-
-
-//          user.copy(
-//          firstName = profile.firstName.get,
-//          surName = profile.lastName,
-//          fullName = profile.fullName,
-//          email = profile.email,
-//          avatarUrl = profile.avatarURL
-
-      //TODO!!!!
-//      case None => // Insert a new user
-//        userDao.save(User(
-//          id = None,
-//          userName = profile.loginInfo,
-//          firstName = profile.firstName,
-//          surName = profile.lastName,
-//          email = profile.email,
-//          authHash = authHashSupplied,
-//          avatarUrl = profile.avatarURL,
-//        ))
-
+      // user and profile exist, update the profile
+      case Some(user) => userDao.update(profile.copy(userId = user.id))
+      //no profile exists. Find or Save the user and then save the linked profile.
+      case None => {
+        if (!(profile.userId.isDefined)) {
+          //write the user
+          createUserAndProfile(profile)
+        } else {
+          //get the user
+          val associatedUser = userDao.find(profile.userId.get)
+          // write the profile
+          associatedUser.flatMap {
+            case Some(usr) => userDao.link(usr, profile.copy(userId = usr.id))
+            case None => createUserAndProfile(profile)
+          }
+        }
+      }
     }
   }
-  override def save(profile: Profile): Future[User] = ???
+
+  def createUserAndProfile(profile: Profile): Future[Option[User]] = {
+    val associatedUser = userDao.save(User(
+      firstName = getFirstName(profile.firstName, profile.fullName),
+      surName = getSurName(profile.lastName, profile.fullName),
+      email = profile.email.getOrElse(""),
+      avatarUrl = profile.avatarUrl))
+    // write the profile
+    associatedUser.flatMap((u) => userDao.link(u.get, profile.copy(userId = u.get.id)))
+  }
+
+  def getFirstName(firstName: Option[String], fullName: Option[String]): String = firstName match {
+    case Some(value) => value
+    case None => {
+      fullName match {
+        case None => ""
+        case Some(value) => value.split(" ").head
+      }
+    }
+  }
+
+  def getSurName(surName: Option[String], fullName: Option[String]): String = surName match {
+    case Some(value) => value
+    case None => {
+      fullName match {
+        case None => ""
+        case Some(value) => value.split(" ").reverse.head
+      }
+    }
+  }
 }

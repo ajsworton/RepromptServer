@@ -55,3 +55,6 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(FormatXml, false)
   .setPreference(DoubleIndentClassDeclaration, false)
   .setPreference(DanglingCloseParenthesis, Preserve)
+
+
+testOptions in Test += Tests.Argument("-Dconfig.file=conf/application.test.conf")

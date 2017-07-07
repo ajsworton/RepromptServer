@@ -18,11 +18,11 @@ package models
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.PasswordInfo
-import com.mohiva.play.silhouette.impl.providers.{OAuth1Info, OAuth2Info, SocialProfile}
-import play.api.libs.json.{JsSuccess, Json, OFormat}
+import com.mohiva.play.silhouette.impl.providers.{ OAuth1Info, OAuth2Info, SocialProfile }
+import play.api.libs.json.{ JsSuccess, Json, OFormat }
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
-import slick.lifted.{PrimaryKey, ProvenShape}
+import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class Profile(
   userId: Option[Int],
@@ -91,10 +91,10 @@ object Profile {
         confirmed: Boolean, email: Option[String], firstName: Option[String],
         lastName: Option[String], fullName: Option[String], passwordInfo: Option[String],
         oauth1Info: Option[String], oauth2Info: Option[String], avatarUrl: Option[String]) => {
-          Option(userId, providerId, providerKey, confirmed, email, firstName, lastName, fullName,
-            Some(Json.toJson(passwordInfo).toString()), Some(Json.toJson(oauth1Info).toString()),
-            Some(Json.toJson(oauth2Info).toString()), avatarUrl)
-        }
+        Option(userId, providerId, providerKey, confirmed, email, firstName, lastName, fullName,
+          Some(Json.toJson(passwordInfo).toString()), Some(Json.toJson(oauth1Info).toString()),
+          Some(Json.toJson(oauth2Info).toString()), avatarUrl)
+      }
     }
 
     def parsePasswordInfo(passwordInfo: Option[String]): Option[PasswordInfo] =

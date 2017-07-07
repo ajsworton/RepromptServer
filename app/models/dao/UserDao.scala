@@ -16,20 +16,67 @@
 
 package models.dao
 
-import java.util.UUID
-
 import com.mohiva.play.silhouette.api.LoginInfo
 import models.{ Profile, User }
 
 import scala.concurrent.Future
 
 trait UserDao {
-  def save(user: User): Future[User]
+
+  /**
+   *
+   * @param user
+   * @return
+   */
+  def save(user: User): Future[Option[User]]
+
+  /**
+   * Finds and returns an option[User] matching the userId
+   * @param userId the user Id to match on
+   * @return a future optional user
+   */
   def find(userId: Int): Future[Option[User]]
+
+  /**
+   * Finds and returns an option[User] matching the loginInfo
+   * @param loginInfo the loginInfo to match on
+   * @return a future optional user
+   */
   def find(loginInfo: LoginInfo): Future[Option[User]]
-  def delete(userId: Int): Unit
-  def delete(loginInfo: LoginInfo): Future[User]
-  def confirm(loginInfo: LoginInfo): Future[User]
-  def link(user: User, profile: Profile): Future[User]
-  def update(profile: Profile): Future[User]
+
+  /**
+   * Deletes a user and all associated profiles
+   * @param userId the user Id to match on
+   * @return a future number of affected rows
+   */
+  def delete(userId: Int): Future[Int]
+
+  /**
+   * Deletes a user profile that matches the supplied loginInfo
+   * @param loginInfo the loginInfo to match on
+   * @return a future number of affected rows
+   */
+  def delete(loginInfo: LoginInfo): Future[Int]
+
+  /**
+   * Confirm the profile associated with the loginInfo
+   * @param loginInfo the loginInfo to match on
+   * @return a future user
+   */
+  def confirm(loginInfo: LoginInfo): Future[Int]
+
+  /**
+   * Link a profile to an existing user
+   * @param user the target user
+   * @param profile the profile to link
+   * @return a future user
+   */
+  def link(user: User, profile: Profile): Future[Option[User]]
+
+  /**
+   * Update a stored user profile
+   * @param profile the profile to update
+   * @return a future user
+   */
+  def update(profile: Profile): Future[Option[User]]
 }

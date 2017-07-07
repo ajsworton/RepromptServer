@@ -16,37 +16,45 @@
 
 package models.dao
 
-import models.services.UserService
+import javax.inject.Inject
+
+import akka.actor.Status.Success
+import models.User
+import models.services.{ UserService, UserServiceImpl }
+import org.mockito.Mockito._
+import org.scalatest.{ BeforeAndAfter, FunSpec }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success }
 
-import scala.concurrent.Future
+class UserDaoSlickSpec @Inject() (implicit executionContext: ExecutionContext)
+  extends FunSpec with BeforeAndAfter with MockitoSugar with ScalaFutures {
 
-class UserDaoSlickSpec {
+  val userRepository = mock[UserDao]
+  var userService: UserService = _
+  var user1: User = _
+  var user2: User = _
 
-}
+  before {
+    user1 = User(id = Option(1), firstName = "Barry", surName = "Bear", email = "String")
+    user2 = User(id = Option(2), firstName = "Peter", surName = "Pan", email = "String")
+    userService = new UserServiceImpl(userRepository)
+  }
 
-class UserSpec extends PlaySpec with MockitoSugar with ScalaFutures {
-  "UserDaoSlick" should {
-    val userRepository = mock[UserRepository]
-    val user1 = userModel(Option(1), "user1@test.com")
-    val user2 = userModel(Option(2), "user2@test.com")
+  describe("UserDaoSlick") {
+    it("should find users correctly by id") {
+      val future: Future[Option[User]] = userService.retrieve(1)
+      //val failedFuture: Future[Option[User]] = userService.retrieve(0)
 
-    // mock the access and return our own results
-    when(userRepository.allUsers) thenReturn Future {Seq(user1, user2)}
+      //future.map(option => u)
+      //      future onComplete {
+      //        case scala.util.Success => println(s"Got the callback")
+      //        case scala.util.Failure(e) => e.printStackTrace
+      //      }
 
-    val userService = new UserService(userRepository)
-
-    "find users correctly by id" in {
-      val future = userService.getUserById(1)
-
-      whenReady(future) { user =>
-        user.get mustBe user1
-      }
-    }
-
-    "update user correctly" in {
-      // TODO test this
+      // assert(opUser.get.get === user1)
+      //failedFuture.onComplete(opUser => { assert(opUser.get.isEmpty) })
     }
   }
+}

@@ -48,7 +48,7 @@ object UserDto {
 
   def apply(user: User): UserDto = {
     new UserDto(
-      Some(user.id),
+      user.id,
       user.firstName,
       user.surName,
       user.email,
