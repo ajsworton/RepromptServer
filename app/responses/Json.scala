@@ -18,7 +18,7 @@ package responses
 
 import play.api.libs.json.Json
 
-case class JsonErrorResponse(response: String = "Error")
+case class JsonErrorResponse(error: String = "Unknown Error")
 
 object JsonErrorResponse {
 

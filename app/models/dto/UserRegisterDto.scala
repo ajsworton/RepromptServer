@@ -18,36 +18,29 @@ package models.dto
 
 import play.api.data._
 import play.api.data.Forms._
-import play.api.data.Forms.{ mapping, text }
 import play.api.libs.json.Json
 
 /**
- * @param userName           The user's Handle
  * @param password           The user's Password
  * @param firstName          The user's first name
  * @param surName            The user's last name
  * @param email              The user's email address
- * @param avatarUrl          The user's avatarUrl
  */
 case class UserRegisterDto(
-  userName: String,
   password: String,
   firstName: String,
   surName: String,
-  email: String,
-  avatarUrl: Option[String]
+  email: String
 )
 
 object UserRegisterDto {
 
   def registerForm: Form[UserRegisterDto] = Form(
     mapping(
-      "userName" -> nonEmptyText,
       "password" -> nonEmptyText,
       "firstName" -> nonEmptyText,
       "surName" -> nonEmptyText,
-      "email" -> nonEmptyText,
-      "avatarUrl" -> optional(text)
+      "email" -> nonEmptyText
     )(UserRegisterDto.apply)(UserRegisterDto.unapply)
   )
 

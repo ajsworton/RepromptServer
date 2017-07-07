@@ -39,6 +39,16 @@ case class User(
 }
 
 object User {
+
+  def apply(profile: Profile) = {
+    new User(
+      profiles = List(profile),
+      firstName = profile.firstName.getOrElse(""),
+      surName = profile.lastName.getOrElse(""),
+      email = profile.email.getOrElse("")
+    )
+  }
+
   class UsersTable(tag: Tag) extends Table[User](tag, "USERS") {
     implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
       l => Date.valueOf(l),

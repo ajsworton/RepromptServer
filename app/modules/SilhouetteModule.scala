@@ -41,6 +41,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.CookieHeaderEncoding
 import env.JWTEnv
 import libraries.PlayCacheLayer
+import models.dao.{ UserDao, UserDaoSlick }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -58,7 +59,7 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     //bind[UnsecuredErrorHandler].to[CustomUnsecuredErrorHandler]
     //bind[SecuredErrorHandler].to[CustomSecuredErrorHandler]
     bind[UserService].to[UserServiceImpl]
-    //bind[UserDao].to[UserDaoImpl]
+    bind[UserDao].to[UserDaoSlick]
     //bind[CacheLayer].to[PlayCacheLayer]
     bind[IDGenerator].toInstance(new SecureRandomIDGenerator())
     bind[PasswordHasher].toInstance(new BCryptPasswordHasher)

@@ -19,7 +19,6 @@ package models.dto
 import models.User
 import play.api.data._
 import play.api.data.Forms._
-import play.api.data.Forms.{ mapping, text }
 import play.api.libs.json.Json
 
 /**

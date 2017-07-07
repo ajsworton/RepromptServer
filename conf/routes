@@ -11,12 +11,14 @@ GET     /dist/*file                 controllers.HomeController.dist(file)
 
 #GET     /api/auth/:userName         controllers.AuthController.login(userName: String)
 
-GET     /api/user/                  controllers.UserController.getAll
+GET     /api/user                   controllers.UserController.getAll
 
 GET     /api/user/:id               controllers.UserController.get(id: Int)
 
-#POST    /api/auth/login/             controllers.AuthController.register
-PUT     /api/auth/login/             controllers.AuthController.login
+#POST    /api/auth/login             controllers.AuthController.register
+PUT     /api/auth/login             controllers.AuthController.login
+
+PUT     /api/auth/register          controllers.AuthController.register
 
 #POST    /user/:fname/:sname         controllers.UserController.create(fname: String, sname: String)
 

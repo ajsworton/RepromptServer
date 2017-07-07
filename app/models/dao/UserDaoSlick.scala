@@ -19,7 +19,7 @@ package models.dao
 import javax.inject._
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import models.Profile.ProfileTable
+import models.Profile.ProfilesTable
 import models.User.UsersTable
 import models.{ Profile, User }
 import play.api.db.slick.DatabaseConfigProvider
@@ -34,7 +34,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
   extends UserDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val Users = TableQuery[UsersTable]
-  private val Profiles = TableQuery[ProfileTable]
+  private val Profiles = TableQuery[ProfilesTable]
 
   def all(): Future[Seq[User]] = db.run(Users.result)
 
@@ -91,7 +91,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
     }
   }
 
-  def matchOnLoginInfo(p: Profile.ProfileTable, loginInfo: LoginInfo) = {
+  def matchOnLoginInfo(p: Profile.ProfilesTable, loginInfo: LoginInfo) = {
     p.providerId === loginInfo.providerID && p.providerKey === loginInfo.providerKey
   }
 }

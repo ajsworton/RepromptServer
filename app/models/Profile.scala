@@ -25,21 +25,21 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class Profile(
-  userId: Option[Int],
+  userId: Option[Int] = None,
   loginInfo: LoginInfo,
-  confirmed: Boolean,
-  email: Option[String],
-  firstName: Option[String],
-  lastName: Option[String],
-  fullName: Option[String],
-  passwordInfo: Option[PasswordInfo],
-  oauth1Info: Option[OAuth1Info],
-  oauth2Info: Option[OAuth2Info],
-  avatarUrl: Option[String]
+  confirmed: Boolean = false,
+  email: Option[String] = None,
+  firstName: Option[String] = None,
+  lastName: Option[String] = None,
+  fullName: Option[String] = None,
+  passwordInfo: Option[PasswordInfo] = None,
+  oauth1Info: Option[OAuth1Info] = None,
+  oauth2Info: Option[OAuth2Info] = None,
+  avatarUrl: Option[String] = None
 ) extends SocialProfile
 
 object Profile {
-  class ProfileTable(tag: Tag) extends Table[Profile](tag, "PROFILE") {
+  class ProfilesTable(tag: Tag) extends Table[Profile](tag, "PROFILES") {
 
     implicit val oAuth1JsonFormat: OFormat[OAuth1Info] = Json.format[OAuth1Info]
     implicit val oAuth2JsonFormat: OFormat[OAuth2Info] = Json.format[OAuth2Info]
