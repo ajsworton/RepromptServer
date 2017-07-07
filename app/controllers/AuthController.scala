@@ -90,16 +90,15 @@ class AuthController @Inject() (
         Ok(Json.toJson(JsonErrorResponse("Authenticated")))
     }
   }
-
-  private def embedToken(loginInfo: LoginInfo, request: MessagesRequest[AnyContent], user: User)
-  = {
-    silhouette.env.authenticatorService.create(loginInfo).flatMap { authenticator =>
-      silhouette.env.eventBus.publish(LoginEvent(user, request))
-      silhouette.env.authenticatorService.init(authenticator).flatMap { v =>
-        silhouette.env.authenticatorService.embed(v, Ok(Json.toJson(JsonErrorResponse("Authenticated"))))
-      }
-    }
-  }
+  //TODO reenable and continue
+  //  private def embedToken(loginInfo: LoginInfo, request: MessagesRequest[AnyContent], user: User) = {
+  //    silhouette.env.authenticatorService.create(loginInfo).flatMap { authenticator =>
+  //      silhouette.env.eventBus.publish(LoginEvent(user, request))
+  //      silhouette.env.authenticatorService.init(authenticator).flatMap { v =>
+  //        silhouette.env.authenticatorService.embed(v, Ok(Json.toJson(JsonErrorResponse("Authenticated"))))
+  //      }
+  //    }
+  //  }
 
   def login: Action[AnyContent] = messagesAction {
     implicit request: MessagesRequest[AnyContent] =>
