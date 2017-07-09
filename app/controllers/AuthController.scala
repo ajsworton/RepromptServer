@@ -92,7 +92,9 @@ class AuthController @Inject() (
     silhouette.env.authenticatorService.create(loginInfo)(request).flatMap { authenticator =>
       silhouette.env.eventBus.publish(LoginEvent(user, request))
       silhouette.env.authenticatorService.init(authenticator)(request).flatMap { v =>
-        silhouette.env.authenticatorService.embed(v, Ok(Json.toJson(JsonErrorResponse("Authenticated"))))(request)
+        silhouette.env.authenticatorService.embed(
+          v,
+          Ok(Json.toJson(JsonErrorResponse("Authenticated"))))(request)
       }
     }
   }

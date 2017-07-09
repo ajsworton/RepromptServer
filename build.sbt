@@ -57,6 +57,6 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(DanglingCloseParenthesis, Preserve)
 
 
-testOptions in Test += Tests.Argument("-Dconfig.file=conf/application.test.conf")
+//testOptions in Test += Tests.Argument("-Dconfig.file=conf/application.test.conf")
 
 javaOptions in Test += "-Dconfig.file=conf/application.test.conf"

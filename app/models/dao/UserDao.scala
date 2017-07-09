@@ -79,4 +79,18 @@ trait UserDao {
    * @return a future user
    */
   def update(profile: Profile): Future[Option[User]]
+
+  /**
+   * Update a stored user
+   * @param user the user to update
+   * @return a future user
+   */
+  def update(user: User): Future[Option[User]]
+
+  /**
+   * Check if a duplicate record already exists
+   * @param user
+   * @return a future boolean
+   */
+  def checkDuplicate(user: User): Future[Boolean]
 }

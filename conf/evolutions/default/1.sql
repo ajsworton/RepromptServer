@@ -16,11 +16,14 @@ CREATE TABLE Users (
   UNIQUE KEY EMAIL (Email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+INSERT INTO Users (Id, FirstName, SurName, Email, IsEmailVerified, IsEducator, IsAdministrator)
+VALUES (1, 'Admin', 'User', 'Undefined', '1', '1', '1');
+
 CREATE TABLE Profiles(
   UserId INT NOT NULL,
   ProviderId VARCHAR(255) NOT NULL,
   ProviderKey VARCHAR(255) NOT NULL,
-  Confirmed BOOL NOT NULL,
+  Confirmed tinyint(1) NOT NULL DEFAULT '0',
   Email VARCHAR(255),
   FirstName VARCHAR(255),
   LastName VARCHAR(255),
@@ -32,6 +35,9 @@ CREATE TABLE Profiles(
   PRIMARY KEY (UserId, ProviderId, ProviderKey),
   FOREIGN KEY (UserId) REFERENCES Users(Id) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=INNODB CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+INSERT INTO Profiles (UserId, ProviderId, ProviderKey, Confirmed, FirstName)
+VALUES (1, 'credentials', 'admin', 1 , 'Admin');
 
 # --- !Downs
 

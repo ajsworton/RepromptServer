@@ -23,14 +23,14 @@ import play.api.inject.guice.GuiceApplicationBuilder
 trait AppFactory extends FakeApplicationFactory {
   def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
-//      .configure(Map(
-//        "slick.dbs.default.db.url" ->
-//          "jdbc:mysql://127.0.0.1:3306/reprompt?autoReconnect=true&useSSL=false&serverTimezone=UTC",
-//        "slick.dbs.default.db.properties.url" ->
-//          "jdbc:mysql://127.0.0.1:3306/reprompt?autoReconnect=true&useSSL=false&serverTimezone=UTC",
-//        "slick.dbs.default.user" -> "root",
-//        "slick.dbs.default.password" -> ""
-//      ))
+      //      .configure(Map(
+      //        "slick.dbs.default.db.url" ->
+      //          "jdbc:mysql://127.0.0.1:3306/reprompt?autoReconnect=true&useSSL=false&serverTimezone=UTC",
+      //        "slick.dbs.default.db.properties.url" ->
+      //          "jdbc:mysql://127.0.0.1:3306/reprompt?autoReconnect=true&useSSL=false&serverTimezone=UTC",
+      //        "slick.dbs.default.user" -> "root",
+      //        "slick.dbs.default.password" -> ""
+      //      ))
       .build()
   }
 }
