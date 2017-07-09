@@ -9,6 +9,7 @@ before_script:
   - mysql -u root -e 'CREATE DATABASE reprompt;'
   - mysql -u root -e "CREATE USER 'reprompt'@'localhost' IDENTIFIED BY 'reprompt';"
   - mysql -u root -e "GRANT ALL ON reprompt.* TO 'reprompt'@'localhost';"
+  - mysql -V
 deploy:
   provider: heroku
   api_key:
