@@ -9,8 +9,8 @@ before_script:
   -  chmod +x ./scripts/* #thanks https://medium.com/@psaunders
   - mysql --version
   - ls
-  - ./script/travis_mysql_5.7.sh
-  - ./script/mysql-reset-root-password.sh
+  - ./scripts/travis_mysql_5.7.sh
+  - ./scripts/mysql-reset-root-password.sh
   - mysql -u root -e 'CREATE DATABASE reprompt;'
   - mysql -u root -e "CREATE USER 'reprompt'@'localhost' IDENTIFIED BY 'reprompt';"
   - mysql -u root -e "GRANT ALL ON reprompt.* TO 'reprompt'@'localhost';"
