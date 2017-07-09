@@ -30,8 +30,7 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)
-                             (implicit executionContext: ExecutionContext)
+class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends UserDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val Users = TableQuery[UsersTable]
@@ -46,7 +45,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
       returnedUser <- db.run(Users.filter(_.id === id).result.headOption)
       usersProfiles: Seq[Profile] <- db.run(Profiles.filter(_.userId === returnedUser.get.id).result)
       user <- Future(returnedUser.map(u => u.copy(profiles = usersProfiles.toList)))
-        //.filter(_.userId.isDefined)))
+      //.filter(_.userId.isDefined)))
     } yield user
 
     result
@@ -69,23 +68,28 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
       ) += user)
 
     returnedUser.flatMap {
-      usr: User => {
-        val mappedProfiles = usr.profiles.map(p => p.copy(userId = usr.id))
-        val usrMapped = usr.copy(profiles = mappedProfiles)
-        println(s"User profiles attached: ${user.profiles.size}")
+      usr: User =>
+        {
+          val mappedProfiles = usr.profiles.map(p => p.copy(userId = usr.id))
+          val usrMapped = usr.copy(profiles = mappedProfiles)
+          println(s"User profiles attached: ${user.profiles.size}")
 
-        for {
-          _ <- db.run(Profiles ++= usrMapped.profiles)
-          read <- find(usrMapped.id.get)
-        } yield read
-      }
+          for {
+            _ <- db.run(Profiles ++= usrMapped.profiles)
+            read <- find(usrMapped.id.get)
+          } yield read
+        }
     }
   }
 
   override def delete(userId: Int): Future[Int] = db.run(Users.filter(_.id === userId).delete)
 
   override def delete(loginInfo: LoginInfo): Future[Int] = {
-    db.run(Profiles.filter(p => matchOnLoginInfo(p, loginInfo)).delete)
+    val affected = for {
+      id <- db.run(Profiles.filter(p => matchOnLoginInfo(p, loginInfo)).map(_.userId.get).result.headOption)
+      affected <- db.run(Users.filter(_.id === id.getOrElse(0)).delete)
+    } yield affected
+    affected
   }
 
   def checkDuplicate(user: User): Future[Boolean] = db.run(Users.filter(

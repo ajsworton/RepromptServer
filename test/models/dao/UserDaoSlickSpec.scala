@@ -67,9 +67,13 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
     profile2 = generateProfile(user2)
     user2 = user2.copy(profiles = profile2 :: user2.profiles)
 
+    userDao.delete(user1.profiles.head.loginInfo)
+    userDao.delete(user2.profiles.head.loginInfo)
+  }
 
-
-    //    user2 = User(id = Option(2), firstName = "Peter", surName = "Pan", email = "String")
+  after {
+    userDao.delete(user1.profiles.head.loginInfo)
+    userDao.delete(user2.profiles.head.loginInfo)
   }
 
   describe("UserDaoSlick") {
@@ -77,17 +81,18 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       //tests save
       val returnedUser = userDao.save(user1)
       returnedUser map {
-        result => {
-          result should not be None
-          result match {
-            case Some(usr) => {
-              //also tests delete
-              userDao.delete(usr.id.get)
-              usr.id.isDefined should be(true)
-              usr.id.get should be > 0
+        result =>
+          {
+            result should not be None
+            result match {
+              case Some(usr) => {
+                //also tests delete
+                userDao.delete(usr.id.get)
+                usr.id.isDefined should be(true)
+                usr.id.get should be > 0
+              }
             }
           }
-        }
       }
     }
 
@@ -95,78 +100,82 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       //tests save
       val returnedUser = userDao.save(user1)
       returnedUser map {
-        result => {
-          result should not be None
-          result match {
-            case Some(usr) => {
-              val returnedUser2 = userDao.update(usr.copy(firstName = "Malethew"))
-              returnedUser2 map {
-                secondResult => {
-                  secondResult should not be None
-                  secondResult match {
-                    case Some(uzr) => {
-                      uzr.id.isDefined should be(true)
-                      uzr.id.get should be(usr.id.get)
-                      uzr.firstName should be("Malethew")
+        result =>
+          {
+            result should not be None
+            result match {
+              case Some(usr) => {
+                val returnedUser2 = userDao.update(usr.copy(firstName = "Malethew"))
+                returnedUser2 map {
+                  secondResult =>
+                    {
+                      secondResult should not be None
+                      secondResult match {
+                        case Some(uzr) => {
+                          uzr.id.isDefined should be(true)
+                          uzr.id.get should be(usr.id.get)
+                          uzr.firstName should be("Malethew")
+                        }
+                      }
                     }
-                  }
                 }
+                //also tests delete
+                userDao.delete(usr.id.get)
+                usr.id.isDefined should be(true)
+                usr.id.get should be > 0
               }
-              //also tests delete
-              userDao.delete(usr.id.get)
-              usr.id.isDefined should be(true)
-              usr.id.get should be > 0
             }
           }
-        }
       }
     }
 
-//    it("should retrieve an existing profile") {
-//      val returnedUser = userDao.find(27)
-//            returnedUser map {
-//              result => {
-//                result should not be None
-//                result match {
-//                  case Some(usr) => {
-//                    usr.id.isDefined should be(true)
-//                    usr.id.get should be (27)
-//                    usr.firstName should be ("Bart")
-//                    usr.profiles.head should be (profile1.copy(userId = Some(27)))
-//                  }
-//                }
-//              }
-//            }
-//    }
+    //    it("should retrieve an existing profile") {
+    //      val returnedUser = userDao.find(27)
+    //            returnedUser map {
+    //              result => {
+    //                result should not be None
+    //                result match {
+    //                  case Some(usr) => {
+    //                    usr.id.isDefined should be(true)
+    //                    usr.id.get should be (27)
+    //                    usr.firstName should be ("Bart")
+    //                    usr.profiles.head should be (profile1.copy(userId = Some(27)))
+    //                  }
+    //                }
+    //              }
+    //            }
+    //    }
 
     it("should correctly link a profile") {
       val returnedUser = userDao.save(user1)
       returnedUser map {
-        result => {
-          result should not be None
-          result match {
-            case Some(usr) => {
-              //now perform link
-              val linkedUser = userDao.link(usr, profile1)
-              linkedUser map {
-                r => {
-                  r should not be None
-                  r match {
-                    case Some(u) => {
-                      userDao.delete(u.id.get)
-                      u.profiles.size should be(1)
-                      u.profiles.head should be(profile1)
-                      u.profiles.head.userId should be(u.id)
+        result =>
+          {
+            result should not be None
+            result match {
+              case Some(usr) => {
+                //now perform link
+                val linkedUser = userDao.link(usr, profile1)
+                linkedUser map {
+                  r =>
+                    {
+                      r should not be None
+                      r match {
+                        case Some(u) => {
+                          userDao.delete(u.id.get)
+                          u.profiles.size should be(1)
+                          u.profiles.head should be(profile1)
+                          u.profiles.head.userId should be(u.id)
+                        }
+                      }
                     }
-                  }
                 }
-              }
 
-              usr.profiles.size should be(1)
-              usr.profiles.head should be(profile1.copy(userId = usr.id))
+                usr.profiles.size should be(1)
+                usr.profiles.head should be(profile1.copy(userId = usr.id))
+              }
             }
           }
-        }
       }
     }
 

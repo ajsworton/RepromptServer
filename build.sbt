@@ -59,4 +59,4 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
 
 //testOptions in Test += Tests.Argument("-Dconfig.file=conf/application.test.conf")
 
-javaOptions in Test += "-Dconfig.file=conf/application.test.conf"
+//javaOptions in Test += "-Dconfig.file=conf/application.test.conf"
