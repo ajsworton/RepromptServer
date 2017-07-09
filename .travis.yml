@@ -7,7 +7,7 @@ services:
   - mysql
 before_script:
   -  chmod +x ./scripts/* #thanks https://medium.com/@psaunders
-  - mysql -v
+  - mysql --version
   - ls
   - ./script/travis_mysql_5.7.sh
   - ./script/mysql-reset-root-password.sh
