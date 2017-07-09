@@ -21,7 +21,7 @@ import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
-import com.mohiva.play.silhouette.api.services.AvatarService
+import com.mohiva.play.silhouette.api.services.{ AuthenticatorResult, AvatarService }
 import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordHasherRegistry }
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import models.dto.{ UserDto, UserRegisterDto }
@@ -69,36 +69,33 @@ class AuthController @Inject() (
 
   private def handleTokenAuth(formData: UserRegisterDto, request: MessagesRequest[AnyContent]): Future[Result] = {
     val loginInfo = LoginInfo(CredentialsProvider.ID, formData.email)
-    userService.retrieve(loginInfo).map {
-      case Some(_) => Ok(Json.toJson(JsonErrorResponse("Already Authenticated")))
+    userService.retrieve(loginInfo).flatMap {
+      case Some(_) => Future(Ok(Json.toJson(JsonErrorResponse("Already Authenticated"))))
       case None =>
         val profile = Profile(
           loginInfo = loginInfo, email = Some(formData.email),
           firstName = Some(formData.firstName), lastName = Some(formData.surName),
           fullName = Some(s"${formData.firstName} ${formData.surName}"))
-        val usr = for {
+        for {
           avatarUrl <- avatarService.retrieveURL(formData.email)
           user <- userService.save(User(profile.copy(avatarUrl = avatarUrl)))
           _ <- authInfoRepository.add(loginInfo, passwordHasher.hash(formData.password))
           token <- authTokenService.create(user.get.id.get)
+          result <- embedToken(loginInfo, request, user.get)
         } yield {
-          user
+          result
         }
-        //TODO!!!
-        //usr.onComplete(fUser => fUser.flatMap{e => embedToken(loginInfo, request, e)) }
-
-        Ok(Json.toJson(JsonErrorResponse("Authenticated")))
     }
   }
-  //TODO reenable and continue
-  //  private def embedToken(loginInfo: LoginInfo, request: MessagesRequest[AnyContent], user: User) = {
-  //    silhouette.env.authenticatorService.create(loginInfo).flatMap { authenticator =>
-  //      silhouette.env.eventBus.publish(LoginEvent(user, request))
-  //      silhouette.env.authenticatorService.init(authenticator).flatMap { v =>
-  //        silhouette.env.authenticatorService.embed(v, Ok(Json.toJson(JsonErrorResponse("Authenticated"))))
-  //      }
-  //    }
-  //  }
+
+  private def embedToken(loginInfo: LoginInfo, request: MessagesRequest[AnyContent], user: User): Future[Result] = {
+    silhouette.env.authenticatorService.create(loginInfo)(request).flatMap { authenticator =>
+      silhouette.env.eventBus.publish(LoginEvent(user, request))
+      silhouette.env.authenticatorService.init(authenticator)(request).flatMap { v =>
+        silhouette.env.authenticatorService.embed(v, Ok(Json.toJson(JsonErrorResponse("Authenticated"))))(request)
+      }
+    }
+  }
 
   def login: Action[AnyContent] = messagesAction {
     implicit request: MessagesRequest[AnyContent] =>

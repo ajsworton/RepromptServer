@@ -19,7 +19,7 @@ package libraries
 import org.mindrot.jbcrypt.BCrypt
 import org.scalatest.FunSpec
 
-class ExampleSpec extends FunSpec {
+class AuthSpec extends FunSpec {
   describe("Auth") {
 
     it("should respond with success when provided with matching passwords") {

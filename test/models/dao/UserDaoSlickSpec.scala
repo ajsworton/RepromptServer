@@ -16,45 +16,58 @@
 
 package models.dao
 
+import java.io.File
 import javax.inject.Inject
 
 import akka.actor.Status.Success
+import com.google.inject.Guice
 import models.User
-import models.services.{ UserService, UserServiceImpl }
+import models.services.{UserService, UserServiceImpl}
 import org.mockito.Mockito._
-import org.scalatest.{ BeforeAndAfter, FunSpec }
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers, TestSuite}
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.mockito.MockitoSugar
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Success }
+import org.scalatestplus.play.{FakeApplicationFactory, PlaySpec}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.{Application, Configuration}
+import play.api.test._
+import play.api.test.Helpers._
+import play.api.inject.bind
+import play.api.Configuration
+import play.api.inject.guice.GuiceApplicationBuilder
+import libs.AppFactory
 
-class UserDaoSlickSpec @Inject() (implicit executionContext: ExecutionContext)
-  extends FunSpec with BeforeAndAfter with MockitoSugar with ScalaFutures {
+class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
+  with MockitoSugar with AppFactory{
 
-  val userRepository = mock[UserDao]
-  var userService: UserService = _
   var user1: User = _
-  var user2: User = _
+  val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
 
   before {
     user1 = User(id = Option(1), firstName = "Barry", surName = "Bear", email = "String")
-    user2 = User(id = Option(2), firstName = "Peter", surName = "Pan", email = "String")
-    userService = new UserServiceImpl(userRepository)
+    //    user2 = User(id = Option(2), firstName = "Peter", surName = "Pan", email = "String")
   }
 
   describe("UserDaoSlick") {
-    it("should find users correctly by id") {
-      val future: Future[Option[User]] = userService.retrieve(1)
-      //val failedFuture: Future[Option[User]] = userService.retrieve(0)
+    it("should correctly insert a user by id") {
+      //tests save
+      val returnedUser = userDao.save(user1)
+      returnedUser map {
+        result =>
+          {
+            result should not be None
+            result match {
+              case Some(usr) => {
+                //also tests delete
+                userDao.delete(usr.id.get)
+                usr.id.isDefined should be(true)
+                usr.id.get should be > 0
+              }
+            }
+          }
+      }
 
-      //future.map(option => u)
-      //      future onComplete {
-      //        case scala.util.Success => println(s"Got the callback")
-      //        case scala.util.Failure(e) => e.printStackTrace
-      //      }
-
-      // assert(opUser.get.get === user1)
-      //failedFuture.onComplete(opUser => { assert(opUser.get.isEmpty) })
     }
+
   }
 }

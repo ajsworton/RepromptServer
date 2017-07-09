@@ -3,6 +3,8 @@ scala:
 - 2.12.2
 jdk:
 - oraclejdk8
+services:
+  - mysql
 deploy:
   provider: heroku
   api_key:

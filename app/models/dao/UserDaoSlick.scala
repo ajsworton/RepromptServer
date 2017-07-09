@@ -55,8 +55,11 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
   }
 
   override def save(user: User): Future[Option[User]] = {
-    val returned = db.run(Users returning Users += user)
-    returned.flatMap(u => Future(Some(u)))
+    val userId = db.run(Users returning Users.map(_.id) += user)
+    userId.flatMap {
+      case None => Future(None)
+      case Some(idVal) => find(idVal)
+    }
   }
 
   override def delete(userId: Int): Future[Int] = db.run(Users.filter(_.id === userId).delete)
