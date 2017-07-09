@@ -5,6 +5,8 @@ jdk:
 - oraclejdk8
 services:
   - mysql
+dist: trusty
+sudo: required
 before_script:
   -  chmod +x ./scripts/* #thanks https://medium.com/@psaunders
   - mysql --version
