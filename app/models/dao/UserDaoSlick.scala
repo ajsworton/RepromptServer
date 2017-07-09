@@ -61,25 +61,15 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
   }
 
   override def save(user: User): Future[Option[User]] = {
-
-    val returnedUser = db.run(
-      (Users returning Users.map(_.id)
+    for {
+      returnedUser <- db.run((Users returning Users.map(_.id)
         into ((user, returnedId) => user.copy(id = returnedId))
       ) += user)
-
-    returnedUser.flatMap {
-      usr: User =>
-        {
-          val mappedProfiles = usr.profiles.map(p => p.copy(userId = usr.id))
-          val usrMapped = usr.copy(profiles = mappedProfiles)
-          println(s"User profiles attached: ${user.profiles.size}")
-
-          for {
-            _ <- db.run(Profiles ++= usrMapped.profiles)
-            read <- find(usrMapped.id.get)
-          } yield read
-        }
-    }
+      mappedProfiles = returnedUser.profiles.map(p => p.copy(userId = returnedUser.id))
+      usrMapped = returnedUser.copy(profiles = mappedProfiles)
+      _ <- db.run(Profiles ++= usrMapped.profiles)
+      read <- find(usrMapped.id.get)
+    } yield read
   }
 
   override def delete(userId: Int): Future[Int] = db.run(Users.filter(_.id === userId).delete)

@@ -16,28 +16,12 @@
 
 package models.dao
 
-import java.io.File
-import javax.inject.Inject
-
-import akka.actor.Status.Success
-import com.google.inject.Guice
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import models.{ Profile, User }
-import models.services.{ UserService, UserServiceImpl }
-import org.mockito.Mockito._
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers, TestSuite }
-import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.{ FakeApplicationFactory, PlaySpec }
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import play.api.{ Application, Configuration }
-import play.api.test._
-import play.api.test.Helpers._
-import play.api.inject.bind
-import play.api.Configuration
-import play.api.inject.guice.GuiceApplicationBuilder
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import libs.AppFactory
+import org.scalatest.mockito.MockitoSugar
 
 class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   with MockitoSugar with AppFactory {
@@ -86,8 +70,6 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
             result should not be None
             result match {
               case Some(usr) => {
-                //also tests delete
-                userDao.delete(usr.id.get)
                 usr.id.isDefined should be(true)
                 usr.id.get should be > 0
               }
@@ -119,8 +101,6 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
                       }
                     }
                 }
-                //also tests delete
-                userDao.delete(usr.id.get)
                 usr.id.isDefined should be(true)
                 usr.id.get should be > 0
               }
@@ -162,7 +142,6 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
                       r should not be None
                       r match {
                         case Some(u) => {
-                          userDao.delete(u.id.get)
                           u.profiles.size should be(1)
                           u.profiles.head should be(profile1)
                           u.profiles.head.userId should be(u.id)
@@ -187,8 +166,6 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
             result should not be None
             result match {
               case Some(usr) => {
-                //also tests delete
-                //userDao.delete(usr.id.get)
                 val expected = profile2.copy(userId = usr.id)
                 usr.profiles.size should be(1)
                 usr.profiles.head should be(expected)
