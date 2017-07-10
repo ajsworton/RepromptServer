@@ -16,6 +16,14 @@
 
 package models.dao
 
-trait AuthInfoDao {
+import com.mohiva.play.silhouette.api.LoginInfo
 
+import scala.concurrent.Future
+
+trait AuthInfoDao {
+  def find(loginInfo: LoginInfo): Future[]
+  def add(loginInfo: LoginInfo): Future[]
+  def update(loginInfo: LoginInfo): Future[]
+  def save(loginInfo: LoginInfo): Future[]
+  def remove(loginInfo: LoginInfo): Future[]
 }
