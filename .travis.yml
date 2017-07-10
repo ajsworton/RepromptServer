@@ -13,7 +13,7 @@ before_script:
   - ./scripts/travis_mysql_5.7.sh
   - ./scripts/mysql-reset-root-password.sh
   - mysql -u root -e 'CREATE DATABASE reprompt;'
-  - mysql -u root -e 'reprompt' < ./conf/evolutions/default/1.sql
+  - mysql -u root -e reprompt < conf/evolutions/default/1.sql
   - mysql --version
 deploy:
   provider: heroku
