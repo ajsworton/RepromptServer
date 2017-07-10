@@ -16,54 +16,30 @@
 
 package models.dao
 
-import com.mohiva.play.silhouette.api.LoginInfo
-import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
-import models.{ Profile, User }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import libraries.UserProfileTestData
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import libs.AppFactory
 import org.scalatest.mockito.MockitoSugar
 
 class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   with MockitoSugar with AppFactory {
 
-  var user1: User = _
-  var user2: User = _
-  var profile1: Profile = _
-  var profile2: Profile = _
   val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
+  val testData = new UserProfileTestData(userDao)
 
-  def generateProfile(user: User): Profile = {
-    Profile(
-      loginInfo = LoginInfo(CredentialsProvider.ID, user.email),
-      email = Some(user.email),
-      firstName = Some(user.firstName),
-      lastName = Some(user.surName),
-      fullName = Some(s"${user.firstName} ${user.surName}"))
-  }
 
   before {
-    user1 = User(id = None, firstName = "Bart", surName = "Illiyan", email = "String")
-    user2 = User(id = None, firstName = "Micvhael", surName = "Grunthy",
-      email = "somewhere@over.the.rainbow")
-    profile1 = generateProfile(user1)
-    user1 = user1.copy(profiles = profile1 :: user1.profiles)
-
-    profile2 = generateProfile(user2)
-    user2 = user2.copy(profiles = profile2 :: user2.profiles)
-
-    userDao.delete(user1.profiles.head.loginInfo)
-    userDao.delete(user2.profiles.head.loginInfo)
+    testData.before
   }
 
   after {
-    userDao.delete(user1.profiles.head.loginInfo)
-    userDao.delete(user2.profiles.head.loginInfo)
+    testData.after
   }
 
   describe("UserDaoSlick") {
     it("should correctly insert a user by id (new user)") {
       //tests save
-      val returnedUser = userDao.save(user1)
+      val returnedUser = userDao.save(testData.user1Linked)
       returnedUser map {
         result =>
           {
@@ -80,15 +56,15 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
     it("should correctly update a user by id (existing user)") {
       //tests save
-      val returnedUser = userDao.save(user1)
+      val returnedUser = userDao.save(testData.user1Linked)
       returnedUser map {
         result =>
           {
             result should not be None
             result match {
               case Some(usr) => {
-                val returnedUser2 = userDao.update(usr.copy(firstName = "Malethew"))
-                returnedUser2 map {
+                val returnedUser = userDao.update(usr.copy(firstName = "Malethew"))
+                returnedUser map {
                   secondResult =>
                     {
                       secondResult should not be None
@@ -109,25 +85,8 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       }
     }
 
-    //    it("should retrieve an existing profile") {
-    //      val returnedUser = userDao.find(27)
-    //            returnedUser map {
-    //              result => {
-    //                result should not be None
-    //                result match {
-    //                  case Some(usr) => {
-    //                    usr.id.isDefined should be(true)
-    //                    usr.id.get should be (27)
-    //                    usr.firstName should be ("Bart")
-    //                    usr.profiles.head should be (profile1.copy(userId = Some(27)))
-    //                  }
-    //                }
-    //              }
-    //            }
-    //    }
-
     it("should correctly link a profile") {
-      val returnedUser = userDao.save(user1)
+      val returnedUser = userDao.save(testData.user1Linked)
       returnedUser map {
         result =>
           {
@@ -135,7 +94,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
             result match {
               case Some(usr) => {
                 //now perform link
-                val linkedUser = userDao.link(usr, profile1)
+                val linkedUser = userDao.link(usr, testData.profile1)
                 linkedUser map {
                   r =>
                     {
@@ -143,7 +102,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
                       r match {
                         case Some(u) => {
                           u.profiles.size should be(1)
-                          u.profiles.head should be(profile1)
+                          u.profiles.head should be(testData.profile1)
                           u.profiles.head.userId should be(u.id)
                         }
                       }
@@ -151,7 +110,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
                 }
 
                 usr.profiles.size should be(1)
-                usr.profiles.head should be(profile1.copy(userId = usr.id))
+                usr.profiles.head should be(testData.profile1.copy(userId = usr.id))
               }
             }
           }
@@ -159,14 +118,14 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
     }
 
     it("should correctly save an attached user profile") {
-      val returnedUser = userDao.save(user2)
+      val returnedUser = userDao.save(testData.user2Linked)
       returnedUser map {
         result =>
           {
             result should not be None
             result match {
               case Some(usr) => {
-                val expected = profile2.copy(userId = usr.id)
+                val expected = testData.profile2.copy(userId = usr.id)
                 usr.profiles.size should be(1)
                 usr.profiles.head should be(expected)
               }

@@ -20,7 +20,8 @@ import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import models.{ Profile, User }
-import models.dao.{ UserDao }
+import models.dao.UserDao
+import slick.profile
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -55,7 +56,16 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
    * @param user The user to save.
    * @return The saved user.
    */
-  override def save(user: User): Future[Option[User]] = userDao.save(user)
+  override def save(user: User): Future[Option[User]] = {
+    if (user.id.isDefined) {
+      userDao.find(user.id.get).flatMap {
+        case None => userDao.save(user)
+        case Some(usr) => userDao.update(user)
+      }
+    } else {
+      userDao.save(user)
+    }
+  }
 
   /**
    * Saves the social profile for a user.
@@ -72,7 +82,7 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
       case Some(user) => userDao.update(profile.copy(userId = user.id))
       //no profile exists. Find or Save the user and then save the linked profile.
       case None => {
-        if (!(profile.userId.isDefined)) {
+        if (profile.userId.isEmpty) {
           //write the user
           createUserAndProfile(profile)
         } else {
