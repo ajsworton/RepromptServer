@@ -14,8 +14,6 @@ before_script:
   - ./scripts/travis_mysql_5.7.sh
   - ./scripts/mysql-reset-root-password.sh
   - mysql -u root -e 'CREATE DATABASE reprompt;'
-  - mysql -u root -e "CREATE USER 'reprompt'@'localhost' IDENTIFIED BY 'reprompt';"
-  - mysql -u root -e "GRANT ALL ON reprompt.* TO 'reprompt'@'localhost';"
 deploy:
   provider: heroku
   api_key:
