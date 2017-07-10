@@ -29,7 +29,9 @@ trait AppFactory extends FakeApplicationFactory {
         "slick.dbs.default.db.properties.url" ->
           "jdbc:mysql://127.0.0.1:3306/reprompt?autoReconnect=true&useSSL=false&serverTimezone=UTC",
         "slick.dbs.default.user" -> "root",
-        "slick.dbs.default.password" -> ""
+        "slick.dbs.default.password" -> "",
+        "play.evolutions.enabled" -> "true",
+        "play.evolutions.autoApply" -> "true"
       ))
       .build()
   }
