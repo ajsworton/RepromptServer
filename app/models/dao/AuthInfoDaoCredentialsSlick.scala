@@ -20,22 +20,33 @@ import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.PasswordInfo
-import models.Profile
+import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
+import models.{ Profile, User }
 import models.services.{ AuthInfoService, UserService }
+import views.html.defaultpages.todo
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)
-        (implicit executionContext: ExecutionContext) extends AuthInfoService {
+class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)(implicit executionContext: ExecutionContext)
+  extends DelegableAuthInfoDAO[PasswordInfo] {
+
+  val emptyPassInfo: PasswordInfo = PasswordInfo("", "", None)
+
   /**
    * Finds the password info which is linked with the specified login info.
    * @param loginInfo the supplied loginInfo
    * @return a future option PasswordInfo
    */
-  def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] = {
+  override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] = {
     userService.retrieve(loginInfo).flatMap {
       case None => Future(None)
-      case Some(user) => Future(user.profiles.filter(p => p.loginInfo == loginInfo).head.passwordInfo)
+      case Some(user) => {
+        if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
+          Future(user.profiles.filter(p => p.loginInfo == loginInfo).head.passwordInfo)
+        } else {
+          Future(None)
+        }
+      }
     }
   }
 
@@ -45,17 +56,37 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)
    * @param authInfo the supplied authInfo
    * @return a future option PasswordInfo
    */
-  def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[Option[PasswordInfo]] = {
-    userService.retrieve(loginInfo).flatMap {
-      case None => Future(None)
-      case Some(user) => {
-        val profile = user.profiles.filter(p => p.loginInfo == loginInfo).head.copy()
-        userService.save(profile.copy(passwordInfo = Some(authInfo))).flatMap {
-          case None => Future(None)
-          case Some(_) => Future(Some(authInfo))
+  override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
+
+//    val response = for {
+//      user: Option[User] <- userService.retrieve(loginInfo)
+//      profile <- getMatchingProfile(user.get.profiles, p => p.loginInfo ==
+//        loginInfo)
+//      _ <- userService.save(profile.copy(passwordInfo = Some(authInfo)))
+//    } yield authInfo
+//
+//    response
+
+
+        userService.retrieve(loginInfo).flatMap {
+          case None => Future(emptyPassInfo)
+          case Some(user) => {
+            if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
+              val profile = user.profiles.filter(p => p.loginInfo == loginInfo).head.copy()
+              userService.save(profile.copy(passwordInfo = Some(authInfo))).flatMap {
+                case None => Future(emptyPassInfo)
+                case Some(_) => Future(authInfo)
+              }
+            } else {
+              Future(emptyPassInfo)
+            }
+          }
         }
-      }
-    }
+  }
+
+  def getMatchingProfile(profiles: List[Profile], predicate: Profile => Boolean): Option[Profile]
+  = {
+    profiles.find(predicate)
   }
 
   /**
@@ -64,7 +95,9 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)
    * @param authInfo the supplied authInfo
    * @return a future option PasswordInfo
    */
-  def update(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[Option[PasswordInfo]] = ???
+  override def update(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
+    add(loginInfo, authInfo)
+  }
 
   /**
    * Saves the password info for the given login info.
@@ -75,12 +108,28 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)
    * @param authInfo the supplied authInfo
    * @return a future option PasswordInfo
    */
-  def save(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[Option[PasswordInfo]] = ???
+  override def save(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
+    add(loginInfo, authInfo)
+  }
 
   /**
    * Removes the password info for the given login info.
    * @param loginInfo the supplied loginInfo
    * @return a future option PasswordInfo
    */
-  def remove(loginInfo: LoginInfo): Future[PasswordInfo] = ???
+  override def remove(loginInfo: LoginInfo): Future[Unit] = {
+
+    userService.retrieve(loginInfo).flatMap {
+      case None => Future(Unit)
+      case Some(user) => {
+        if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
+          val profile: Profile = user.profiles.filter(p => p.loginInfo == loginInfo).head
+          userService.save(profile.copy(passwordInfo = Some(emptyPassInfo)))
+          Future(Unit)
+        } else {
+          Future(Unit)
+        }
+      }
+    }
+  }
 }

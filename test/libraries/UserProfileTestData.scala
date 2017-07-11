@@ -17,11 +17,16 @@
 package libraries
 
 import com.mohiva.play.silhouette.api.LoginInfo
+import com.mohiva.play.silhouette.api.util.{PasswordHasher, PasswordInfo}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import models.dao.UserDaoSlick
 import models.{Profile, User}
+import libs.AppFactory
 
-class UserProfileTestData(userDao: UserDaoSlick) {
+class UserProfileTestData(userDao: UserDaoSlick) extends AppFactory {
+
+  val passwordHasher: PasswordHasher = fakeApplication().injector.instanceOf[PasswordHasher]
+
   val user1Unlinked = User(id = None, firstName = "Bart", surName = "Illiyan", email = "String")
   val user2Unlinked = User(id = None, firstName = "Micvhael", surName = "Grunthy",
               email = "somewhere@over.the.rainbow")
@@ -29,8 +34,10 @@ class UserProfileTestData(userDao: UserDaoSlick) {
   val profile1 = generateProfile(user1Unlinked)
   val user1Linked = user1Unlinked.copy(profiles = profile1 :: user1Unlinked.profiles)
 
-  val profile2 = generateProfile(user2Unlinked)
+  val passInfo2 = Some(passwordHasher.hash("password"))
+  val profile2 = generateProfile(user2Unlinked, passInfo2)
   val user2Linked = user2Unlinked.copy(profiles = profile2 :: user1Unlinked.profiles)
+
 
 
 
@@ -44,12 +51,14 @@ class UserProfileTestData(userDao: UserDaoSlick) {
     userDao.delete(user2Linked.profiles.head.loginInfo)
   }
 
-  def generateProfile(user: User): Profile = {
+  def generateProfile(user: User, passwordInfo: Option[PasswordInfo] = None): Profile = {
     Profile(
       loginInfo = LoginInfo(CredentialsProvider.ID, user.email),
       email = Some(user.email),
       firstName = Some(user.firstName),
       lastName = Some(user.surName),
-      fullName = Some(s"${user.firstName} ${user.surName}"))
+      fullName = Some(s"${user.firstName} ${user.surName}"),
+      passwordInfo = passwordInfo
+    )
   }
 }

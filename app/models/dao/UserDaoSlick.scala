@@ -40,25 +40,20 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
 
   //def find(id: Int): Future[Option[User]] = db.run(Users.filter(_.id === id).result.headOption)
 
-  def find(id: Int): Future[Option[User]] = {
-    val result: Future[Option[User]] = for {
-      returnedUser <- db.run(Users.filter(_.id === id).result.headOption)
-      usersProfiles: Seq[Profile] <- db.run(Profiles.filter(_.userId === returnedUser.get.id).result)
-      user <- Future(returnedUser.map(u => u.copy(profiles = usersProfiles.toList)))
-      //.filter(_.userId.isDefined)))
-    } yield user
+  override def find(id: Int): Future[Option[User]] = for {
+    returnedUser <- db.run(Users.filter(_.id === id).result.headOption)
+    usersProfiles: Seq[Profile] <- db.run(Profiles.filter(_.userId === returnedUser.get.id).result)
+    user: Option[User] <- Future(returnedUser.map(u => u.copy(profiles = usersProfiles.toList)))
+  } yield user
 
-    result
-  }
-
-  def find(loginInfo: LoginInfo): Future[Option[User]] = {
-    val query = for {
-      p <- Profiles if matchOnLoginInfo(p, loginInfo)
-      u <- Users if u.id === p.userId
-    } yield u
-
-    db.run(query.result.headOption)
-  }
+  override def find(loginInfo: LoginInfo): Future[Option[User]] = for {
+    profile: Profile <- db.run(Profiles.filter(p => p.providerId === loginInfo.providerID
+                                               && p.providerKey === loginInfo.providerKey)
+      .result.head)
+    returnedUser <- db.run(Users.filter(_.id === profile.userId).result.headOption)
+    usersProfiles: Seq[Profile] <- db.run(Profiles.filter(_.userId === returnedUser.get.id).result)
+    user: Option[User] <- Future(returnedUser.map(u => u.copy(profiles = usersProfiles.toList)))
+  } yield user
 
   override def save(user: User): Future[Option[User]] = {
     for {
@@ -67,7 +62,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
       ) += user)
       mappedProfiles = returnedUser.profiles.map(p => p.copy(userId = returnedUser.id))
       usrMapped = returnedUser.copy(profiles = mappedProfiles)
-      _ <- db.run(Profiles ++= usrMapped.profiles)
+      _ <- db.run(DBIO.sequence(usrMapped.profiles.map(row => Profiles.insertOrUpdate(row))))
       read <- find(usrMapped.id.get)
     } yield read
   }
@@ -89,7 +84,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
     case Some(_) => Future(true)
   }
 
-  def matchUserOnDuplicate(u: User.UsersTable, user: User) = {
+  def matchUserOnDuplicate(u: User.UsersTable, user: User): Rep[Option[Boolean]] = {
     u.id === user.id
   }
 
@@ -134,7 +129,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
     }
   }
 
-  def matchOnLoginInfo(p: Profile.ProfilesTable, loginInfo: LoginInfo) = {
+  def matchOnLoginInfo(p: Profile.ProfilesTable, loginInfo: LoginInfo): Rep[Boolean] = {
     p.providerId === loginInfo.providerID && p.providerKey === loginInfo.providerKey
   }
 }

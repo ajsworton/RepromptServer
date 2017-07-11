@@ -16,6 +16,7 @@
 
 package models.dao
 
+import com.mohiva.play.silhouette.api.util.PasswordHasher
 import libraries.UserProfileTestData
 import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import libs.AppFactory
@@ -37,6 +38,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   }
 
   describe("UserDaoSlick") {
+
     it("should correctly insert a user by id (new user)") {
       //tests save
       val returnedUser = userDao.save(testData.user1Linked)
@@ -83,6 +85,15 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
             }
           }
       }
+    }
+
+    it("should correctly insert passwordInfo and  OAuthInfo") {
+      for {
+        insertedUser <- userDao.save(testData.user2Linked)
+        checkedUser <- userDao.find(insertedUser.get.id.get)
+        result <- checkedUser.get.profiles.head.passwordInfo should be (testData.passInfo2)
+        //cleanUp <- userDao.delete(insertedUser.get.id.get)
+      } yield result
     }
 
     it("should correctly link a profile") {

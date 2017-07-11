@@ -56,10 +56,10 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
       //add
       val newPasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
       for {
-        user <- userDao.save(testData.user2Linked)
-        passInfo <- authInfoDao.add(testData.profile2.loginInfo, newPasswordInfo)
-        returned <- authInfoDao.find(testData.profile2.loginInfo)
-        valid <- returned should be(newPasswordInfo)
+        user <- userDao.save(testData.user1Linked)
+        passInfo <- authInfoDao.add(testData.profile1.loginInfo, newPasswordInfo)
+        returned <- authInfoDao.find(testData.profile1.loginInfo)
+        valid <- returned should be(Some(newPasswordInfo))
         deleted <- userDao.delete(user.get.id.get)
       } yield valid
     }

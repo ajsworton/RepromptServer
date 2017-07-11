@@ -41,7 +41,7 @@ import play.api.libs.ws.WSClient
 import play.api.mvc.CookieHeaderEncoding
 import env.JWTEnv
 import libraries.PlayCacheLayer
-import models.dao.{ UserDao, UserDaoSlick }
+import models.dao.{ AuthInfoDaoCredentialsSlick, UserDao, UserDaoSlick }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -68,7 +68,7 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     bind[Clock].toInstance(Clock())
 
     // Replace this with the bindings to your concrete DAOs
-    bind[DelegableAuthInfoDAO[PasswordInfo]].toInstance(new InMemoryAuthInfoDAO[PasswordInfo])
+    bind[DelegableAuthInfoDAO[PasswordInfo]].to[AuthInfoDaoCredentialsSlick]
     bind[DelegableAuthInfoDAO[OAuth1Info]].toInstance(new InMemoryAuthInfoDAO[OAuth1Info])
     bind[DelegableAuthInfoDAO[OAuth2Info]].toInstance(new InMemoryAuthInfoDAO[OAuth2Info])
     bind[DelegableAuthInfoDAO[OpenIDInfo]].toInstance(new InMemoryAuthInfoDAO[OpenIDInfo])
