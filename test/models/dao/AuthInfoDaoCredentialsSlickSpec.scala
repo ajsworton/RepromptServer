@@ -19,7 +19,6 @@ package models.dao
 import com.mohiva.play.silhouette.api.util.{PasswordHasher, PasswordInfo}
 import libraries.UserProfileTestData
 import libs.AppFactory
-import models.{Profile, User}
 import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import org.scalatest.mockito.MockitoSugar
 
@@ -31,6 +30,7 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
   val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
   val passwordHasher: PasswordHasher = fakeApplication().injector.instanceOf[PasswordHasher]
   val testData = new UserProfileTestData(userDao)
+  val newPasswordInfo: PasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
 
   before {
     testData.before
@@ -40,7 +40,6 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
     testData.after
   }
 
-
   describe("AuthInfoDaoCredentialsSlick") {
     it("should obtain PasswordInfo from backing store from a supplied loginInfo") {
       //find
@@ -48,57 +47,59 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
         user <- userDao.save(testData.user1Linked)
         passwordInfo <- authInfoDao.find(testData.profile1.loginInfo)
         valid <- passwordInfo should be(testData.profile1.passwordInfo)
-        deleted <- userDao.delete(user.get.id.get)
+        _ <- userDao.delete(user.get.id.get)
       } yield valid
     }
 
     it("should add/update/save PasswordInfo to backing store") {
       //add
-      val newPasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
+      val user1 = testData.getUserSingleProfile
       for {
-        user <- userDao.save(testData.user1Linked)
-        passInfo <- authInfoDao.add(testData.profile1.loginInfo, newPasswordInfo)
-        returned <- authInfoDao.find(testData.profile1.loginInfo)
-        valid <- returned should be(Some(newPasswordInfo))
-        deleted <- userDao.delete(user.get.id.get)
+        user <- userDao.save(user1)
+        passInfo <- authInfoDao.add(user1.profiles.head.loginInfo, newPasswordInfo)
+        returned <- authInfoDao.find(user1.profiles.head.loginInfo)
+        valid <- returned should be(Some(passInfo))
+        _ <- userDao.delete(user.get.id.get)
       } yield valid
     }
 
     it("should update PasswordInfo in backing store") {
       //update
-      val newPasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
+      val user1 = testData.getUserSingleProfile
       for {
-        user <- userDao.save(testData.user2Linked)
-        passInfo <- authInfoDao.update(testData.profile2.loginInfo, newPasswordInfo)
-        returned <- authInfoDao.find(testData.profile2.loginInfo)
-        valid <- returned should be(newPasswordInfo)
-        deleted <- userDao.delete(user.get.id.get)
+        user <- userDao.save(user1)
+        _ <- authInfoDao.update(user1.profiles.head.loginInfo, newPasswordInfo)
+        returned <- authInfoDao.find(user1.profiles.head.loginInfo)
+        valid <- returned should be(Some(newPasswordInfo))
+        _ <- userDao.delete(user.get.id.get)
       } yield valid
     }
 
     it("should save PasswordInfo in backing store") {
       //save
-      val newPasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
+      val user1 = testData.getUserSingleProfile
       for {
-        user <- userDao.save(testData.user2Linked)
-        passInfo <- authInfoDao.save(testData.profile2.loginInfo, newPasswordInfo)
-        returned <- authInfoDao.find(testData.profile2.loginInfo)
-        valid <- returned should be(newPasswordInfo)
-        deleted <- userDao.delete(user.get.id.get)
+        user <- userDao.save(user1)
+        _ <- authInfoDao.save(user1.profiles.head.loginInfo, newPasswordInfo)
+        returned <- authInfoDao.find(user1.profiles.head.loginInfo)
+        valid <- returned should be(Some(newPasswordInfo))
+        _ <- userDao.delete(user.get.id.get)
       } yield valid
     }
 
     it("should remove PasswordInfo from supplied loginInfo") {
       //remove
-      val newPasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
-      val emptyPasswordInfo = new PasswordInfo("", "", None)
+      val user = userDao.save(testData.user1Linked)
+      val add = authInfoDao.add(testData.profile1.loginInfo, newPasswordInfo)
+
       for {
-        user <- userDao.save(testData.user2Linked)
-        passInfo <- authInfoDao.add(testData.profile2.loginInfo, newPasswordInfo)
-        remPassInfo <- authInfoDao.remove(testData.profile2.loginInfo)
-        returned <- authInfoDao.find(testData.profile2.loginInfo)
-        valid <- returned should be(emptyPasswordInfo)
-        deleted <- userDao.delete(user.get.id.get)
+        user <- user
+        add <- add
+        remove <- authInfoDao.remove(testData.profile1.loginInfo)
+        returned <- authInfoDao.find(testData.profile1.loginInfo)
+        valid <- returned should be(None)
+        _ <- userDao.delete(user.get.id.get)
+        _ <- userDao.delete(user.get.id.get)
       } yield valid
     }
 

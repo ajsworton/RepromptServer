@@ -26,6 +26,7 @@ import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordHasherRegis
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import models.dto.{ UserDto, UserRegisterDto }
 import env.JWTEnv
+import models.dao.UserDaoSlick
 import models.{ Profile, User }
 import models.services.{ AuthTokenService, UserService }
 import play.api
@@ -37,6 +38,7 @@ import play.api.libs.mailer.MailerClient
 import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MessagesRequest }
 import play.libs.ws.WSClient
 import play.api.mvc.Result
+import slick.profile
 
 import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
@@ -47,6 +49,7 @@ class AuthController @Inject() (
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   userService: UserService,
+  userDao: UserDaoSlick,
   authInfoRepository: AuthInfoRepository,
   authTokenService: AuthTokenService,
   avatarService: AvatarService,
@@ -75,12 +78,15 @@ class AuthController @Inject() (
         val profile = Profile(
           loginInfo = loginInfo, email = Some(formData.email),
           firstName = Some(formData.firstName), lastName = Some(formData.surName),
-          fullName = Some(s"${formData.firstName} ${formData.surName}"))
+          fullName = Some(s"${formData.firstName} ${formData.surName}"),
+          passwordInfo = Some(passwordHasher.hash(formData.password))
+        )
         for {
           avatarUrl <- avatarService.retrieveURL(formData.email)
-          user <- userService.save(User(profile.copy(avatarUrl = avatarUrl)))
-          _ <- authInfoRepository.add(loginInfo, passwordHasher.hash(formData.password))
-          token <- authTokenService.create(user.get.id.get)
+          user <- userDao.save(User(profile.copy(avatarUrl = avatarUrl)))
+          //_ <- authInfoRepository.add(user.get.profileFor(loginInfo).get.loginInfo,
+          //  passwordHasher.hash(formData.password))
+          //token <- authTokenService.create(user.get.id.get)
           result <- embedToken(loginInfo, request, user.get)
         } yield {
           result

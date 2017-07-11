@@ -27,7 +27,7 @@ import views.html.defaultpages.todo
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)(implicit executionContext: ExecutionContext)
+class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: UserDao)(implicit executionContext: ExecutionContext)
   extends DelegableAuthInfoDAO[PasswordInfo] {
 
   val emptyPassInfo: PasswordInfo = PasswordInfo("", "", None)
@@ -42,7 +42,7 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)(implicit 
       case None => Future(None)
       case Some(user) => {
         if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
-          Future(user.profiles.filter(p => p.loginInfo == loginInfo).head.passwordInfo)
+          Future(user.profiles.find(p => p.loginInfo == loginInfo).get.passwordInfo)
         } else {
           Future(None)
         }
@@ -56,36 +56,32 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)(implicit 
    * @param authInfo the supplied authInfo
    * @return a future option PasswordInfo
    */
-  override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] = {
-
-//    val response = for {
-//      user: Option[User] <- userService.retrieve(loginInfo)
-//      profile <- getMatchingProfile(user.get.profiles, p => p.loginInfo ==
-//        loginInfo)
-//      _ <- userService.save(profile.copy(passwordInfo = Some(authInfo)))
-//    } yield authInfo
-//
-//    response
-
-
-        userService.retrieve(loginInfo).flatMap {
-          case None => Future(emptyPassInfo)
-          case Some(user) => {
-            if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
-              val profile = user.profiles.filter(p => p.loginInfo == loginInfo).head.copy()
-              userService.save(profile.copy(passwordInfo = Some(authInfo))).flatMap {
-                case None => Future(emptyPassInfo)
-                case Some(_) => Future(authInfo)
-              }
-            } else {
-              Future(emptyPassInfo)
+  override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
+    userService.retrieve(loginInfo).flatMap {
+      case None => Future(emptyPassInfo)
+      case Some(user) => {
+        if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
+          val profile = user.profiles.find(p => p.loginInfo == loginInfo)
+          if (profile.isDefined) {
+            // update profile data, write user back to store.
+            val updatedProfiles = user.profiles.map(p => if (p != profile.get) { p }
+            else { p.copy(passwordInfo = Some(authInfo)) })
+            val updatedUser = user.copy(profiles = updatedProfiles)
+            //persist user changes to backing store
+            userDao.update(updatedUser).flatMap {
+              case None => Future(emptyPassInfo)
+              case Some(u) => Future(u.profileFor(loginInfo).get.passwordInfo.get)
             }
+          } else {
+            Future(emptyPassInfo)
           }
+        } else {
+          Future(emptyPassInfo)
         }
-  }
+      }
+    }
 
-  def getMatchingProfile(profiles: List[Profile], predicate: Profile => Boolean): Option[Profile]
-  = {
+  def getMatchingProfile(profiles: List[Profile], predicate: Profile => Boolean): Option[Profile] = {
     profiles.find(predicate)
   }
 
@@ -119,17 +115,23 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService)(implicit 
    */
   override def remove(loginInfo: LoginInfo): Future[Unit] = {
 
-    userService.retrieve(loginInfo).flatMap {
-      case None => Future(Unit)
-      case Some(user) => {
-        if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
-          val profile: Profile = user.profiles.filter(p => p.loginInfo == loginInfo).head
-          userService.save(profile.copy(passwordInfo = Some(emptyPassInfo)))
-          Future(Unit)
-        } else {
-          Future(Unit)
-        }
-      }
-    }
+    for {
+      user <- userService.retrieve(loginInfo)
+
+    } yield Future(Unit)
+
+    //    userService.retrieve(loginInfo).flatMap {
+    //      case None => Future(Unit)
+    //      case Some(user) => {
+    //        if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
+    //          val profile: Option[Profile] = user.profiles.find(p => p.loginInfo == loginInfo)
+    //          if (profile.isDefined) {
+    //            val updatedProfile: Profile = profile.get.copy(passwordInfo = None)
+    //            userService.save(updatedProfile)
+    //          }
+    //        }
+    //        Future(Unit)
+    //      }
+    //    }
   }
 }

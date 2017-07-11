@@ -18,7 +18,7 @@ package models.dao
 
 import com.mohiva.play.silhouette.api.util.PasswordHasher
 import libraries.UserProfileTestData
-import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import libs.AppFactory
 import org.scalatest.mockito.MockitoSugar
 
@@ -27,7 +27,6 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
   val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
   val testData = new UserProfileTestData(userDao)
-
 
   before {
     testData.before
@@ -38,6 +37,46 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   }
 
   describe("UserDaoSlick") {
+
+    it("should correctly find an existing user by id") {
+      for {
+        returnedUser <- userDao.save(testData.user1Linked)
+        foundUser <- userDao.find(returnedUser.get.id.get)
+        result = foundUser.get.id should be (returnedUser.get.id)
+      } yield result
+
+    }
+
+    it("should correctly not find a non existing user by id") {
+
+      for {
+        returnedUser <- userDao.save(testData.user1Linked)
+        deletedUser <- userDao.delete(returnedUser.get.id.get)
+        foundUser <- userDao.find(deletedUser + 99999)
+        result = foundUser should be (None)
+      } yield result
+
+    }
+
+    it("should correctly find an existing user by loginInfo") {
+      for {
+        returnedUser <- userDao.save(testData.user2Linked)
+        foundUser <- userDao.find(returnedUser.get.profiles.head.loginInfo)
+        result = foundUser.get.id should be (returnedUser.get.id)
+      } yield result
+    }
+
+    it("should correctly not find a non existing user by loginInfo") {
+
+      for {
+        returnedUser <- userDao.save(testData.user2Linked)
+        login = returnedUser.get.profiles.head.loginInfo
+        deletedUser <- userDao.delete(returnedUser.get.id.get)
+        foundUser <- userDao.find(login)
+        result = foundUser should be (None)
+      } yield result
+
+    }
 
     it("should correctly insert a user by id (new user)") {
       //tests save
@@ -91,7 +130,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       for {
         insertedUser <- userDao.save(testData.user2Linked)
         checkedUser <- userDao.find(insertedUser.get.id.get)
-        result <- checkedUser.get.profiles.head.passwordInfo should be (testData.passInfo2)
+        result <- checkedUser.get.profiles.head.passwordInfo should be(testData.passInfo2)
         //cleanUp <- userDao.delete(insertedUser.get.id.get)
       } yield result
     }
@@ -142,6 +181,24 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
               }
             }
           }
+      }
+    }
+
+    it("should correctly save multiple attached user profiles") {
+      val returnedUser = userDao.save(testData.user3Linked)
+      returnedUser map {
+        result =>
+        {
+          result should not be None
+          result match {
+            case Some(usr) => {
+              val expected = testData.profiles3.map(p => p.copy(userId = usr.id))
+
+              usr.profiles.size should be(2)
+              //usr.profiles.head should be(expected)
+            }
+          }
+        }
       }
     }
 

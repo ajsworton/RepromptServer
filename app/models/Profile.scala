@@ -45,9 +45,9 @@ object Profile {
     implicit val oAuth2JsonFormat: OFormat[OAuth2Info] = Json.format[OAuth2Info]
     implicit val passwordInfoJsonFormat: OFormat[PasswordInfo] = Json.format[PasswordInfo]
 
-    def userId: lifted.Rep[Option[Int]] = column[Int]("UserId")
-    def providerId: lifted.Rep[String] = column[String]("ProviderId")
-    def providerKey: lifted.Rep[String] = column[String]("ProviderKey")
+    def userId: lifted.Rep[Option[Int]] = column[Int]("UserId", O.PrimaryKey)
+    def providerId: lifted.Rep[String] = column[String]("ProviderId", O.PrimaryKey)
+    def providerKey: lifted.Rep[String] = column[String]("ProviderKey", O.PrimaryKey)
     def confirmed: lifted.Rep[Boolean] = column[Boolean]("Confirmed")
     def email: lifted.Rep[Option[String]] = column[Option[String]]("Email")
     def firstName: lifted.Rep[Option[String]] = column[Option[String]]("FirstName")
@@ -57,7 +57,7 @@ object Profile {
     def oauth1Info: lifted.Rep[Option[String]] = column[Option[String]]("Oauth1Info")
     def oauth2Info: lifted.Rep[Option[String]] = column[Option[String]]("Oauth2Info")
     def avatarUrl: lifted.Rep[Option[String]] = column[Option[String]]("AvatarUrl")
-    def pk: PrimaryKey = primaryKey("pk", (userId, providerId, providerKey))
+    def pk: PrimaryKey = primaryKey("PRIMARY", (userId, providerId, providerKey))
 
     def * : ProvenShape[Profile] = (userId, providerId, providerKey, confirmed, email,
       firstName, lastName, fullName, passwordInfo, oauth1Info, oauth2Info, avatarUrl) <>
