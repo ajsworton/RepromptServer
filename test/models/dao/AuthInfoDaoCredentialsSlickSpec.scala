@@ -16,10 +16,10 @@
 
 package models.dao
 
-import com.mohiva.play.silhouette.api.util.{PasswordHasher, PasswordInfo}
+import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordInfo }
 import libraries.UserProfileTestData
 import libs.AppFactory
-import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import org.scalatest.mockito.MockitoSugar
 
 class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter

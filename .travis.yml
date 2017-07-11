@@ -13,6 +13,10 @@ before_script:
   - ./scripts/travis_mysql_5.7.sh
   - ./scripts/mysql-reset-root-password.sh
   - mysql -u root -e 'CREATE DATABASE reprompt;'
+  - mysql -u root -e "SET PASSWORD FOR 'root'@'127.0.0.1' = PASSWORD('')"
+  - mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('')"
+  - mysql -u root -e "GRANT ALL ON reprompt.* TO 'root'@'127.0.0.1'"
+  - mysql -u root -e "GRANT ALL ON reprompt.* TO 'root'@'localhost'"
   - mysql --version
 deploy:
   provider: heroku

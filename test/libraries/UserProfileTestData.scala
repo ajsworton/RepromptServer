@@ -17,11 +17,11 @@
 package libraries
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import com.mohiva.play.silhouette.api.util.{PasswordHasher, PasswordInfo}
+import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordInfo }
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
-import models.dao.UserDaoSlick
-import models.{Profile, User}
 import libs.AppFactory
+import models.dao.UserDaoSlick
+import models.{ Profile, User }
 
 import scala.util.Random
 
@@ -60,7 +60,8 @@ class UserProfileTestData(userDao: UserDaoSlick) extends AppFactory {
 
   val passInfo3 = Some(passwordHasher.hash("letmein"))
   val profile31 = generateProfile(user3Unlinked)
-  val profile32 = generateProfile(user3Unlinked, passInfo3, LoginInfo(CredentialsProvider.ID,
+  val profile32 = generateProfile(user3Unlinked, passInfo3, LoginInfo(
+    CredentialsProvider.ID,
     "54622563"))
 
   val profiles3 = List(profile31, profile32)
@@ -82,10 +83,9 @@ class UserProfileTestData(userDao: UserDaoSlick) extends AppFactory {
     user.copy(profiles = profile1 :: profile2 :: user.profiles)
   }
 
-  def getName = UserProfileTestData.getRandomName(UserProfileTestData.getRandomNumber(6)+4)
-  def getEmail = UserProfileTestData.getRandomName(UserProfileTestData.getRandomNumber(6)+4) + "@" +
-  UserProfileTestData.getRandomName(UserProfileTestData.getRandomNumber(6)+4) + ".com"
-
+  def getName = UserProfileTestData.getRandomName(UserProfileTestData.getRandomNumber(6) + 4)
+  def getEmail = UserProfileTestData.getRandomName(UserProfileTestData.getRandomNumber(6) + 4) + "@" +
+    UserProfileTestData.getRandomName(UserProfileTestData.getRandomNumber(6) + 4) + ".com"
 
   def before = {
     userDao.delete(user1Linked.profiles.head.loginInfo)
@@ -100,8 +100,7 @@ class UserProfileTestData(userDao: UserDaoSlick) extends AppFactory {
   }
 
   def generateProfile(user: User, passwordInfo: Option[PasswordInfo] = None,
-                      loginInfo:LoginInfo = null): Profile
-  = {
+    loginInfo: LoginInfo = null): Profile = {
 
     val login = if (loginInfo == null) LoginInfo(CredentialsProvider.ID, user.email) else loginInfo
 

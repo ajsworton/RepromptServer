@@ -17,6 +17,7 @@
 package libs
 
 import org.scalatestplus.play.FakeApplicationFactory
+
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
@@ -32,7 +33,8 @@ trait AppFactory extends FakeApplicationFactory {
         "slick.dbs.default.password" -> "",
         "evolutionplugin" -> "enabled",
         "play.evolutions.enabled" -> "true",
-        "play.evolutions.autoApply" -> "true"
+        "play.evolutions.autoApply" -> "true",
+        "play.evolutions.db.default.enabled" -> "true"
       ))
       .build()
   }

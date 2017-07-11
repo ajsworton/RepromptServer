@@ -18,9 +18,9 @@ package models.dao
 
 import com.mohiva.play.silhouette.api.util.PasswordHasher
 import libraries.UserProfileTestData
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import libs.AppFactory
 import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 
 class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   with MockitoSugar with AppFactory {
@@ -42,7 +42,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       for {
         returnedUser <- userDao.save(testData.user1Linked)
         foundUser <- userDao.find(returnedUser.get.id.get)
-        result = foundUser.get.id should be (returnedUser.get.id)
+        result = foundUser.get.id should be(returnedUser.get.id)
       } yield result
 
     }
@@ -53,7 +53,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
         returnedUser <- userDao.save(testData.user1Linked)
         deletedUser <- userDao.delete(returnedUser.get.id.get)
         foundUser <- userDao.find(deletedUser + 99999)
-        result = foundUser should be (None)
+        result = foundUser should be(None)
       } yield result
 
     }
@@ -62,7 +62,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       for {
         returnedUser <- userDao.save(testData.user2Linked)
         foundUser <- userDao.find(returnedUser.get.profiles.head.loginInfo)
-        result = foundUser.get.id should be (returnedUser.get.id)
+        result = foundUser.get.id should be(returnedUser.get.id)
       } yield result
     }
 
@@ -73,7 +73,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
         login = returnedUser.get.profiles.head.loginInfo
         deletedUser <- userDao.delete(returnedUser.get.id.get)
         foundUser <- userDao.find(login)
-        result = foundUser should be (None)
+        result = foundUser should be(None)
       } yield result
 
     }
@@ -188,17 +188,17 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       val returnedUser = userDao.save(testData.user3Linked)
       returnedUser map {
         result =>
-        {
-          result should not be None
-          result match {
-            case Some(usr) => {
-              val expected = testData.profiles3.map(p => p.copy(userId = usr.id))
+          {
+            result should not be None
+            result match {
+              case Some(usr) => {
+                val expected = testData.profiles3.map(p => p.copy(userId = usr.id))
 
-              usr.profiles.size should be(2)
-              //usr.profiles.head should be(expected)
+                usr.profiles.size should be(2)
+                //usr.profiles.head should be(expected)
+              }
             }
           }
-        }
       }
     }
 
