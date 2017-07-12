@@ -9,6 +9,6 @@ sudo mysql -e "use mysql; update user set authentication_string=PASSWORD('') whe
 sudo kill -9 `sudo cat /var/lib/mysql/mysqld_safe.pid`
 sudo kill -9 `sudo cat /var/run/mysqld/mysqld.pid`
 sudo mysqladmin shutdown
-sleep 4
-sudo service mysql restart
+sleep 6
+#sudo service mysql restart
 sudo service mysql start
