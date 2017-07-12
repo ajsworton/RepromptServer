@@ -25,7 +25,7 @@ import org.scalatest.mockito.MockitoSugar
 import play.api.db.evolutions.Evolutions
 
 class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with BeforeAndAfterAll with MockitoSugar with AppFactory {
+  with MockitoSugar with AppFactory {
 
   val authInfoDao: AuthInfoDaoCredentialsSlick = fakeApplication()
     .injector.instanceOf[AuthInfoDaoCredentialsSlick]
@@ -34,10 +34,10 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
   val testData = new UserProfileTestData(userDao)
   val newPasswordInfo: PasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
 
-  override def beforeAll {
-    val dbApi = fakeApplication().injector.instanceOf[DBApi]
-    Evolutions.applyEvolutions(dbApi.database("default"))
-  }
+  //  override def beforeAll {
+  //    val dbApi = fakeApplication().injector.instanceOf[DBApi]
+  //    Evolutions.applyEvolutions(dbApi.database("default"))
+  //  }
 
   before {
     testData.before

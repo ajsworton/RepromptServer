@@ -34,7 +34,8 @@ trait AppFactory extends FakeApplicationFactory {
         "evolutionplugin" -> "enabled",
         "play.evolutions.enabled" -> "true",
         "play.evolutions.autoApply" -> "true",
-        "play.evolutions.db.default.enabled" -> "true"
+        "play.evolutions.db.default.enabled" -> "true",
+        "play.evolutions.db.default.autocommit" -> "true"
       ))
       .build()
   }

@@ -22,18 +22,18 @@ import libs.AppFactory
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, BeforeAndAfterAll, Matchers }
 import play.api.db.DBApi
-import play.api.db.evolutions.Evolutions
+import play.api.db.evolutions.{ Evolutions, EvolutionsComponents }
 
 class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with BeforeAndAfterAll with MockitoSugar with AppFactory {
+  with MockitoSugar with AppFactory {
 
   val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
   val testData = new UserProfileTestData(userDao)
 
-  override def beforeAll {
-    val dbApi = fakeApplication().injector.instanceOf[DBApi]
-    Evolutions.applyEvolutions(dbApi.database("default"))
-  }
+  //  override def beforeAll {
+  //    val dbApi = fakeApplication().injector.instanceOf[DBApi]
+  //    Evolutions.applyEvolutions(dbApi.database("default"))
+  //  }
 
   before {
     testData.before
