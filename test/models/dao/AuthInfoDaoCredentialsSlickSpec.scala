@@ -19,11 +19,13 @@ package models.dao
 import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordInfo }
 import libraries.UserProfileTestData
 import libs.AppFactory
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import play.api.db.DBApi
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, BeforeAndAfterAll, Matchers }
 import org.scalatest.mockito.MockitoSugar
+import play.api.db.evolutions.Evolutions
 
 class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with MockitoSugar with AppFactory {
+  with BeforeAndAfterAll with MockitoSugar with AppFactory {
 
   val authInfoDao: AuthInfoDaoCredentialsSlick = fakeApplication()
     .injector.instanceOf[AuthInfoDaoCredentialsSlick]
@@ -31,6 +33,11 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
   val passwordHasher: PasswordHasher = fakeApplication().injector.instanceOf[PasswordHasher]
   val testData = new UserProfileTestData(userDao)
   val newPasswordInfo: PasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
+
+  override def beforeAll {
+    val dbApi = fakeApplication().injector.instanceOf[DBApi]
+    Evolutions.applyEvolutions(dbApi.database("default"))
+  }
 
   before {
     testData.before
