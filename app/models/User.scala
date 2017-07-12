@@ -20,6 +20,8 @@ import java.sql.{ Date, Timestamp }
 import java.time.{ LocalDate, LocalDateTime }
 
 import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
+import models.dto.UserDto
+import play.api.libs.json.Json
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.ProvenShape

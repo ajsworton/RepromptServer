@@ -16,31 +16,28 @@
 
 package controllers
 
-import java.util.UUID
 import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
+import com.mohiva.play.silhouette.api.actions.{ SecuredRequest, UserAwareRequest }
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
-import com.mohiva.play.silhouette.api.services.{ AuthenticatorResult, AvatarService }
-import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordHasherRegistry }
+import com.mohiva.play.silhouette.api.services.AvatarService
+import com.mohiva.play.silhouette.api.util.PasswordHasher
+import com.mohiva.play.silhouette.impl.authenticators.JWTAuthenticator
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import models.dto.{ UserDto, UserRegisterDto }
 import env.JWTEnv
 import models.dao.UserDaoSlick
 import models.{ Profile, User }
 import models.services.{ AuthTokenService, UserService }
-import play.api
-import play.api.{ Environment, data }
-import play.api.i18n.Messages
+import play.api.Environment
+import play.api.i18n.{ I18nSupport, Messages }
 import responses.JsonErrorResponse
 import play.api.libs.json.Json
 import play.api.libs.mailer.MailerClient
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MessagesRequest }
+import play.api.mvc.{ AbstractController, AnyContent, ControllerComponents, MessagesActionBuilder, Request, Result }
 import play.libs.ws.WSClient
-import play.api.mvc.Result
-import slick.profile
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
@@ -58,10 +55,10 @@ class AuthController @Inject() (
   ws: WSClient,
   environment: Environment,
   mailerClient: MailerClient)(implicit ec: ExecutionContext)
-  extends AbstractController(cc) {
+  extends AbstractController(cc) with I18nSupport {
 
-  def register: Action[AnyContent] = messagesAction.async {
-    implicit request =>
+  def register = silhouette.UnsecuredAction.async {
+    implicit request: Request[AnyContent] =>
       UserRegisterDto.registerForm.bindFromRequest.fold(
         formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
         formData => {
@@ -70,7 +67,21 @@ class AuthController @Inject() (
       )
   }
 
-  private def handleTokenAuth(formData: UserRegisterDto, request: MessagesRequest[AnyContent]): Future[Result] = {
+  def login = silhouette.UnsecuredAction.async {
+    implicit request: Request[AnyContent] =>
+      UserDto.userForm.bindFromRequest.fold(
+        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formData =>
+          Future(Ok(Json.toJson(formData)))
+      )
+  }
+
+  def profile = silhouette.SecuredAction.async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      Future(Ok(Json.toJson(UserDto(request.identity))))
+  }
+
+  private def handleTokenAuth(formData: UserRegisterDto, request: Request[AnyContent]): Future[Result] = {
     val loginInfo = LoginInfo(CredentialsProvider.ID, formData.email)
     userService.retrieve(loginInfo).flatMap {
       case Some(_) => Future(Ok(Json.toJson(JsonErrorResponse("Already Authenticated"))))
@@ -84,8 +95,6 @@ class AuthController @Inject() (
         for {
           avatarUrl <- avatarService.retrieveURL(formData.email)
           user <- userDao.save(User(profile.copy(avatarUrl = avatarUrl)))
-          //_ <- authInfoRepository.add(user.get.profileFor(loginInfo).get.loginInfo,
-          //  passwordHasher.hash(formData.password))
           //token <- authTokenService.create(user.get.id.get)
           result <- embedToken(loginInfo, request, user.get)
         } yield {
@@ -94,23 +103,15 @@ class AuthController @Inject() (
     }
   }
 
-  private def embedToken(loginInfo: LoginInfo, request: MessagesRequest[AnyContent], user: User): Future[Result] = {
+  private def embedToken(loginInfo: LoginInfo, request: Request[AnyContent], user: User): Future[Result] = {
     silhouette.env.authenticatorService.create(loginInfo)(request).flatMap { authenticator =>
       silhouette.env.eventBus.publish(LoginEvent(user, request))
       silhouette.env.authenticatorService.init(authenticator)(request).flatMap { v =>
         silhouette.env.authenticatorService.embed(
           v,
-          Ok(Json.toJson(JsonErrorResponse("Authenticated"))))(request)
+          Ok(Json.toJson(UserDto(user))))(request)
       }
     }
-  }
-
-  def login: Action[AnyContent] = messagesAction {
-    implicit request: MessagesRequest[AnyContent] =>
-      UserDto.userForm.bindFromRequest.fold(
-        formError => Ok(Json.toJson(formError.errorsAsJson)),
-        formData => Ok(Json.toJson(formData))
-      )
   }
 
 }

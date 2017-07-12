@@ -42,6 +42,7 @@ import play.api.mvc.CookieHeaderEncoding
 import env.JWTEnv
 import libraries.PlayCacheLayer
 import models.dao.{ AuthInfoDaoCredentialsSlick, UserDao, UserDaoSlick }
+import responses.ApiSecuredErrorHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -57,7 +58,7 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
 
     bind[Silhouette[JWTEnv]].to[SilhouetteProvider[JWTEnv]]
     //bind[UnsecuredErrorHandler].to[CustomUnsecuredErrorHandler]
-    //bind[SecuredErrorHandler].to[CustomSecuredErrorHandler]
+    bind[SecuredErrorHandler].to[ApiSecuredErrorHandler]
     bind[UserService].to[UserServiceImpl]
     bind[UserDao].to[UserDaoSlick]
     //bind[CacheLayer].to[PlayCacheLayer]
