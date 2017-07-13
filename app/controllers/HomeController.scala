@@ -30,7 +30,7 @@ import scala.concurrent.ExecutionContext
  */
 @Singleton
 class HomeController @Inject() (assets: Assets, cc: ControllerComponents, ws: WSClient,
-                                environment: Environment)(implicit ec: ExecutionContext) extends AbstractController(cc) {
+  environment: Environment)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
   def index = assets.versioned(path = "/public/dist", "index.html")
 
