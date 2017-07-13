@@ -21,29 +21,23 @@ import play.api.data.Forms._
 import play.api.libs.json.Json
 
 /**
- * @param password           The user's Password
- * @param firstName          The user's first name
- * @param surName            The user's last name
  * @param email              The user's email address
+ * @param password           The user's Password
  */
-case class UserRegisterDto(
-  password: String,
-  firstName: String,
-  surName: String,
-  email: String
+case class UserLoginDto(
+  email: String,
+  password: String
 )
 
-object UserRegisterDto {
+object UserLoginDto {
 
-  def registerForm: Form[UserRegisterDto] = Form(
+  def loginForm: Form[UserLoginDto] = Form(
     mapping(
-      "password" -> nonEmptyText,
-      "firstName" -> nonEmptyText,
-      "surName" -> nonEmptyText,
-      "email" -> nonEmptyText
-    )(UserRegisterDto.apply)(UserRegisterDto.unapply)
+      "email" -> nonEmptyText,
+      "password" -> nonEmptyText
+    )(UserLoginDto.apply)(UserLoginDto.unapply)
   )
 
-  implicit val userRegisterDtoFormat = Json.format[UserRegisterDto]
+  implicit val userLoginDtoFormat = Json.format[UserLoginDto]
 }
 

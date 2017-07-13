@@ -17,6 +17,7 @@ before_script:
   - mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('')"
   - mysql -u root -e "GRANT ALL ON reprompt.* TO 'root'@'127.0.0.1'"
   - mysql -u root -e "GRANT ALL ON reprompt.* TO 'root'@'localhost'"
+  - mysql -u root reprompt < conf/travis.sql
   - mysql --version
 deploy:
   provider: heroku

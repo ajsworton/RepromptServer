@@ -25,7 +25,7 @@ import com.mohiva.play.silhouette.api.services.AvatarService
 import com.mohiva.play.silhouette.api.util.PasswordHasher
 import com.mohiva.play.silhouette.impl.authenticators.JWTAuthenticator
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
-import models.dto.{ UserDto, UserRegisterDto }
+import models.dto.{ UserDto, UserLoginDto, UserRegisterDto }
 import env.JWTEnv
 import models.dao.UserDaoSlick
 import models.{ Profile, User }
@@ -69,10 +69,26 @@ class AuthController @Inject() (
 
   def login = silhouette.UnsecuredAction.async {
     implicit request: Request[AnyContent] =>
-      UserDto.userForm.bindFromRequest.fold(
+      UserLoginDto.loginForm.bindFromRequest.fold(
         formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
-        formData =>
-          Future(Ok(Json.toJson(formData)))
+        formData => {
+          val loginInfo = LoginInfo(CredentialsProvider.ID, formData.email)
+          userService.retrieve(loginInfo).flatMap {
+            case None => Future(Ok(Json.toJson(JsonErrorResponse("No Matching Record Found"))))
+            case Some(user) => {
+              if (passwordHasher.matches(
+                user.profiles.find(p => p.loginInfo == loginInfo).get
+                .passwordInfo.get,
+                formData.password)) {
+                //user is authenticated
+                embedToken(loginInfo, request, user)
+              } else {
+                //user not authenticated
+                Future(Ok(Json.toJson(JsonErrorResponse("No Matching Record Found"))))
+              }
+            }
+          }
+        }
       )
   }
 
@@ -84,7 +100,7 @@ class AuthController @Inject() (
   private def handleTokenAuth(formData: UserRegisterDto, request: Request[AnyContent]): Future[Result] = {
     val loginInfo = LoginInfo(CredentialsProvider.ID, formData.email)
     userService.retrieve(loginInfo).flatMap {
-      case Some(_) => Future(Ok(Json.toJson(JsonErrorResponse("Already Authenticated"))))
+      case Some(_) => Future(Ok(Json.toJson(JsonErrorResponse("Credentials Already Registered"))))
       case None =>
         val profile = Profile(
           loginInfo = loginInfo, email = Some(formData.email),
@@ -97,18 +113,16 @@ class AuthController @Inject() (
           user <- userDao.save(User(profile.copy(avatarUrl = avatarUrl)))
           //token <- authTokenService.create(user.get.id.get)
           result <- embedToken(loginInfo, request, user.get)
-        } yield {
-          result
-        }
+        } yield result
     }
   }
 
   private def embedToken(loginInfo: LoginInfo, request: Request[AnyContent], user: User): Future[Result] = {
     silhouette.env.authenticatorService.create(loginInfo)(request).flatMap { authenticator =>
       silhouette.env.eventBus.publish(LoginEvent(user, request))
-      silhouette.env.authenticatorService.init(authenticator)(request).flatMap { v =>
+      silhouette.env.authenticatorService.init(authenticator)(request).flatMap { token =>
         silhouette.env.authenticatorService.embed(
-          v,
+          token,
           Ok(Json.toJson(UserDto(user))))(request)
       }
     }
