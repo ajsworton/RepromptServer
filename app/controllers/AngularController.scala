@@ -29,11 +29,13 @@ import scala.concurrent.ExecutionContext
  * application's home page.
  */
 @Singleton
-class HomeController @Inject() (assets: Assets, cc: ControllerComponents, ws: WSClient,
+class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws: WSClient,
   environment: Environment)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
-  def index = assets.versioned(path = "/public/dist", "index.html")
+  def index = {
+    assets.versioned(path = "/public/", "index.html")
+  }
 
-  def dist(file: String) = assets.versioned(path = "/public/dist", file)
+  def angular(file: String) = assets.versioned(path = "/public/", file)
 
 }
