@@ -16,18 +16,19 @@
 
 package models.dto
 
-import play.api.data.Form
+import play.api.data
+import play.api.data.{Form, format}
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, Reads}
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{PrimaryKey, ProvenShape}
 
 case class CohortDto(
-                    id: Option[Int],
-                    ownerId: Int,
-                    name: String
-                 )
+  id: Option[Int],
+  ownerId: Int,
+  name: String
+)
 
 object CohortDto {
 
@@ -51,4 +52,5 @@ object CohortDto {
   }
 
   implicit val cohortDtoFormat = Json.format[CohortDto]
+  implicit val cohortDtoSeqFormat = Json.format[List[CohortDto]]
 }

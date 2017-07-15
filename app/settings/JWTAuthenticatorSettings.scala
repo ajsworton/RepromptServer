@@ -21,7 +21,7 @@ import com.mohiva.play.silhouette.api.util.RequestPart
 import scala.concurrent.duration._
 
 case class JWTAuthenticatorSettings(
-  fieldName: String = "Reprompt-Auth-Token",
+  fieldName: String = "X-Auth-Token",
   requestParts: Option[Seq[RequestPart.Value]] = Some(Seq(RequestPart.Headers)),
   issuerClaim: String = "reprompt-sps",
   authenticatorIdleTimeout: Option[FiniteDuration] = None,

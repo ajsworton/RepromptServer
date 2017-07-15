@@ -20,9 +20,9 @@ import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import models.dao.UserDao
-import models.{Profile, User}
+import models.{ Profile, User }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * Handles actions to users.

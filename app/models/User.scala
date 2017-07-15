@@ -16,10 +16,10 @@
 
 package models
 
-import java.sql.{Date, Timestamp}
-import java.time.{LocalDate, LocalDateTime}
+import java.sql.{ Date, Timestamp }
+import java.time.{ LocalDate, LocalDateTime }
 
-import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
+import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.ProvenShape

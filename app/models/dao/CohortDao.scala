@@ -22,45 +22,45 @@ import scala.concurrent.Future
 trait CohortDao {
 
   /**
-    * locate a cohort by Id
-    * @param cohortId the id to match on
-    * @return a future cohort
-    */
+   * locate a cohort by Id
+   * @param cohortId the id to match on
+   * @return a future cohort
+   */
   def find(cohortId: Int): Future[Option[CohortDto]]
 
   /**
-    * locate a set of cohorts by owner Id
-    * @param ownerId the owner Id to match on
-    * @return future cohorts
-    */
+   * locate a set of cohorts by owner Id
+   * @param ownerId the owner Id to match on
+   * @return future cohorts
+   */
   def findByOwner(ownerId: Int): Future[Seq[CohortDto]]
 
   /**
-    * Save a cohort
-    * @param cohort the cohort to save
-    * @return a future cohort
-    */
+   * Save a cohort
+   * @param cohort the cohort to save
+   * @return a future cohort
+   */
   def save(cohort: CohortDto): Future[Option[CohortDto]]
 
   /**
-    * Update an existing cohort
-    * @param cohort the cohort data to update (match by cohort Id)
-    * @return
-    */
+   * Update an existing cohort
+   * @param cohort the cohort data to update (match by cohort Id)
+   * @return
+   */
   def update(cohort: CohortDto): Future[Option[CohortDto]]
 
   /**
-    * Delete a cohort
-    * @param cohortId the cohort id to delete
-    * @return a future number of affected rows
-    */
+   * Delete a cohort
+   * @param cohortId the cohort id to delete
+   * @return a future number of affected rows
+   */
   def delete(cohortId: Int): Future[Int]
 
   /**
-    * Delete all cohorts for an ownerId
-    * @param ownerId the cohort id to delete
-    * @return a future number of affected rows
-    */
+   * Delete all cohorts for an ownerId
+   * @param ownerId the cohort id to delete
+   * @return a future number of affected rows
+   */
   def deleteByOwner(ownerId: Int): Future[Int]
 
 }

@@ -18,19 +18,18 @@ package models.dao
 
 import javax.inject._
 
-import models.{Profile, User}
+import models.{ Profile, User }
 import models.dto.CohortDto
 import models.dto.CohortDto.CohortsTable
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.JdbcProfile
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
-class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)
-  (implicit executionContext: ExecutionContext)
-  extends CohortDao  with HasDatabaseConfigProvider[JdbcProfile]{
+class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
+  extends CohortDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val Cohorts = TableQuery[CohortsTable]
 
@@ -38,14 +37,25 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(Cohorts.filter(_.id === cohortId).result.headOption)
   }
 
-  override def findByOwner(ownerId: Int): Future[Seq[CohortDto]] = {
-    db.run(Cohorts.filter(_.ownerId === ownerId).result)
+  override def findByOwner(ownerId: Int): Future[Option[Seq[CohortDto]]] = {
+    val result = db.run(Cohorts.filter(_.ownerId === ownerId).result)
+
+    result flatMap {
+      res => {
+        if (res.isEmpty){
+          Future(None)
+        } else {
+          Future(Some(res))
+        }
+      }
+    }
+
   }
 
   override def save(cohort: CohortDto): Future[Option[CohortDto]] = {
     db.run((Cohorts returning Cohorts.map(_.id)
       into ((cohort, returnedId) => Some(cohort.copy(id = returnedId)))
-      ) += cohort)
+    ) += cohort)
   }
 
   override def update(cohort: CohortDto): Future[Option[CohortDto]] = {

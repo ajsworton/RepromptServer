@@ -16,7 +16,7 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
@@ -25,19 +25,19 @@ import com.mohiva.play.silhouette.api.services.AvatarService
 import com.mohiva.play.silhouette.api.util.PasswordHasher
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import env.JWTEnv
-import models.dao.UserDaoSlick
-import models.dto.{UserDto, UserLoginDto, UserRegisterDto}
-import models.services.{AuthTokenService, UserService}
-import models.{Profile, User}
+import models.dao.UserDao
+import models.dto.{ UserDto, UserLoginDto, UserRegisterDto }
+import models.services.{ AuthTokenService, UserService }
+import models.{ Profile, User }
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.libs.mailer.MailerClient
-import play.api.mvc.{AbstractController, AnyContent, ControllerComponents, MessagesActionBuilder, Request, Result}
+import play.api.mvc.{ AbstractController, AnyContent, ControllerComponents, MessagesActionBuilder, Request, Result }
 import play.libs.ws.WSClient
 import responses.JsonErrorResponse
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class AuthController @Inject() (
@@ -45,7 +45,7 @@ class AuthController @Inject() (
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   userService: UserService,
-  userDao: UserDaoSlick,
+  userDao: UserDao,
   authInfoRepository: AuthInfoRepository,
   authTokenService: AuthTokenService,
   avatarService: AvatarService,

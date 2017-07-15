@@ -24,7 +24,7 @@ import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
 import models.Profile
 import models.services.UserService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: UserDao)(implicit executionContext: ExecutionContext)
   extends DelegableAuthInfoDAO[PasswordInfo] {

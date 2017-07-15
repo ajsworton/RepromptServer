@@ -24,7 +24,7 @@ package models.services
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.services.IdentityService
-import models.{Profile, User}
+import models.{ Profile, User }
 
 import scala.concurrent.Future
 

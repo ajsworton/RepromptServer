@@ -19,9 +19,9 @@ package responses
 import javax.inject.Inject
 import com.mohiva.play.silhouette.api.actions.SecuredErrorHandler
 import play.api.libs.json.Json
-import play.api.mvc.{RequestHeader, Result, Results}
+import play.api.mvc.{ RequestHeader, Result, Results }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ApiSecuredErrorHandler @Inject() ()(implicit ec: ExecutionContext)
   extends SecuredErrorHandler with Results {

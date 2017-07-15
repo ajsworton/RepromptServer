@@ -21,7 +21,7 @@ import javax.inject._
 import models.dao.UserDaoSlick
 import models.dto.UserDto
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents }
 
 import scala.concurrent.ExecutionContext
 

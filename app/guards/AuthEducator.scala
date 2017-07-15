@@ -23,7 +23,7 @@ import play.api.mvc.Request
 
 import scala.concurrent.Future
 
-class AuthEducator
+case class AuthEducator()
   extends silhouette.api.Authorization[User, JWTAuthenticator] {
   override def isAuthorized[B](user: User, authenticator: JWTAuthenticator)(implicit request: Request[B]): Future[Boolean] = {
     Future.successful(user.isEducator)
