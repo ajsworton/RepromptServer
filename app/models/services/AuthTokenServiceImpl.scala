@@ -26,13 +26,11 @@ import java.time.LocalDateTime
 import java.util.UUID
 import javax.inject.Inject
 
-import com.mohiva.play.silhouette.api.util.Clock
 import models.AuthToken
 import models.dao.AuthTokenDao
-import org.joda.time.DateTimeZone
 
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration._
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.postfixOps
 
 /**

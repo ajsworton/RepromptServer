@@ -21,11 +21,10 @@ import javax.inject.Inject
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
-import models.{ Profile, User }
-import models.services.{ AuthInfoService, UserService }
-import views.html.defaultpages.todo
+import models.Profile
+import models.services.UserService
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: UserDao)(implicit executionContext: ExecutionContext)
   extends DelegableAuthInfoDAO[PasswordInfo] {

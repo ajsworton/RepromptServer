@@ -21,14 +21,13 @@ import javax.inject._
 import com.mohiva.play.silhouette.api.LoginInfo
 import models.Profile.ProfilesTable
 import models.User.UsersTable
-import models.{ Profile, User }
-import play.api.db.slick.DatabaseConfigProvider
-import play.api.db.slick.HasDatabaseConfigProvider
+import models.{Profile, User}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)
                              (implicit executionContext: ExecutionContext)

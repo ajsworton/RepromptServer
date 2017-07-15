@@ -16,13 +16,12 @@
 
 package controllers
 
-import models.dao.UserDaoSlick
-import models.dto.UserDto
 import javax.inject._
 
-import play.api.mvc.{ Action, AnyContent }
+import models.dao.UserDaoSlick
+import models.dto.UserDto
 import play.api.libs.json.Json
-import play.api.mvc.{ AbstractController, ControllerComponents }
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents}
 
 import scala.concurrent.ExecutionContext
 

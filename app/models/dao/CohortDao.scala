@@ -16,9 +16,7 @@
 
 package models.dao
 
-import models.{Profile, User}
 import models.dto.CohortDto
-
 import scala.concurrent.Future
 
 trait CohortDao {

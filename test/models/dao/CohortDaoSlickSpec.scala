@@ -72,6 +72,7 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
         cohort =>
           for {
             changedCohort <- cohortDao.update(cohort.get.copy(name = "Fun"))
+            _ <- cohortDao.delete(changedCohort.get.id.get)
             check <- changedCohort.get.name should equal ("Fun")
           } yield check
       }

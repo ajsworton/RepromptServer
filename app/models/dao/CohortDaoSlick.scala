@@ -48,7 +48,16 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
       ) += cohort)
   }
 
-  override def update(cohort: CohortDto): Future[Option[CohortDto]] = ???
+  override def update(cohort: CohortDto): Future[Option[CohortDto]] = {
+    if (cohort.id.isEmpty) {
+      Future(None)
+    } else {
+      for {
+        _ <- db.run(Cohorts.update(cohort))
+        read <- find(cohort.id.get)
+      } yield read
+    }
+  }
 
   override def delete(cohortId: Int): Future[Int] = {
     db.run(Cohorts.filter(_.id === cohortId).delete)

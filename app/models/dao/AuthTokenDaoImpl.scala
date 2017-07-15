@@ -18,9 +18,7 @@ package models.dao
 
 import java.time.LocalDateTime
 import java.util.UUID
-
 import models.AuthToken
-
 import scala.collection.mutable
 import scala.concurrent.Future
 

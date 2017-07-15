@@ -17,10 +17,8 @@
 package libraries
 
 import javax.inject.Inject
-
 import com.mohiva.play.silhouette.api.util.CacheLayer
 import play.api.cache.AsyncCacheApi
-
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 import scala.reflect.ClassTag

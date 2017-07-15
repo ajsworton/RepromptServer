@@ -17,8 +17,7 @@
 package models.dao
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import models.{ Profile, User }
-
+import models.{Profile, User}
 import scala.concurrent.Future
 
 trait UserDao {

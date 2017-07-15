@@ -19,6 +19,7 @@ package libraries
 import models.dto.CohortDto
 
 class CohortTestData {
+
   val ownerId = 1
 
   val cohortNoId1 = new CohortDto(None, ownerId, "cohortNoId1")
