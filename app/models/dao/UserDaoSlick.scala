@@ -30,7 +30,8 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
+class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)
+                             (implicit executionContext: ExecutionContext)
   extends UserDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val Users = TableQuery[UsersTable]

@@ -30,7 +30,8 @@ case class UserRegisterDto(
   password: String,
   firstName: String,
   surName: String,
-  email: String
+  email: String,
+  isEducator: Boolean
 )
 
 object UserRegisterDto {
@@ -40,7 +41,8 @@ object UserRegisterDto {
       "password" -> nonEmptyText,
       "firstName" -> nonEmptyText,
       "surName" -> nonEmptyText,
-      "email" -> nonEmptyText
+      "email" -> nonEmptyText,
+      "isEducator" -> boolean
     )(UserRegisterDto.apply)(UserRegisterDto.unapply)
   )
 

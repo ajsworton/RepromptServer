@@ -110,7 +110,8 @@ class AuthController @Inject() (
         )
         for {
           avatarUrl <- avatarService.retrieveURL(formData.email)
-          user <- userDao.save(User(profile.copy(avatarUrl = avatarUrl)))
+          user <- userDao.save(User(profile.copy(avatarUrl = avatarUrl)).copy(isEducator =
+            formData.isEducator))
           //token <- authTokenService.create(user.get.id.get)
           result <- embedToken(loginInfo, request, user.get)
         } yield result
