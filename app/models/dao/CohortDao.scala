@@ -49,7 +49,7 @@ trait CohortDao {
     * @param cohort the cohort data to update (match by cohort Id)
     * @return
     */
-  def update(cohort: CohortDto): Future[Option[User]]
+  def update(cohort: CohortDto): Future[Option[CohortDto]]
 
   /**
     * Delete a cohort

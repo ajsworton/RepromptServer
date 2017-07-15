@@ -60,19 +60,30 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
     }
 
     //save(cohort: CohortDto): Future[Option[CohortDto]]
-    it("should correctly find an existing user by id") {
+    //this has been tested with "should correctly find an existing cohort by id"
 
+
+    // update(cohort: CohortDto): Future[Option[User]]
+    it("should correctly update an existing cohort") {
+      //insert cohort
+      val returnedCohort = cohortDao.save(testData.cohortNoId1)
+
+      returnedCohort.flatMap {
+        cohort =>
+          for {
+            changedCohort <- cohortDao.update(cohort.get.copy(name = "Fun"))
+            check <- changedCohort.get.name should equal ("Fun")
+          } yield check
+      }
+
+
+
+      //check cohort match
+
+      //remove cohort
     }
-    /*
-        /**
-          * Update an existing cohort
-          * @param cohort the cohort data to update (match by cohort Id)
-          * @return
-          */
-        def update(cohort: CohortDto): Future[Option[User]]
-        it("should correctly find an existing user by id") {
 
-          }
+    /*
 
         /**
           * Delete a cohort
