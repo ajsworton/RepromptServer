@@ -19,10 +19,10 @@ package models.dto
 import play.api.data
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.{Json, Reads, Writes}
+import play.api.libs.json.{ Json, Reads, Writes }
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
-import slick.lifted.{PrimaryKey, ProvenShape}
+import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class CohortDto(
   id: Option[Int],
