@@ -46,7 +46,7 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
 
     //findByOwner(ownerId: Int): Future[List[CohortDto]]
-    it("should correctly find an existing user by id") {
+    it("should correctly find an existing user by ownerid") {
       testData.cohortsNoIds.foreach(c => cohortDao.save(c))
 
       cohortDao.findByOwner(testData.ownerId).flatMap {
@@ -70,18 +70,12 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
       returnedCohort.flatMap {
         cohort =>
-          for {
-            changedCohort <- cohortDao.update(cohort.get.copy(name = "Fun"))
-            _ <- cohortDao.delete(changedCohort.get.id.get)
-            check <- changedCohort.get.name should equal ("Fun")
-          } yield check
+          cohortDao.update(cohort.get.copy(name = "Fun")).flatMap {
+            changed =>
+              cohortDao.delete(cohort.get.id.get)
+              changed.get.name should equal ("Fun")
+          }
       }
-
-
-
-      //check cohort match
-
-      //remove cohort
     }
 
     /*

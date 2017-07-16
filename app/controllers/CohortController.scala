@@ -61,13 +61,17 @@ class CohortController @Inject() (
   def getAllByOwner(ownerId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val results = cohortDao.findByOwner(ownerId)
-      Future(Ok(Json.toJson(results)))
+      results flatMap {
+        r => Future(Ok(Json.toJson(r)))
+      }
   }
 
   def get(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val result = cohortDao.find(cohortId)
-      Future(Ok(Json.toJson(result)))
+      result flatMap {
+        r => Future(Ok(Json.toJson(r)))
+      }
   }
 
   def getAllByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
@@ -75,7 +79,9 @@ class CohortController @Inject() (
       val user = request.identity
       if (user.id.isDefined) {
         val results = cohortDao.findByOwner(request.identity.id.get)
-        Future(Ok(Json.toJson(results)))
+        results flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
       } else {
         Future(Ok(Json.toJson(JsonErrorResponse("Authentication error"))))
       }

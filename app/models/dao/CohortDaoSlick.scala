@@ -37,18 +37,18 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     db.run(Cohorts.filter(_.id === cohortId).result.headOption)
   }
 
-  override def findByOwner(ownerId: Int): Future[Option[Seq[CohortDto]]] = {
-    val result = db.run(Cohorts.filter(_.ownerId === ownerId).result)
-
-    result flatMap {
-      res => {
-        if (res.isEmpty){
-          Future(None)
-        } else {
-          Future(Some(res))
-        }
-      }
-    }
+  override def findByOwner(ownerId: Int): Future[Seq[CohortDto]] = {
+    db.run(Cohorts.filter(_.ownerId === ownerId).result)
+//
+//    result flatMap {
+//      res => {
+//        if (res.isEmpty){
+//          Future(None)
+//        } else {
+//          Future(Some(res))
+//        }
+//      }
+//    }
 
   }
 
@@ -63,7 +63,7 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
       Future(None)
     } else {
       for {
-        _ <- db.run(Cohorts.update(cohort))
+        _ <- db.run(Cohorts.filter(_.id === cohort.id).update(cohort))
         read <- find(cohort.id.get)
       } yield read
     }

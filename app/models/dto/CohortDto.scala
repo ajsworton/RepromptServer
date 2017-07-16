@@ -17,9 +17,9 @@
 package models.dto
 
 import play.api.data
-import play.api.data.{Form, format}
+import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.{Json, Reads}
+import play.api.libs.json.{Json, Reads, Writes}
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{PrimaryKey, ProvenShape}
@@ -52,5 +52,4 @@ object CohortDto {
   }
 
   implicit val cohortDtoFormat = Json.format[CohortDto]
-  implicit val cohortDtoSeqFormat = Json.format[List[CohortDto]]
 }
