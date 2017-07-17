@@ -38,7 +38,7 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
   }
 
   override def findByOwner(ownerId: Int): Future[Seq[CohortDto]] = {
-    db.run(Cohorts.filter(_.ownerId === ownerId).result)
+    db.run(Cohorts.filter(_.ownerId === ownerId).sortBy(_.name.asc).result)
   }
 
   override def save(cohort: CohortDto): Future[Option[CohortDto]] = {

@@ -5,8 +5,8 @@
 
 
 #Auth
-POST    /api/auth/login             controllers.AuthController.login
-PUT     /api/auth/register          controllers.AuthController.register
+POST     /api/auth/login             controllers.AuthController.login
+POST    /api/auth/register          controllers.AuthController.register
 GET     /api/auth/profile           controllers.AuthController.profile
 
 #Users
@@ -16,8 +16,10 @@ GET     /api/user/:id               controllers.UserController.get(id: Int)
 #Cohorts
 #GET     /api/cohort                 controllers.CohortController.getAll
 GET     /api/cohort/:id             controllers.CohortController.get(id: Int)
-GET     /api/cohort/owned/           controllers.CohortController.getAllByCurrentUser
-GET     /api/cohort/owned/:id       controllers.CohortController.getAllByOwner(id: Int)
+GET     /api/cohorts/owned          controllers.CohortController.getAllByCurrentUser
+GET     /api/cohorts/owned/:id      controllers.CohortController.getAllByOwner(id: Int)
+POST    /api/cohort/save            controllers.CohortController.save
+DELETE  /api/cohort/:id             controllers.CohortController.delete(id: Int)
 
 # Angular routes
 GET     /                           controllers.AngularController.index

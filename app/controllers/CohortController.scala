@@ -32,7 +32,7 @@ import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.libs.mailer.MailerClient
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder }
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result }
 import play.libs.ws.WSClient
 import responses.JsonErrorResponse
 
@@ -78,7 +78,7 @@ class CohortController @Inject() (
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val user = request.identity
       if (user.id.isDefined) {
-        val results = cohortDao.findByOwner(request.identity.id.get)
+        val results = cohortDao.findByOwner(user.id.get)
         results flatMap {
           r => Future(Ok(Json.toJson(r)))
         }
@@ -87,13 +87,49 @@ class CohortController @Inject() (
       }
   }
 
-}
+  def save: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      CohortDto.cohortForm.bindFromRequest.fold(
+        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formData => {
+          //check if exists
+          if (formData.id.isDefined) {
+            val existing = cohortDao.find(formData.id.get)
+            existing flatMap {
+              r =>
+                r match {
+                  case None => saveCohort(formData)
+                  case Some(_) => updateCohort(formData)
+                }
+            }
+          } else {
+            // save
+            saveCohort(formData)
+          }
+        }
+      )
+  }
 
-//      CohortDto.cohortForm.bindFromRequest.fold(
-//        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
-//        formData => {
-//          // retrieve and return all results
-//          val results = cohortDao.findByOwner(formData.ownerId)
-//          Future(Ok(Json.toJson(results)))
-//        }
-//      )
+  private def saveCohort(cohort: CohortDto): Future[Result] = {
+    val saveResponse = cohortDao.save(cohort)
+    saveResponse flatMap {
+      r => Future(Ok(Json.toJson(r.get)))
+    }
+  }
+
+  private def updateCohort(cohort: CohortDto): Future[Result] = {
+    val updateResponse = cohortDao.update(cohort)
+    updateResponse flatMap {
+      r => Future(Ok(Json.toJson(r.get)))
+    }
+  }
+
+  def delete(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      //delete cohort with id
+      cohortDao.delete(cohortId) flatMap {
+        r => Future(Ok(Json.toJson(r)))
+      }
+  }
+
+}
