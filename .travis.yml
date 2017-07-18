@@ -12,7 +12,6 @@ before_script:
   - mysql --version
   - ./scripts/travis_mysql_5.7.sh
   - ./scripts/mysql-reset-root-password.sh
-  - mysql -u root -e 'DROP DATABASE reprompt;'
   - mysql -u root -e 'CREATE DATABASE reprompt;'
   - mysql -u root -e "SET PASSWORD FOR 'root'@'127.0.0.1' = PASSWORD('')"
   - mysql -u root -e "SET PASSWORD FOR 'root'@'localhost' = PASSWORD('')"
