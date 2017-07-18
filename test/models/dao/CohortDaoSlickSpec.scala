@@ -16,10 +16,10 @@
 
 package models.dao
 
-import libraries.{CohortTestData, UserProfileTestData}
+import libraries.{ CohortTestData, UserProfileTestData }
 import libs.AppFactory
 import models.dto.CohortDto
-import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
@@ -29,7 +29,6 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
   val cohortDao: CohortDaoSlick = fakeApplication().injector.instanceOf[CohortDaoSlick]
   val testData = new CohortTestData()
-
 
   describe("UserDaoSlick") {
 
@@ -44,24 +43,23 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       } yield result
     }
 
-
     //findByOwner(ownerId: Int): Future[List[CohortDto]]
     it("should correctly find an existing user by ownerid") {
       testData.cohortsNoIds.foreach(c => cohortDao.save(c))
 
       cohortDao.findByOwner(testData.ownerId).flatMap {
-        result: Seq[CohortDto] => {
-          cohortDao.deleteByOwner(testData.ownerId)
-          result.size should equal(testData.cohortsNoIds.size)
-          result.head.ownerId should equal (testData.ownerId)
-        }
+        result: Seq[CohortDto] =>
+          {
+            cohortDao.deleteByOwner(testData.ownerId)
+            result.size should equal(testData.cohortsNoIds.size)
+            result.head.ownerId should equal(testData.ownerId)
+          }
       }
 
     }
 
     //save(cohort: CohortDto): Future[Option[CohortDto]]
     //this has been tested with "should correctly find an existing cohort by id"
-
 
     // update(cohort: CohortDto): Future[Option[User]]
     it("should correctly update an existing cohort") {
@@ -73,7 +71,7 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
           cohortDao.update(cohort.get.copy(name = "Fun")).flatMap {
             changed =>
               cohortDao.delete(cohort.get.id.get)
-              changed.get.name should equal ("Fun")
+              changed.get.name should equal("Fun")
           }
       }
     }
@@ -90,7 +88,6 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
           }
            */
-
 
   }
 

@@ -22,20 +22,20 @@ class CohortTestData {
 
   val ownerId = 1
 
-  val cohortNoId1 = new CohortDto(None, ownerId, "cohortNoId1")
-  val cohortNoId2 = new CohortDto(None, ownerId, "cohortNoId2")
-  val cohortNoId3 = new CohortDto(None, ownerId, "cohortNoId3")
-  val cohortNoId4 = new CohortDto(None, ownerId, "cohortNoId4")
-  val cohortNoId5 = new CohortDto(None, ownerId, "cohortNoId5")
+  val cohortNoId1 = new CohortDto(None, None, ownerId, "cohortNoId1")
+  val cohortNoId2 = new CohortDto(None, None, ownerId, "cohortNoId2")
+  val cohortNoId3 = new CohortDto(None, None, ownerId, "cohortNoId3")
+  val cohortNoId4 = new CohortDto(None, None, ownerId, "cohortNoId4")
+  val cohortNoId5 = new CohortDto(None, None, ownerId, "cohortNoId5")
 
   val cohortsNoIds = List(cohortNoId1, cohortNoId2, cohortNoId3, cohortNoId4, cohortNoId5)
 
-//  val cohortWithId1 = new CohortDto(Some(1), 1, "cohortNoId1")
-//  val cohortWithId2 = new CohortDto(Some(1), 1, "cohortNoId2")
-//  val cohortWithId3 = new CohortDto(Some(1), 1, "cohortNoId3")
-//  val cohortWithId4 = new CohortDto(Some(1), 1, "cohortNoId4")
-//  val cohortWithId5 = new CohortDto(Some(1), 1, "cohortNoId5")
-//
-//  val cohortsWithIds = List(cohortWithId1, cohortWithId2, cohortWithId3, cohortWithId4,
-//    cohortWithId5)
+  //  val cohortWithId1 = new CohortDto(Some(1), 1, "cohortNoId1")
+  //  val cohortWithId2 = new CohortDto(Some(1), 1, "cohortNoId2")
+  //  val cohortWithId3 = new CohortDto(Some(1), 1, "cohortNoId3")
+  //  val cohortWithId4 = new CohortDto(Some(1), 1, "cohortNoId4")
+  //  val cohortWithId5 = new CohortDto(Some(1), 1, "cohortNoId5")
+  //
+  //  val cohortsWithIds = List(cohortWithId1, cohortWithId2, cohortWithId3, cohortWithId4,
+  //    cohortWithId5)
 }

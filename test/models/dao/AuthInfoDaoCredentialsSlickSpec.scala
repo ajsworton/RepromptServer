@@ -95,21 +95,21 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
     }
 
     //disabled for travis build
-//    it("should remove PasswordInfo from supplied loginInfo") {
-//      //remove
-//      val user = userDao.save(testData.user1Linked)
-//      val add = authInfoDao.add(testData.profile1.loginInfo, newPasswordInfo)
-//
-//      for {
-//        user <- user
-//        add <- add
-//        remove <- authInfoDao.remove(testData.profile1.loginInfo)
-//        returned <- authInfoDao.find(testData.profile1.loginInfo)
-//        valid <- returned should be(None)
-//        _ <- userDao.delete(user.get.id.get)
-//        _ <- userDao.delete(user.get.id.get)
-//      } yield valid
-//    }
+    //    it("should remove PasswordInfo from supplied loginInfo") {
+    //      //remove
+    //      val user = userDao.save(testData.user1Linked)
+    //      val add = authInfoDao.add(testData.profile1.loginInfo, newPasswordInfo)
+    //
+    //      for {
+    //        user <- user
+    //        add <- add
+    //        remove <- authInfoDao.remove(testData.profile1.loginInfo)
+    //        returned <- authInfoDao.find(testData.profile1.loginInfo)
+    //        valid <- returned should be(None)
+    //        _ <- userDao.delete(user.get.id.get)
+    //        _ <- userDao.delete(user.get.id.get)
+    //      } yield valid
+    //    }
 
   }
 }
