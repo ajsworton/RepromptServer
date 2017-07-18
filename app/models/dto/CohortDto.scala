@@ -42,7 +42,7 @@ object CohortDto {
     )(CohortDto.apply)(CohortDto.unapply)
   )
 
-  class CohortsTable(tag: Tag) extends Table[CohortDto](tag, "Cohorts") {
+  class CohortsTable(tag: Tag) extends Table[CohortDto](tag, "cohorts") {
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
     def parentId: lifted.Rep[Option[Int]] = column[Int]("ParentId")

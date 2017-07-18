@@ -3,11 +3,11 @@
 
 # --- !Ups
 
-CREATE TABLE Users (
+CREATE TABLE users (
   Id int(11) NOT NULL AUTO_INCREMENT,
-  FirstName varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  SurName varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  Email varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  FirstName varchar(255) NOT NULL,
+  SurName varchar(255) NOT NULL,
+  Email varchar(255) NOT NULL,
   IsEmailVerified tinyint(1) NOT NULL DEFAULT '0',
   IsEducator tinyint(1) NOT NULL DEFAULT '0',
   IsAdministrator tinyint(1) NOT NULL DEFAULT '0',
@@ -16,10 +16,10 @@ CREATE TABLE Users (
   UNIQUE KEY EMAIL (Email)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-INSERT INTO Users (Id, FirstName, SurName, Email, IsEmailVerified, IsEducator, IsAdministrator)
+INSERT INTO users (Id, FirstName, SurName, Email, IsEmailVerified, IsEducator, IsAdministrator)
 VALUES (1, 'Admin', 'User', 'Undefined', '1', '1', '1');
 
-CREATE TABLE Profiles(
+CREATE TABLE profiles(
   UserId INT NOT NULL,
   ProviderId VARCHAR(255) NOT NULL,
   ProviderKey VARCHAR(255) NOT NULL,
@@ -33,10 +33,10 @@ CREATE TABLE Profiles(
   OAuth2Info JSON,
   AvatarUrl VARCHAR(255),
   PRIMARY KEY (UserId, ProviderId, ProviderKey),
-  FOREIGN KEY (UserId) REFERENCES Users(Id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (UserId) REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
-INSERT INTO Profiles (UserId, ProviderId, ProviderKey, Confirmed, FirstName)
+INSERT INTO profiles (UserId, ProviderId, ProviderKey, Confirmed, FirstName)
 VALUES (1, 'credentials', 'admin', 1 , 'Admin');
 
 CREATE TABLE cohorts (
@@ -45,21 +45,21 @@ CREATE TABLE cohorts (
   Name varchar(255) DEFAULT NULL,
   ParentId int(11) DEFAULT NULL,
   PRIMARY KEY (Id),
-  FOREIGN KEY (OwnerId) REFERENCES Users(Id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (ParentId) REFERENCES Cohorts(Id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (OwnerId) REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (ParentId) REFERENCES cohorts(Id) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE cohort_members (
   CohortId int(11) NOT NULL,
   UserId int(11) NOT NULL,
   PRIMARY KEY (CohortId, UserId),
-  FOREIGN KEY (CohortId) REFERENCES Cohorts(Id) ON UPDATE CASCADE ON DELETE CASCADE,
-  FOREIGN KEY (UserId) REFERENCES Users(Id) ON UPDATE CASCADE ON DELETE CASCADE
+  FOREIGN KEY (CohortId) REFERENCES cohorts(Id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (UserId) REFERENCES users(Id) ON UPDATE CASCADE ON DELETE CASCADE
 ) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 # --- !Downs
 
 DROP TABLE IF EXISTS cohort_members;
 DROP TABLE IF EXISTS cohorts;
-DROP TABLE IF EXISTS Profiles;
-DROP TABLE IF EXISTS Users;
+DROP TABLE IF EXISTS profiles;
+DROP TABLE IF EXISTS users;

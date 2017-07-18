@@ -39,7 +39,7 @@ case class Profile(
 ) extends SocialProfile
 
 object Profile {
-  class ProfilesTable(tag: Tag) extends Table[Profile](tag, "Profiles") {
+  class ProfilesTable(tag: Tag) extends Table[Profile](tag, "profiles") {
 
     implicit val oAuth1JsonFormat: OFormat[OAuth1Info] = Json.format[OAuth1Info]
     implicit val oAuth2JsonFormat: OFormat[OAuth2Info] = Json.format[OAuth2Info]

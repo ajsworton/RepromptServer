@@ -49,7 +49,7 @@ object User {
     )
   }
 
-  class UsersTable(tag: Tag) extends Table[User](tag, "Users") {
+  class UsersTable(tag: Tag) extends Table[User](tag, "users") {
     implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
       l => Date.valueOf(l),
       d => d.toLocalDate
