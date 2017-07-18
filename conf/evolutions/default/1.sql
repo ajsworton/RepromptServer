@@ -34,7 +34,7 @@ CREATE TABLE Profiles(
   AvatarUrl VARCHAR(255),
   PRIMARY KEY (UserId, ProviderId, ProviderKey),
   FOREIGN KEY (UserId) REFERENCES Users(Id) ON UPDATE CASCADE ON DELETE CASCADE
-) ENGINE=INNODB CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 INSERT INTO Profiles (UserId, ProviderId, ProviderKey, Confirmed, FirstName)
 VALUES (1, 'credentials', 'admin', 1 , 'Admin');
@@ -47,8 +47,7 @@ CREATE TABLE cohorts (
   PRIMARY KEY (Id),
   KEY OwnerId (OwnerId),
   KEY ParentId (ParentId),
-  FOREIGN KEY (OwnerId) REFERENCES users (Id) ON DELETE CASCADE ON UPDATE CASCADE,
-  FOREIGN KEY (ParentId) REFERENCES cohorts (Id) ON DELETE CASCADE ON UPDATE CASCADE
+  FOREIGN KEY (OwnerId) REFERENCES users(Id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE cohort_members (
