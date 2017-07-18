@@ -42,19 +42,20 @@ VALUES (1, 'credentials', 'admin', 1 , 'Admin');
 CREATE TABLE cohorts (
   Id int(11) NOT NULL AUTO_INCREMENT,
   OwnerId int(11) DEFAULT NULL,
-  Name varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  Name varchar(255) DEFAULT NULL,
   ParentId int(11) DEFAULT NULL,
   PRIMARY KEY (Id),
-  KEY OwnerId (OwnerId),
-  KEY ParentId (ParentId),
-  FOREIGN KEY (OwnerId) REFERENCES users(Id) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=160 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  FOREIGN KEY (OwnerId) REFERENCES Users(Id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (ParentId) REFERENCES Cohorts(Id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE cohort_members (
   CohortId int(11) NOT NULL,
   UserId int(11) NOT NULL,
-  PRIMARY KEY (CohortId, UserId)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+  PRIMARY KEY (CohortId, UserId),
+  FOREIGN KEY (CohortId) REFERENCES Cohorts(Id) ON UPDATE CASCADE ON DELETE CASCADE,
+  FOREIGN KEY (UserId) REFERENCES Users(Id) ON UPDATE CASCADE ON DELETE CASCADE
+) ENGINE=InnoDB CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 # --- !Downs
 
