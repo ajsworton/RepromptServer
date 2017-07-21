@@ -44,11 +44,15 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
           SELECT cohorts.Id, cohorts.ParentId, cohorts.OwnerId, cohorts.Name,
           users.Id, users.FirstName, users.SurName, users.Email, users.IsEmailVerified,
           users.IsEducator, users.IsAdministrator, users.AvatarUrl
-          FROM cohorts, cohort_members, users
-          WHERE cohorts.Id = cohort_members.CohortId
-          AND cohort_members.UserId = users.Id
-          AND cohorts.Id = $cohortId
-          ORDER BY cohorts.Name
+          FROM cohorts
+
+            LEFT JOIN cohort_members
+            ON cohorts.Id = cohort_members.CohortId
+
+            LEFT JOIN users
+            ON cohort_members.UserId = users.Id
+
+          WHERE cohorts.Id = $cohortId
          """.as[(CohortDto, Option[User])]
 
   def findCohortQueryByOwner(ownerId: Int) =
@@ -69,18 +73,18 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
          """.as[(CohortDto, Option[User])]
 
   override def find(cohortId: Int): Future[Option[CohortDto]] = {
-    val collect = for {
-      res <- findCohortQuery(cohortId)
-      collected = res.foldLeft(res.head._1.copy(members = Some(Nil)))((acc: CohortDto, row) => {
-        val members: Option[List[UserDto]] = row._2 match {
-          case None => acc.members
-          case Some(user) => Some(UserDto(user) :: acc.members.get)
-        }
-        acc.copy(members = members)
-      })
-    } yield Some(collected)
+    val result = findCohortQuery(cohortId)
+    val run = db.run(result)
 
-    db.run(collect)
+    run.flatMap(
+      r => {
+        if(r.nonEmpty) {
+          val memberList = r.map(p => UserDto(p._2.get)).toList.filter(m => m.id.get > 0)
+          Future(Some(r.head._1.copy(members = Some(memberList))))
+        } else {
+          Future(None)
+        }
+      })
   }
 
   override def findByOwner(ownerId: Int): Future[Seq[CohortDto]] = {

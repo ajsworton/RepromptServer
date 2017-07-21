@@ -30,16 +30,15 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   val cohortDao: CohortDaoSlick = fakeApplication().injector.instanceOf[CohortDaoSlick]
   val testData = new CohortTestData()
 
-  describe("UserDaoSlick") {
+  describe("CohortDaoSlick") {
 
     //find(cohortId: Int): Future[Option[CohortDto]]
     it("should correctly find an existing cohort by id") {
-      val returnedCohort = cohortDao.save(testData.cohortNoId1)
-      for {
-        retCohort <- returnedCohort
+        for {
+        retCohort <- cohortDao.save(testData.cohortNoId1)
         foundCohort <- cohortDao.find(retCohort.get.id.get)
         _ <- cohortDao.delete(retCohort.get.id.get)
-        result = retCohort.get.id should be(foundCohort.get.id)
+        result <- retCohort.get.id should be(foundCohort.get.id)
       } yield result
     }
 
