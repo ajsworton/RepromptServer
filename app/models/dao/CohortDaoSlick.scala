@@ -78,7 +78,7 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
 
     run.flatMap(
       r => {
-        if(r.nonEmpty) {
+        if (r.nonEmpty) {
           val memberList = r.map(p => UserDto(p._2.get)).toList.filter(m => m.id.get > 0)
           Future(Some(r.head._1.copy(members = Some(memberList))))
         } else {
