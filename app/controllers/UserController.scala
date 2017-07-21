@@ -18,12 +18,17 @@ package controllers
 
 import javax.inject._
 
-import models.dao.UserDaoSlick
+import play.api.i18n.I18nSupport
+import com.mohiva.play.silhouette.api.actions.SecuredRequest
+import env.JWTEnv
+import guards.AuthEducator
+import models.dao.{ CohortDao, UserDaoSlick }
 import models.dto.UserDto
 import play.api.libs.json.Json
 import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents }
+import com.mohiva.play.silhouette.api._
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 
 /**
  * This controller creates an `Action` to handle HTTP requests to the
@@ -32,21 +37,21 @@ import scala.concurrent.ExecutionContext
 @Singleton
 class UserController @Inject() (
   cc: ControllerComponents,
-  userDao: UserDaoSlick
+  userDao: UserDaoSlick,
+  silhouette: Silhouette[JWTEnv],
+  cohortDao: CohortDao
 )(implicit ec: ExecutionContext)
-  extends AbstractController(cc) {
+  extends AbstractController(cc) with I18nSupport {
 
-  def getAll: Action[AnyContent] = Action async {
-    userDao.all().map(users => Ok(Json.toJson(users.map(u => UserDto(u)))))
+  def getAll: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      //retrieve all users
+      userDao.all().map(users => Ok(Json.toJson(users.map(u => UserDto(u)))))
   }
 
-  def get(id: Int): Action[AnyContent] = Action.async {
-    userDao.find(id).map(user => Ok(Json.toJson(UserDto(user.get))))
+  def get(id: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      userDao.find(id).map(user => Ok(Json.toJson(UserDto(user.get))))
   }
-
-  //  def create(fname: String, sname: String) = Action {
-  //        val user = new UserDao()
-  //    implicit request: Request[AnyContent] => Ok(views.html.user())
-  //  }
 
 }

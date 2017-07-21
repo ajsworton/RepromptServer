@@ -18,16 +18,14 @@ package models.dao
 
 import javax.inject._
 
-import models.User.UsersTable
-import models.{ Profile, User }
-import models.dto.{ CohortDto, UserDto }
+import models.User
+import models.dto.{ CohortDto, CohortMemberDto, UserDto }
 import models.dto.CohortDto.CohortsTable
-import models.dto.CohortMembersDto.CohortMembersTable
+import models.dto.CohortMemberDto.CohortsMembersTable
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
-import slick.jdbc.{ GetResult, JdbcProfile }
+import slick.jdbc.JdbcProfile
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
-import slick.sql.SqlStreamingAction
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -35,6 +33,7 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
   extends CohortDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val Cohorts = TableQuery[CohortsTable]
+  private val CohortsMembers = TableQuery[CohortsMembersTable]
 
   //  override def find(cohortId: Int): Future[Option[CohortDto]] = {
   //    db.run(Cohorts.filter(_.id === cohortId).result.headOption)
@@ -49,6 +48,7 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
           WHERE cohorts.Id = cohort_members.CohortId
           AND cohort_members.UserId = users.Id
           AND cohorts.Id = $cohortId
+          ORDER BY cohorts.Name
          """.as[(CohortDto, Option[User])]
 
   def findCohortQueryByOwner(ownerId: Int) =
@@ -56,10 +56,16 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
           SELECT cohorts.Id, cohorts.ParentId, cohorts.OwnerId, cohorts.Name,
           users.Id, users.FirstName, users.SurName, users.Email, users.IsEmailVerified,
           users.IsEducator, users.IsAdministrator, users.AvatarUrl
-          FROM cohorts, cohort_members, users
-          WHERE cohorts.Id = cohort_members.CohortId
-          AND cohort_members.UserId = users.Id
-          AND cohorts.OwnerId = $ownerId
+          FROM cohorts
+
+            LEFT JOIN cohort_members
+            ON cohorts.Id = cohort_members.CohortId
+
+            LEFT JOIN users
+            ON cohort_members.UserId = users.Id
+
+          WHERE cohorts.OwnerId = $ownerId
+          ORDER BY cohorts.Name, users.SurName, users.FirstName
          """.as[(CohortDto, Option[User])]
 
   override def find(cohortId: Int): Future[Option[CohortDto]] = {
@@ -87,7 +93,7 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
         val out = for {
           groupMembers <- grouped
           members = groupMembers._2
-          membersProc = members.map(p => UserDto(p._2.get)).toList
+          membersProc = members.map(p => UserDto(p._2.get)).toList.filter(m => m.id.get > 0)
           result = groupMembers._1.copy(members = Some(membersProc))
         } yield result
         Future(out.toSeq)
@@ -102,13 +108,23 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
   }
 
   override def update(cohort: CohortDto): Future[Option[CohortDto]] = {
+    val parentId = getCohortParentId(cohort)
     if (cohort.id.isEmpty) {
       Future(None)
     } else {
       for {
-        _ <- db.run(Cohorts.filter(_.id === cohort.id).update(cohort))
+        _ <- db.run(Cohorts.filter(_.id === cohort.id).map(c => (c.name, c.ownerId, c.parentId))
+          .update(cohort.name, cohort.ownerId, parentId))
         read <- find(cohort.id.get)
       } yield read
+    }
+  }
+
+  private def getCohortParentId(cohort: CohortDto): Option[Int] = {
+    if (cohort.parentId.isDefined && cohort.parentId.get > 0) {
+      cohort.parentId
+    } else {
+      None
     }
   }
 
@@ -118,5 +134,23 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
 
   override def deleteByOwner(ownerId: Int): Future[Int] = {
     db.run(Cohorts.filter(_.ownerId === ownerId).delete)
+  }
+
+  def attach(cohortId: Int, userId: Int): Future[Int] = {
+    if (userId < 1 || cohortId < 1) {
+      Future(0)
+    } else {
+      val insert = new CohortMemberDto(Some(cohortId), Some(userId))
+      db.run(CohortsMembers += insert)
+    }
+  }
+
+  def detach(cohortId: Int, userId: Int): Future[Int] = {
+    if (userId < 1 || cohortId < 1) {
+      Future(0)
+    } else {
+      val toDelete = new CohortMemberDto(Some(cohortId), Some(userId))
+      db.run(CohortsMembers.filter(cm => cm.cohortId === cohortId && cm.userId === userId).delete)
+    }
   }
 }

@@ -26,7 +26,7 @@ import com.mohiva.play.silhouette.api.util.PasswordHasher
 import env.JWTEnv
 import guards.AuthEducator
 import models.dao.CohortDao
-import models.dto.{ CohortDto, UserDto }
+import models.dto.{ CohortDto, CohortMemberDto }
 import models.services.{ AuthTokenService, UserService }
 import play.api.Environment
 import play.api.i18n.I18nSupport
@@ -107,6 +107,29 @@ class CohortController @Inject() (
       )
   }
 
+  def attach: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      CohortMemberDto.cohortMemberForm.bindFromRequest.fold(
+        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formData => {
+          if (formData.CohortId.isDefined && formData.UserId.isDefined) {
+            saveCohortMember(formData.CohortId.get, formData.UserId.get)
+          } else {
+            Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+          }
+        }
+      )
+  }
+
+  def detach(cohortId: Int, userId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      if (cohortId > 0 && userId > 0) {
+        deleteCohortMember(cohortId, userId)
+      } else {
+        Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+      }
+  }
+
   def getWithUsers: Action[AnyContent] = Action async {
     val cohortId = 16
     val results = cohortDao.findByOwner(cohortId)
@@ -119,6 +142,20 @@ class CohortController @Inject() (
     val saveResponse = cohortDao.save(cohort)
     saveResponse flatMap {
       r => Future(Ok(Json.toJson(r.get)))
+    }
+  }
+
+  private def saveCohortMember(cohortId: Int, userId: Int): Future[Result] = {
+    val saveResponse = cohortDao.attach(cohortId, userId)
+    saveResponse flatMap {
+      r => Future(Ok(Json.toJson(r)))
+    }
+  }
+
+  private def deleteCohortMember(cohortId: Int, userId: Int): Future[Result] = {
+    val deleteResponse = cohortDao.detach(cohortId, userId)
+    deleteResponse flatMap {
+      r => Future(Ok(Json.toJson(r)))
     }
   }
 

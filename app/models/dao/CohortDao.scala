@@ -63,4 +63,20 @@ trait CohortDao {
    */
   def deleteByOwner(ownerId: Int): Future[Int]
 
+  /**
+   *
+   * @param userId
+   * @param cohortId
+   * @return
+   */
+  def attach(cohortId: Int, userId: Int): Future[Int]
+
+  /**
+   *
+   * @param cohortId
+   * @param userId
+   * @return
+   */
+  def detach(cohortId: Int, userId: Int): Future[Int]
+
 }

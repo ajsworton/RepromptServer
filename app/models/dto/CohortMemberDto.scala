@@ -18,20 +18,23 @@ package models.dto
 
 import models.User.UsersTable
 import models.dto.CohortDto.CohortsTable
+import play.api.data.Form
+import play.api.data.Forms.{ mapping, number, optional }
+import play.api.libs.json.Json
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 import slick.model.ForeignKeyAction
 
-case class CohortMembersDto(CohortId: Option[Int], UserId: Option[Int])
+case class CohortMemberDto(CohortId: Option[Int], UserId: Option[Int])
 
-object CohortMembersDto {
-  class CohortMembersTable(tag: Tag) extends Table[CohortMembersDto](tag, "cohort_members") {
+object CohortMemberDto {
+  class CohortsMembersTable(tag: Tag) extends Table[CohortMemberDto](tag, "cohort_members") {
     def cohortId: lifted.Rep[Option[Int]] = column[Int]("CohortId")
     def userId: lifted.Rep[Option[Int]] = column[Int]("UserId")
 
-    def * : ProvenShape[CohortMembersDto] =
-      (cohortId, userId) <> ((CohortMembersDto.apply _).tupled, CohortMembersDto.unapply)
+    def * : ProvenShape[CohortMemberDto] =
+      (cohortId, userId) <> ((CohortMemberDto.apply _).tupled, CohortMemberDto.unapply)
 
     def pk: PrimaryKey = primaryKey("PRIMARY", (cohortId, userId))
 
@@ -44,5 +47,14 @@ object CohortMembersDto {
       _.id,
       onUpdate = ForeignKeyAction.Cascade,
       onDelete = ForeignKeyAction.Cascade)
+
   }
+
+  def cohortMemberForm: Form[CohortMemberDto] = Form(
+    mapping(
+      "cohortId" -> optional(number),
+      "userId" -> optional(number)
+    )(CohortMemberDto.apply _)(CohortMemberDto.unapply)
+  )
+  implicit val cohortMemberDtoFormat = Json.format[CohortMemberDto]
 }
