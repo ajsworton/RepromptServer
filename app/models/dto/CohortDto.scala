@@ -16,10 +16,10 @@
 
 package models.dto
 
-import play.api.data
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.Json
+import slick.jdbc.GetResult
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
@@ -28,10 +28,20 @@ case class CohortDto(
   id: Option[Int],
   parentId: Option[Int],
   ownerId: Int,
-  name: String
+  name: String,
+  members: Option[List[UserDto]] = None
 )
 
 object CohortDto {
+
+  def construct(id: Option[Int], parentId: Option[Int], ownerId: Int, name: String) =
+    new CohortDto(id = id, parentId = parentId, ownerId = ownerId, name = name, members = None)
+
+  def deconstruct(dto: CohortDto): Option[(Option[Int], Option[Int], Int, String)] = dto match {
+    case CohortDto(id: Option[Int], parentId: Option[Int], ownerId: Int, name: String,
+      _: Option[List[UserDto]]
+      ) => Some(id, parentId, ownerId, name)
+  }
 
   def cohortForm: Form[CohortDto] = Form(
     mapping(
@@ -39,7 +49,7 @@ object CohortDto {
       "parentId" -> optional(number),
       "ownerId" -> number,
       "name" -> nonEmptyText
-    )(CohortDto.apply)(CohortDto.unapply)
+    )(CohortDto.construct)(CohortDto.deconstruct)
   )
 
   class CohortsTable(tag: Tag) extends Table[CohortDto](tag, "cohorts") {
@@ -51,8 +61,18 @@ object CohortDto {
     def pk: PrimaryKey = primaryKey("PRIMARY", (id, ownerId))
 
     def * : ProvenShape[CohortDto] = (id, parentId, ownerId, name) <>
-      ((CohortDto.apply _).tupled, CohortDto.unapply)
+      ((CohortDto.construct _).tupled, CohortDto.deconstruct)
   }
+
+  implicit val getCohortResult = GetResult(r =>
+    CohortDto(
+      Some(r.nextInt),
+      Some(r.nextInt),
+      r.nextInt,
+      r.nextString,
+      None
+    )
+  )
 
   implicit val cohortDtoFormat = Json.format[CohortDto]
 }

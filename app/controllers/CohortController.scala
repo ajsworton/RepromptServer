@@ -96,11 +96,8 @@ class CohortController @Inject() (
           if (formData.id.isDefined) {
             val existing = cohortDao.find(formData.id.get)
             existing flatMap {
-              r =>
-                r match {
-                  case None => saveCohort(formData)
-                  case Some(_) => updateCohort(formData)
-                }
+              case None => saveCohort(formData)
+              case Some(_) => updateCohort(formData)
             }
           } else {
             // save
@@ -108,6 +105,14 @@ class CohortController @Inject() (
           }
         }
       )
+  }
+
+  def getWithUsers: Action[AnyContent] = Action async {
+    val cohortId = 16
+    val results = cohortDao.findByOwner(cohortId)
+    results flatMap {
+      r => Future(Ok(Json.toJson(r)))
+    }
   }
 
   private def saveCohort(cohort: CohortDto): Future[Result] = {

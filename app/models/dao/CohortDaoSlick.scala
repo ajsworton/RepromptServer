@@ -18,13 +18,16 @@ package models.dao
 
 import javax.inject._
 
+import models.User.UsersTable
 import models.{ Profile, User }
-import models.dto.CohortDto
+import models.dto.{ CohortDto, UserDto }
 import models.dto.CohortDto.CohortsTable
+import models.dto.CohortMembersDto.CohortMembersTable
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
-import slick.jdbc.JdbcProfile
+import slick.jdbc.{ GetResult, JdbcProfile }
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
+import slick.sql.SqlStreamingAction
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -33,12 +36,63 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
 
   private val Cohorts = TableQuery[CohortsTable]
 
+  //  override def find(cohortId: Int): Future[Option[CohortDto]] = {
+  //    db.run(Cohorts.filter(_.id === cohortId).result.headOption)
+  //  }
+
+  def findCohortQuery(cohortId: Int) =
+    sql"""
+          SELECT cohorts.Id, cohorts.ParentId, cohorts.OwnerId, cohorts.Name,
+          users.Id, users.FirstName, users.SurName, users.Email, users.IsEmailVerified,
+          users.IsEducator, users.IsAdministrator, users.AvatarUrl
+          FROM cohorts, cohort_members, users
+          WHERE cohorts.Id = cohort_members.CohortId
+          AND cohort_members.UserId = users.Id
+          AND cohorts.Id = $cohortId
+         """.as[(CohortDto, Option[User])]
+
+  def findCohortQueryByOwner(ownerId: Int) =
+    sql"""
+          SELECT cohorts.Id, cohorts.ParentId, cohorts.OwnerId, cohorts.Name,
+          users.Id, users.FirstName, users.SurName, users.Email, users.IsEmailVerified,
+          users.IsEducator, users.IsAdministrator, users.AvatarUrl
+          FROM cohorts, cohort_members, users
+          WHERE cohorts.Id = cohort_members.CohortId
+          AND cohort_members.UserId = users.Id
+          AND cohorts.OwnerId = $ownerId
+         """.as[(CohortDto, Option[User])]
+
   override def find(cohortId: Int): Future[Option[CohortDto]] = {
-    db.run(Cohorts.filter(_.id === cohortId).result.headOption)
+    val collect = for {
+      res <- findCohortQuery(cohortId)
+      collected = res.foldLeft(res.head._1.copy(members = Some(Nil)))((acc: CohortDto, row) => {
+        val members: Option[List[UserDto]] = row._2 match {
+          case None => acc.members
+          case Some(user) => Some(UserDto(user) :: acc.members.get)
+        }
+        acc.copy(members = members)
+      })
+    } yield Some(collected)
+
+    db.run(collect)
   }
 
   override def findByOwner(ownerId: Int): Future[Seq[CohortDto]] = {
-    db.run(Cohorts.filter(_.ownerId === ownerId).sortBy(_.name.asc).result)
+    val result = findCohortQueryByOwner(ownerId)
+    val run = db.run(result)
+
+    run.flatMap(
+      r => {
+        val grouped = r.groupBy(_._1)
+        val out = for {
+          groupMembers <- grouped
+          members = groupMembers._2
+          membersProc = members.map(p => UserDto(p._2.get)).toList
+          result = groupMembers._1.copy(members = Some(membersProc))
+        } yield result
+        Future(out.toSeq)
+      }
+    )
   }
 
   override def save(cohort: CohortDto): Future[Option[CohortDto]] = {

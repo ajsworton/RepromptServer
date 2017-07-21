@@ -20,20 +20,21 @@ import java.sql.{ Date, Timestamp }
 import java.time.{ LocalDate, LocalDateTime }
 
 import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
+import slick.jdbc.GetResult
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.ProvenShape
 
 case class User(
   id: Option[Int] = None,
-  profiles: List[Profile] = Nil,
   firstName: String,
   surName: String,
   email: String,
   isEmailVerified: Boolean = false,
   isEducator: Boolean = false,
   isAdministrator: Boolean = false,
-  avatarUrl: Option[String] = None
+  avatarUrl: Option[String] = None,
+  profiles: List[Profile] = Nil
 ) extends Identity {
   def profileFor(loginInfo: LoginInfo): Option[Profile] = profiles.find(_.loginInfo == loginInfo)
 }
@@ -45,9 +46,38 @@ object User {
       profiles = List(profile),
       firstName = profile.firstName.getOrElse(""),
       surName = profile.lastName.getOrElse(""),
-      email = profile.email.getOrElse("")
+      email = profile.email.getOrElse(""),
+      avatarUrl = if (profile.avatarUrl.isDefined) profile.avatarUrl else None
     )
   }
+
+  implicit val getResult = GetResult(r =>
+    User(
+      Some(r.nextInt),
+      r.nextString,
+      r.nextString,
+      r.nextString,
+      r.nextBoolean,
+      r.nextBoolean,
+      r.nextBoolean,
+      Some(r.nextString),
+      Nil
+    )
+  )
+
+  implicit val getOptionResult = GetResult(r =>
+    Some(User(
+      Some(r.nextInt),
+      r.nextString,
+      r.nextString,
+      r.nextString,
+      r.nextBoolean,
+      r.nextBoolean,
+      r.nextBoolean,
+      Some(r.nextString),
+      Nil
+    ))
+  )
 
   class UsersTable(tag: Tag) extends Table[User](tag, "users") {
     implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
@@ -83,9 +113,9 @@ object User {
       }
 
     def deconstructUser(user: User) = user match {
-      case User(id: Option[Int], profiles: List[Profile], firstName: String, surName: String,
+      case User(id: Option[Int], firstName: String, surName: String,
         email: String, isEmailVerified: Boolean, isEducator: Boolean, isAdministrator: Boolean,
-        avatarUrl: Option[String]) => {
+        avatarUrl: Option[String], profiles: List[Profile]) => {
         Option(id, firstName, surName, email, isEmailVerified, isEducator, isAdministrator,
           avatarUrl)
       }
