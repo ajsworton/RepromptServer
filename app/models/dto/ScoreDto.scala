@@ -16,4 +16,26 @@
 
 package models.dto
 
-case class ScoreDto()
+import java.time.LocalDate
+
+import play.api.data.Form
+import play.api.data.Forms._
+import play.api.libs.json.Json
+import slick.jdbc.GetResult
+import slick.jdbc.MySQLProfile.api._
+import slick.lifted
+import slick.lifted.{PrimaryKey, ProvenShape}
+
+case class ScoreDto(
+                     userId: Int,
+                     contentId: Int,
+                     lastScore: Int,
+                     repromptDate: LocalDate,
+                     streak: Int
+                   )
+
+object ScoreDto {
+
+
+  implicit val ScoreDtoFormat = Json.format[ScoreDto]
+}
