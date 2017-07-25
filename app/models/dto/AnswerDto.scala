@@ -25,11 +25,11 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class AnswerDto(
-                      id: Option[Int],
-                      questionId: Int,
-                      answer: String,
-                      correct: Boolean
-                    )
+  id: Option[Int],
+  questionId: Int,
+  answer: String,
+  correct: Boolean
+) extends Dto
 
 object AnswerDto {
 
@@ -37,8 +37,7 @@ object AnswerDto {
     new AnswerDto(id = id, questionId = questionId, answer = answer, correct = correct)
 
   def deconstruct(dto: AnswerDto): Option[(Option[Int], Int, String, Boolean)] = dto match {
-    case AnswerDto(id: Option[Int], questionId: Int, answer: String, correct: Boolean)
-    => Some(id, questionId, answer, correct)
+    case AnswerDto(id: Option[Int], questionId: Int, answer: String, correct: Boolean) => Some(id, questionId, answer, correct)
   }
 
   def ContentPackageForm: Form[AnswerDto] = Form(

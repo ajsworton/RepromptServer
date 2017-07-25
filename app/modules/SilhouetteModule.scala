@@ -33,7 +33,7 @@ import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.daos.{ DelegableAuthInfoDAO, InMemoryAuthInfoDAO }
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import env.JWTEnv
-import models.dao.{ AuthInfoDaoCredentialsSlick, CohortDao, CohortDaoSlick, UserDao, UserDaoSlick }
+import models.dao.{ AuthInfoDaoCredentialsSlick, CohortDao, CohortDaoSlick, ContentFolderDao, ContentFolderDaoSlick, UserDao, UserDaoSlick }
 import models.services.{ UserService, UserServiceImpl }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -61,6 +61,7 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     bind[UserService].to[UserServiceImpl]
     bind[UserDao].to[UserDaoSlick]
     bind[CohortDao].to[CohortDaoSlick]
+    bind[ContentFolderDao].to[ContentFolderDaoSlick]
     //bind[CacheLayer].to[PlayCacheLayer]
     bind[IDGenerator].toInstance(new SecureRandomIDGenerator())
     bind[PasswordHasher].toInstance(new BCryptPasswordHasher)

@@ -17,17 +17,18 @@
 package models.dao
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import models.{ Profile, User }
+import models.{Profile, User}
+
 import scala.concurrent.Future
 
-trait UserDao {
+trait UserDao extends Dao[User] {
 
   /**
    *
    * @param user
    * @return
    */
-  def save(user: User): Future[Option[User]]
+  override def save(user: User): Future[Option[User]]
 
   /**
    * Finds and returns an option[User] matching the userId

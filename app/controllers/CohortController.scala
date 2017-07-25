@@ -16,42 +16,30 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
-import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
-import com.mohiva.play.silhouette.api.services.AvatarService
-import com.mohiva.play.silhouette.api.util.PasswordHasher
 import env.JWTEnv
 import guards.AuthEducator
+import libraries.DaoOnDtoAction
 import models.dao.CohortDao
-import models.dto.{ CohortDto, CohortMemberDto }
-import models.services.{ AuthTokenService, UserService }
+import models.dto.{CohortDto, CohortMemberDto}
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.libs.mailer.MailerClient
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result }
-import play.libs.ws.WSClient
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result}
 import responses.JsonErrorResponse
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class CohortController @Inject() (
   messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
-  userService: UserService,
   cohortDao: CohortDao,
-  authInfoRepository: AuthInfoRepository,
-  authTokenService: AuthTokenService,
-  avatarService: AvatarService,
-  passwordHasher: PasswordHasher,
-  ws: WSClient,
-  environment: Environment,
-  mailerClient: MailerClient)(implicit ec: ExecutionContext)
+  environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
   /**
@@ -96,12 +84,12 @@ class CohortController @Inject() (
           if (formData.id.isDefined) {
             val existing = cohortDao.find(formData.id.get)
             existing flatMap {
-              case None => saveCohort(formData)
-              case Some(_) => updateCohort(formData)
+              case None => DaoOnDtoAction.saveDto(cohortDao, formData)
+              case Some(_) => DaoOnDtoAction.updateDto(cohortDao, formData)
             }
           } else {
             // save
-            saveCohort(formData)
+            DaoOnDtoAction.saveDto(cohortDao, formData)
           }
         }
       )
@@ -121,27 +109,21 @@ class CohortController @Inject() (
       )
   }
 
-  def detach(cohortId: Int, userId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
-    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      if (cohortId > 0 && userId > 0) {
-        deleteCohortMember(cohortId, userId)
-      } else {
-        Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
-      }
-  }
+  def detach(cohortId: Int, userId: Int): Action[AnyContent] =
+    silhouette.SecuredAction(AuthEducator()).async {
+      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+        if (cohortId > 0 && userId > 0) {
+          deleteCohortMember(cohortId, userId)
+        } else {
+          Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+        }
+    }
 
   def getWithUsers: Action[AnyContent] = Action async {
     val cohortId = 16
     val results = cohortDao.findByOwner(cohortId)
     results flatMap {
       r => Future(Ok(Json.toJson(r)))
-    }
-  }
-
-  private def saveCohort(cohort: CohortDto): Future[Result] = {
-    val saveResponse = cohortDao.save(cohort)
-    saveResponse flatMap {
-      r => Future(Ok(Json.toJson(r.get)))
     }
   }
 
@@ -156,13 +138,6 @@ class CohortController @Inject() (
     val deleteResponse = cohortDao.detach(cohortId, userId)
     deleteResponse flatMap {
       r => Future(Ok(Json.toJson(r)))
-    }
-  }
-
-  private def updateCohort(cohort: CohortDto): Future[Result] = {
-    val updateResponse = cohortDao.update(cohort)
-    updateResponse flatMap {
-      r => Future(Ok(Json.toJson(r.get)))
     }
   }
 

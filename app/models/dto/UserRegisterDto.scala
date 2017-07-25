@@ -32,7 +32,7 @@ case class UserRegisterDto(
   surName: String,
   email: String,
   isEducator: Boolean
-)
+) extends Dto
 
 object UserRegisterDto {
 

@@ -27,15 +27,15 @@ import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
-case class ScoreDto(
+case class AssignedDto(
   userId: Int,
   contentId: Int,
   lastScore: Int,
   repromptDate: LocalDate,
   streak: Int
-  extends Dto
+) extends Dto
 
-object ScoreDto {
+object AssignedDto {
 
   implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
     l => Date.valueOf(l),
@@ -48,25 +48,25 @@ object ScoreDto {
   )
 
   def construct(userId: Int, contentId: Int, lastScore: Int, repromptDate: LocalDate, streak: Int) =
-    new ScoreDto(userId = userId, contentId = contentId, lastScore = lastScore,
+    new AssignedDto(userId = userId, contentId = contentId, lastScore = lastScore,
       repromptDate = repromptDate, streak = streak)
 
-  def deconstruct(dto: ScoreDto): Option[(Int, Int, Int, LocalDate, Int)] = dto match {
-    case ScoreDto(userId: Int, contentId: Int, lastScore: Int, repromptDate: LocalDate,
+  def deconstruct(dto: AssignedDto): Option[(Int, Int, Int, LocalDate, Int)] = dto match {
+    case AssignedDto(userId: Int, contentId: Int, lastScore: Int, repromptDate: LocalDate,
       streak: Int) => Some(userId, contentId, lastScore, repromptDate, streak)
   }
 
-  def ScoreForm: Form[ScoreDto] = Form(
+  def ScoreForm: Form[AssignedDto] = Form(
     mapping(
       "userId" -> number,
       "contentId" -> number,
       "lastScore" -> number,
       "repromptDate" -> localDate,
       "streak" -> number
-    )(ScoreDto.construct)(ScoreDto.deconstruct)
+    )(AssignedDto.construct)(AssignedDto.deconstruct)
   )
 
-  class ScoreTable(tag: Tag) extends Table[ScoreDto](tag, "content_scores") {
+  class ScoreTable(tag: Tag) extends Table[AssignedDto](tag, "content_scores") {
 
     def userId: lifted.Rep[Int] = column[Int]("UserId", O.PrimaryKey)
     def contentId: lifted.Rep[Int] = column[Int]("ContentId", O.PrimaryKey)
@@ -75,12 +75,12 @@ object ScoreDto {
     def streak: lifted.Rep[Int] = column[Int]("Streak")
     def pk: PrimaryKey = primaryKey("PRIMARY", (userId, contentId))
 
-    def * : ProvenShape[ScoreDto] = (userId, contentId, lastScore, repromptDate, streak) <>
-      ((ScoreDto.construct _).tupled, ScoreDto.deconstruct)
+    def * : ProvenShape[AssignedDto] = (userId, contentId, lastScore, repromptDate, streak) <>
+      ((AssignedDto.construct _).tupled, AssignedDto.deconstruct)
   }
 
   implicit val getScoreResult = GetResult(r =>
-    ScoreDto(
+    AssignedDto(
       r.nextInt,
       r.nextInt,
       r.nextInt,
@@ -89,5 +89,5 @@ object ScoreDto {
     )
   )
 
-  implicit val ScoreDtoFormat = Json.format[ScoreDto]
+  implicit val AssignedDtoFormat = Json.format[AssignedDto]
 }

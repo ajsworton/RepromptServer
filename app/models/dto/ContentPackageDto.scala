@@ -25,12 +25,12 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class ContentPackageDto(
-                        id: Option[Int],
-                        folderId: Int,
-                        ownerId: Int,
-                        name: String,
-                        content: Option[List[ContentItemDto]] = None
-                      )
+  id: Option[Int],
+  folderId: Int,
+  ownerId: Int,
+  name: String,
+  content: Option[List[ContentItemDto]] = None
+) extends Dto
 
 object ContentPackageDto {
 
@@ -39,8 +39,8 @@ object ContentPackageDto {
 
   def deconstruct(dto: ContentPackageDto): Option[(Option[Int], Int, Int, String)] = dto match {
     case ContentPackageDto(id: Option[Int], folderId: Int, ownerId: Int, name: String,
-    _: Option[List[ContentItemDto]]
-    ) => Some(id, folderId, ownerId, name)
+      _: Option[List[ContentItemDto]]
+      ) => Some(id, folderId, ownerId, name)
   }
 
   def ContentPackageForm: Form[ContentPackageDto] = Form(
@@ -72,6 +72,16 @@ object ContentPackageDto {
       r.nextString,
       None
     )
+  )
+
+  implicit val getOptionContentResult = GetResult(r =>
+    Some(ContentPackageDto(
+      Some(r.nextInt),
+      r.nextInt,
+      r.nextInt,
+      r.nextString,
+      None
+    ))
   )
 
   implicit val ContentPackageDtoFormat = Json.format[ContentPackageDto]

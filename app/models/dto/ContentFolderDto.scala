@@ -25,22 +25,22 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class ContentFolderDto(
-                        id: Option[Int],
-                        parentId: Option[Int],
-                        ownerId: Int,
-                        name: String,
-                        packages: Option[List[UserDto]] = None
-                      )
+  id: Option[Int],
+  parentId: Option[Int],
+  ownerId: Int,
+  name: String,
+  members: Option[List[ContentPackageDto]] = None
+) extends Dto
 
 object ContentFolderDto {
 
   def construct(id: Option[Int], parentId: Option[Int], ownerId: Int, name: String) =
-    new ContentFolderDto(id = id, parentId = parentId, ownerId = ownerId, name = name, packages = None)
+    new ContentFolderDto(id = id, parentId = parentId, ownerId = ownerId, name = name, members = None)
 
   def deconstruct(dto: ContentFolderDto): Option[(Option[Int], Option[Int], Int, String)] = dto match {
     case ContentFolderDto(id: Option[Int], parentId: Option[Int], ownerId: Int, name: String,
-    _: Option[List[UserDto]]
-    ) => Some(id, parentId, ownerId, name)
+      _: Option[List[ContentPackageDto]]
+      ) => Some(id, parentId, ownerId, name)
   }
 
   def contentFolderForm: Form[ContentFolderDto] = Form(
@@ -72,6 +72,16 @@ object ContentFolderDto {
       r.nextString,
       None
     )
+  )
+
+  implicit val getOptionContentResult = GetResult(r =>
+    Some(ContentFolderDto(
+      Some(r.nextInt),
+      Some(r.nextInt),
+      r.nextInt,
+      r.nextString,
+      None
+    ))
   )
 
   implicit val ContentFolderDtoFormat = Json.format[ContentFolderDto]

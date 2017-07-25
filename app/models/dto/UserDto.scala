@@ -42,7 +42,7 @@ case class UserDto(
   isEducator: Boolean,
   isAdministrator: Boolean,
   avatarUrl: Option[String]
-)
+) extends Dto
 
 object UserDto {
 

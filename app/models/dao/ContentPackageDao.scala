@@ -16,49 +16,49 @@
 
 package models.dao
 
-import models.dto.CohortDto
+import models.dto.ContentPackageDto
+
 import scala.concurrent.Future
 
-trait CohortDao extends Dao[CohortDto] {
-
+trait ContentPackageDao extends Dao[ContentPackageDto] {
   /**
-   * locate a cohort by Id
-   * @param cohortId the id to match on
+   * locate a package by Id
+   * @param packageId the id to match on
    * @return a future cohort
    */
-  def find(cohortId: Int): Future[Option[CohortDto]]
+  def find(packageId: Int): Future[Option[ContentPackageDto]]
 
   /**
-   * locate a set of cohorts by owner Id
+   * locate a set of packages by owner Id
    * @param ownerId the owner Id to match on
-   * @return future cohorts
+   * @return future package
    */
-  def findByOwner(ownerId: Int): Future[Seq[CohortDto]]
+  def findByOwner(ownerId: Int): Future[Seq[ContentPackageDto]]
 
   /**
-   * Save a cohort
-   * @param cohort the cohort to save
-   * @return a future cohort
+   * Save a package
+   * @param packageDto the package to save
+   * @return a future package
    */
-  override def save(cohort: CohortDto): Future[Option[CohortDto]]
+  override def save(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]]
 
   /**
    * Update an existing cohort
-   * @param cohort the cohort data to update (match by cohort Id)
+   * @param packageDto the cohort data to update (match by cohort Id)
    * @return
    */
-  override def update(cohort: CohortDto): Future[Option[CohortDto]]
+  def update(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]]
 
   /**
-   * Delete a cohort
-   * @param cohortId the cohort id to delete
+   * Delete a package
+   * @param packageId the package id to delete
    * @return a future number of affected rows
    */
-  def delete(cohortId: Int): Future[Int]
+  def delete(packageId: Int): Future[Int]
 
   /**
-   * Delete all cohorts for an ownerId
-   * @param ownerId the cohort id to delete
+   * Delete all packages for an ownerId
+   * @param ownerId the package id to delete
    * @return a future number of affected rows
    */
   def deleteByOwner(ownerId: Int): Future[Int]
@@ -66,10 +66,10 @@ trait CohortDao extends Dao[CohortDto] {
   /**
    *
    * @param userId
-   * @param cohortId
+   * @param packageId
    * @return
    */
-  def attach(cohortId: Int, userId: Int): Future[Int]
+  def attach(packageId: Int, userId: Int): Future[Int]
 
   /**
    *
@@ -78,5 +78,4 @@ trait CohortDao extends Dao[CohortDto] {
    * @return
    */
   def detach(cohortId: Int, userId: Int): Future[Int]
-
 }

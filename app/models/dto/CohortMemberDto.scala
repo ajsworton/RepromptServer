@@ -26,7 +26,7 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 import slick.model.ForeignKeyAction
 
-case class CohortMemberDto(CohortId: Option[Int], UserId: Option[Int])
+case class CohortMemberDto(CohortId: Option[Int], UserId: Option[Int]) extends Dto
 
 object CohortMemberDto {
   class CohortsMembersTable(tag: Tag) extends Table[CohortMemberDto](tag, "cohort_members") {

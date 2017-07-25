@@ -10,7 +10,7 @@ POST    /api/auth/register              controllers.AuthController.register
 GET     /api/auth/profile               controllers.AuthController.profile
 
 #Users
-GET     /api/user                       controllers.UserController.getAll
+GET     /api/users/                     controllers.UserController.getAll
 GET     /api/user/:id                   controllers.UserController.get(id: Int)
 
 #Cohorts
@@ -19,10 +19,20 @@ GET     /api/cohorts/testing            controllers.CohortController.getWithUser
 GET     /api/cohort/:id                 controllers.CohortController.get(id: Int)
 GET     /api/cohorts/owned              controllers.CohortController.getAllByCurrentUser
 GET     /api/cohorts/owned/:id          controllers.CohortController.getAllByOwner(id: Int)
-POST    /api/cohort/save                controllers.CohortController.save
+POST    /api/cohort/                    controllers.CohortController.save
 DELETE  /api/cohort/:id                 controllers.CohortController.delete(id: Int)
-POST    /api/cohort/member              controllers.CohortController.attach
+POST    /api/cohort/member/             controllers.CohortController.attach
 DELETE  /api/cohort/member/:cId/:uId    controllers.CohortController.detach(cId: Int, uId: Int)
+
+#Content folders
+GET     /api/content/folder/:id         controllers.ContentController.getFolder(id: Int)
+GET     /api/content/folders/owned      controllers.ContentController.getAllFoldersByCurrentUser
+POST    /api/content/folder/            controllers.ContentController.saveFolder
+DELETE  /api/content/folder/:id         controllers.ContentController.delete(id: Int)
+
+#Content packages
+POST    /api/content/package/           controllers.ContentController.savePackage
+DELETE  /api/content/package/:id        controllers.ContentController.deletePackage(id: Int)
 
 # Angular routes
 GET     /                               controllers.AngularController.index

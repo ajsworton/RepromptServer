@@ -16,28 +16,6 @@
 
 package models.dto
 
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.libs.json.Json
-
-/**
- * @param email              The user's email address
- * @param password           The user's Password
- */
-case class UserLoginDto(
-  email: String,
-  password: String
-) extends Dto
-
-object UserLoginDto {
-
-  def loginForm: Form[UserLoginDto] = Form(
-    mapping(
-      "email" -> nonEmptyText,
-      "password" -> nonEmptyText
-    )(UserLoginDto.apply)(UserLoginDto.unapply)
-  )
-
-  implicit val userLoginDtoFormat = Json.format[UserLoginDto]
+trait Dto {
+  def id: Option[Int]
 }
-

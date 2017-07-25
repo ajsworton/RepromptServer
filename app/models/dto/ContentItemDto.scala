@@ -25,28 +25,27 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class ContentItemDto(
-                           id: Option[Int],
-                           packageId: Int,
-                           imageUrl: Option[String],
-                           name: String,
-                           content: String,
-                           questions: Option[List[QuestionDto]] = None,
-                           score: Option[ScoreDto] = None
-                         )
+  id: Option[Int],
+  packageId: Int,
+  imageUrl: Option[String],
+  name: String,
+  content: String,
+  questions: Option[List[QuestionDto]] = None,
+  score: Option[ScoreDto] = None
+) extends Dto
 
 object ContentItemDto {
 
   def construct(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
-                content: String) =
+    content: String) =
     new ContentItemDto(id = id, packageId = packageId, imageUrl = imageUrl, name = name,
       content = content)
 
   def deconstruct(dto: ContentItemDto): Option[(Option[Int], Int, Option[String], String, String)] =
     dto match {
-    case ContentItemDto(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
-    content: String, _, _)
-    => Some(id, packageId, imageUrl, name, content)
-  }
+      case ContentItemDto(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
+        content: String, _, _) => Some(id, packageId, imageUrl, name, content)
+    }
 
   def ContentItemForm: Form[ContentItemDto] = Form(
     mapping(

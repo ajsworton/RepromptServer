@@ -24,13 +24,13 @@ import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
-case class CohortDto(
+case class CohortDto (
   id: Option[Int],
   parentId: Option[Int],
   ownerId: Int,
   name: String,
   members: Option[List[UserDto]] = None
-)
+) extends Dto
 
 object CohortDto {
 

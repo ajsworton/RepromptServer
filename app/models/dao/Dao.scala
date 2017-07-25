@@ -14,30 +14,32 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package models.dto
+package models.dao
 
-import play.api.data.Form
-import play.api.data.Forms._
-import play.api.libs.json.Json
+import models.dto.{CohortDto, ContentFolderDto, Dto}
 
-/**
- * @param email              The user's email address
- * @param password           The user's Password
- */
-case class UserLoginDto(
-  email: String,
-  password: String
-) extends Dto
+import scala.concurrent.Future
 
-object UserLoginDto {
+trait Dao[T <: Dto] {
 
-  def loginForm: Form[UserLoginDto] = Form(
-    mapping(
-      "email" -> nonEmptyText,
-      "password" -> nonEmptyText
-    )(UserLoginDto.apply)(UserLoginDto.unapply)
-  )
+  /**
+    * locate a dto by Id
+    * @param id the id to match on
+    * @return a future dto
+    */
+  def find(id: Int): Future[Option[T]]
 
-  implicit val userLoginDtoFormat = Json.format[UserLoginDto]
+  /**
+    * Save a dto
+    * @param dto the dto to save
+    * @return a future dto
+    */
+  def save(dto: T): Future[Option[T]]
+
+  /**
+    * Update an existing cohort
+    * @param dto the data to update (match by Id)
+    * @return
+    */
+  def update(dto: T): Future[Option[T]]
 }
-
