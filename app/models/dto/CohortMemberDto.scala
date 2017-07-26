@@ -26,7 +26,7 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 import slick.model.ForeignKeyAction
 
-case class CohortMemberDto(CohortId: Option[Int], UserId: Option[Int]) extends Dto
+case class CohortMemberDto(CohortId: Option[Int], UserId: Option[Int])
 
 object CohortMemberDto {
   class CohortsMembersTable(tag: Tag) extends Table[CohortMemberDto](tag, "cohort_members") {
@@ -56,5 +56,5 @@ object CohortMemberDto {
       "userId" -> optional(number)
     )(CohortMemberDto.apply _)(CohortMemberDto.unapply)
   )
-  implicit val cohortMemberDtoFormat = Json.format[CohortMemberDto]
+  implicit val serializer = Json.format[CohortMemberDto]
 }

@@ -18,39 +18,40 @@ package libraries
 
 import models.dao.Dao
 import models.dto.Dto
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import play.api.mvc.{Result, Results}
 
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-object DaoOnDtoAction {
+class DaoOnDtoAction(implicit ex: ExecutionContext) {
 
-  def saveDto[T <: Dto](dao: Dao[T], dto: T): Future[Result] = {
-    implicit val dtoFormat = Json.format[T]
+  def saveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]):
+  Future[Result] = {
     val saveResponse = dao.save(dto)
     saveResponse flatMap {
       r => Future(Results.Ok(Json.toJson(r.get)))
     }
   }
 
-  def updateDto[T <: Dto](dao: Dao[T], dto: T): Future[Result] = {
+  def updateDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
     val updateResponse = dao.update(dto)
     updateResponse flatMap {
       r => Future(Results.Ok(Json.toJson(r.get)))
     }
   }
 
-  def validateAndSaveDto[T <: Dto](dao: Dao[T], dto: T): Future[Result] = {
+  def validateAndSaveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]):
+  Future[Result] = {
     //check if exists
     if (dto.id.isDefined) {
       val existing = dao.find(dto.id.get)
       existing flatMap {
-        case None => DaoOnDtoAction.saveDto(dao, dto)
-        case Some(_) => DaoOnDtoAction.updateDto(dao, dto)
+        case None => saveDto(dao, dto)
+        case Some(_) => updateDto(dao, dto)
       }
     } else {
       // save
-      DaoOnDtoAction.saveDto(dao, dto)
+      saveDto(dao, dto)
     }
   }
 }

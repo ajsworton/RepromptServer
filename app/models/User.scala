@@ -16,10 +16,11 @@
 
 package models
 
-import java.sql.{ Date, Timestamp }
-import java.time.{ LocalDate, LocalDateTime }
+import java.sql.{Date, Timestamp}
+import java.time.{LocalDate, LocalDateTime}
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
+import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
+import models.dto.Dto
 import slick.jdbc.GetResult
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
@@ -35,7 +36,7 @@ case class User(
   isAdministrator: Boolean = false,
   avatarUrl: Option[String] = None,
   profiles: List[Profile] = Nil
-) extends Identity {
+) extends Identity with Dto {
   def profileFor(loginInfo: LoginInfo): Option[Profile] = profiles.find(_.loginInfo == loginInfo)
 }
 

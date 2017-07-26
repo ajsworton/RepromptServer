@@ -42,7 +42,7 @@ case class UserDto(
   isEducator: Boolean,
   isAdministrator: Boolean,
   avatarUrl: Option[String]
-) extends Dto
+)
 
 object UserDto {
 
@@ -73,6 +73,6 @@ object UserDto {
     )(UserDto.apply)(UserDto.unapply)
   )
 
-  implicit val userDtoFormat = Json.format[UserDto]
+  implicit val serializer = Json.format[UserDto]
 }
 

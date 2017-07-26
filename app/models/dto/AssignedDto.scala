@@ -33,7 +33,7 @@ case class AssignedDto(
   lastScore: Int,
   repromptDate: LocalDate,
   streak: Int
-) extends Dto
+)
 
 object AssignedDto {
 
@@ -89,5 +89,5 @@ object AssignedDto {
     )
   )
 
-  implicit val AssignedDtoFormat = Json.format[AssignedDto]
+  implicit val serializer = Json.format[AssignedDto]
 }

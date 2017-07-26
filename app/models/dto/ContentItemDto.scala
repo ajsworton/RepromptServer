@@ -82,6 +82,18 @@ object ContentItemDto {
     )
   )
 
+  implicit val getSomeContentItemResult = GetResult(r =>
+    Some(ContentItemDto(
+      Some(r.nextInt),
+      r.nextInt,
+      Some(r.nextString),
+      r.nextString,
+      r.nextString,
+      None,
+      None
+    ))
+  )
+
   implicit val ContentItemDtoFormat = Json.format[ContentItemDto]
 }
 

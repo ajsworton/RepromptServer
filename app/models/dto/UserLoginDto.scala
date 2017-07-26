@@ -27,7 +27,7 @@ import play.api.libs.json.Json
 case class UserLoginDto(
   email: String,
   password: String
-) extends Dto
+)
 
 object UserLoginDto {
 
@@ -38,6 +38,6 @@ object UserLoginDto {
     )(UserLoginDto.apply)(UserLoginDto.unapply)
   )
 
-  implicit val userLoginDtoFormat = Json.format[UserLoginDto]
+  implicit val serializer = Json.format[UserLoginDto]
 }
 

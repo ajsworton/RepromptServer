@@ -43,6 +43,8 @@ class ContentController @Inject() (
   environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
+  val daoHelper = new DaoOnDtoAction
+
   def getAllFoldersByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val user = request.identity
@@ -69,7 +71,7 @@ class ContentController @Inject() (
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentFolderDto.contentFolderForm.bindFromRequest.fold(
         formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
-        formData => DaoOnDtoAction.validateAndSaveDto[ContentFolderDto](folderDao, formData)
+        formData => daoHelper.validateAndSaveDto[ContentFolderDto](folderDao, formData)
       )
   }
 
@@ -77,7 +79,7 @@ class ContentController @Inject() (
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentPackageDto.ContentPackageForm.bindFromRequest.fold(
         formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
-        formData => DaoOnDtoAction.validateAndSaveDto[ContentPackageDto](packageDao, formData)
+        formData => daoHelper.validateAndSaveDto[ContentPackageDto](packageDao, formData)
       )
   }
 

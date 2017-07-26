@@ -42,6 +42,8 @@ class CohortController @Inject() (
   environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
+  val daoHelper = new DaoOnDtoAction
+
   /**
    * Using AuthEducator guard
    * @return
@@ -84,12 +86,12 @@ class CohortController @Inject() (
           if (formData.id.isDefined) {
             val existing = cohortDao.find(formData.id.get)
             existing flatMap {
-              case None => DaoOnDtoAction.saveDto(cohortDao, formData)
-              case Some(_) => DaoOnDtoAction.updateDto(cohortDao, formData)
+              case None => daoHelper.saveDto(cohortDao, formData)
+              case Some(_) => daoHelper.updateDto(cohortDao, formData)
             }
           } else {
             // save
-            DaoOnDtoAction.saveDto(cohortDao, formData)
+            daoHelper.saveDto(cohortDao, formData)
           }
         }
       )

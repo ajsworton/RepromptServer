@@ -62,20 +62,4 @@ trait ContentPackageDao extends Dao[ContentPackageDto] {
    * @return a future number of affected rows
    */
   def deleteByOwner(ownerId: Int): Future[Int]
-
-  /**
-   *
-   * @param userId
-   * @param packageId
-   * @return
-   */
-  def attach(packageId: Int, userId: Int): Future[Int]
-
-  /**
-   *
-   * @param cohortId
-   * @param userId
-   * @return
-   */
-  def detach(cohortId: Int, userId: Int): Future[Int]
 }

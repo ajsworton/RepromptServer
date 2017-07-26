@@ -18,11 +18,11 @@ package models.dto
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import slick.jdbc.GetResult
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import slick.lifted.{PrimaryKey, ProvenShape}
 
 case class ContentPackageDto(
   id: Option[Int],
@@ -84,6 +84,6 @@ object ContentPackageDto {
     ))
   )
 
-  implicit val ContentPackageDtoFormat = Json.format[ContentPackageDto]
+  implicit val serializer = Json.format[ContentPackageDto]
 }
 
