@@ -16,7 +16,7 @@
 
 package models.dao
 
-import models.dto.{CohortDto, ContentFolderDto, Dto}
+import models.dto.Dto
 
 import scala.concurrent.Future
 

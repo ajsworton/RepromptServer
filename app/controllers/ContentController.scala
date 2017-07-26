@@ -83,7 +83,13 @@ class ContentController @Inject() (
       )
   }
 
-  def deletePackage
+  def deletePackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      //delete package with id
+      packageDao.delete(packageId) flatMap {
+        r => Future(Ok(Json.toJson(r)))
+      }
+  }
 
   def delete(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
