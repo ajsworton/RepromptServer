@@ -53,7 +53,7 @@ object ContentItemDto {
       "packageId" -> number,
       "imageUrl" -> optional(text),
       "name" -> nonEmptyText,
-      "content" -> nonEmptyText
+      "content" -> text
     )(ContentItemDto.construct)(ContentItemDto.deconstruct)
   )
 

@@ -19,13 +19,13 @@ package models.dao
 import javax.inject.Inject
 
 import models.dto.ContentFolderDto.ContentFoldersTable
-import models.dto.{ContentFolderDto, ContentPackageDto}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import models.dto.{ ContentFolderDto, ContentPackageDto }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.JdbcProfile
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ContentFolderDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends ContentFolderDao with HasDatabaseConfigProvider[JdbcProfile] {

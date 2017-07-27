@@ -74,5 +74,15 @@ object QuestionDto {
     )
   )
 
+  implicit val getSomeQuestionResult = GetResult(r =>
+    Some(QuestionDto(
+      Some(r.nextInt),
+      r.nextString,
+      r.nextString,
+      r.nextInt,
+      None
+    ))
+  )
+
   implicit val QuestionDtoFormat = Json.format[QuestionDto]
 }

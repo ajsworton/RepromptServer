@@ -18,14 +18,14 @@ package models.dao
 
 import javax.inject.Inject
 
-import models.dto.{ContentItemDto, ContentPackageDto}
+import models.dto.{ ContentItemDto, ContentPackageDto }
 import models.dto.ContentPackageDto.PackageTable
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.JdbcProfile
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends ContentPackageDao with HasDatabaseConfigProvider[JdbcProfile] {
@@ -35,7 +35,7 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
   def findContentPackageQuery(packageId: Int) =
     sql"""
           SELECT  cp.Id, cp.FolderId, cp.OwnerId, cp.Name,
-                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Content, ci.Name
+                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content
 
           FROM content_packages AS cp
 
@@ -48,7 +48,7 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
   def findContentPackageQueryByOwner(ownerId: Int) =
     sql"""
           SELECT  cp.Id, cp.FolderId, cp.OwnerId, cp.Name,
-                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Content, ci.Name
+                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content
 
           FROM content_packages AS cp
 
@@ -94,8 +94,8 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
 
   override def save(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]] = {
     db.run((ContentPackages returning ContentPackages.map(_.id)
-      into ((packge, returnedId) => Some(packge.copy(id = returnedId)))
-      ) += packageDto)
+      into ((pkg, returnedId) => Some(pkg.copy(id = returnedId)))
+    ) += packageDto)
   }
 
   override def update(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]] = {

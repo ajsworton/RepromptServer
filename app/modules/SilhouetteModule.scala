@@ -17,24 +17,24 @@
 package modules
 
 import com.google.inject.name.Named
-import com.google.inject.{AbstractModule, Provides}
+import com.google.inject.{ AbstractModule, Provides }
 import com.mohiva.play.silhouette.api.actions.SecuredErrorHandler
 import com.mohiva.play.silhouette.api.crypto._
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
 import com.mohiva.play.silhouette.api.services._
 import com.mohiva.play.silhouette.api.util._
-import com.mohiva.play.silhouette.api.{Environment, EventBus, Silhouette, SilhouetteProvider}
-import com.mohiva.play.silhouette.crypto.{JcaCrypter, JcaCrypterSettings, JcaSigner, JcaSignerSettings}
+import com.mohiva.play.silhouette.api.{ Environment, EventBus, Silhouette, SilhouetteProvider }
+import com.mohiva.play.silhouette.crypto.{ JcaCrypter, JcaCrypterSettings, JcaSigner, JcaSignerSettings }
 import com.mohiva.play.silhouette.impl.authenticators._
 import com.mohiva.play.silhouette.impl.providers._
 import com.mohiva.play.silhouette.impl.services._
 import com.mohiva.play.silhouette.impl.util._
 import com.mohiva.play.silhouette.password.BCryptPasswordHasher
-import com.mohiva.play.silhouette.persistence.daos.{DelegableAuthInfoDAO, InMemoryAuthInfoDAO}
+import com.mohiva.play.silhouette.persistence.daos.{ DelegableAuthInfoDAO, InMemoryAuthInfoDAO }
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import env.JWTEnv
-import models.dao.{AuthInfoDaoCredentialsSlick, CohortDao, CohortDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentPackageDao, ContentPackageDaoSlick, UserDao, UserDaoSlick}
-import models.services.{UserService, UserServiceImpl}
+import models.dao.{ AuthInfoDaoCredentialsSlick, CohortDao, CohortDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentItemDao, ContentItemDaoSlick, ContentPackageDao, ContentPackageDaoSlick, UserDao, UserDaoSlick }
+import models.services.{ UserService, UserServiceImpl }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.codingwell.scalaguice.ScalaModule
@@ -63,6 +63,7 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     bind[CohortDao].to[CohortDaoSlick]
     bind[ContentFolderDao].to[ContentFolderDaoSlick]
     bind[ContentPackageDao].to[ContentPackageDaoSlick]
+    bind[ContentItemDao].to[ContentItemDaoSlick]
     //bind[CacheLayer].to[PlayCacheLayer]
     bind[IDGenerator].toInstance(new SecureRandomIDGenerator())
     bind[PasswordHasher].toInstance(new BCryptPasswordHasher)

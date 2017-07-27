@@ -16,30 +16,36 @@
 
 package models.dao
 
-import models.dto.Dto
+import models.dto.ContentItemDto
 
 import scala.concurrent.Future
 
-trait Dao[T <: Dto] {
+trait ContentItemDao extends Dao[ContentItemDto] {
+  /**
+   * locate a item by Id
+   * @param itemId the id to match on
+   * @return a future cohort
+   */
+  def find(itemId: Int): Future[Option[ContentItemDto]]
 
   /**
-   * locate a dto by Id
-   * @param id the id to match on
-   * @return a future dto
+   * Save a item
+   * @param itemDto the item to save
+   * @return a future item
    */
-  def find(id: Int): Future[Option[T]]
-
-  /**
-   * Save a dto
-   * @param dto the dto to save
-   * @return a future dto
-   */
-  def save(dto: T): Future[Option[T]]
+  override def save(itemDto: ContentItemDto): Future[Option[ContentItemDto]]
 
   /**
    * Update an existing cohort
-   * @param dto the data to update (match by Id)
+   * @param itemDto the cohort data to update (match by cohort Id)
    * @return
    */
-  def update(dto: T): Future[Option[T]]
+  def update(itemDto: ContentItemDto): Future[Option[ContentItemDto]]
+
+  /**
+   * Delete a item
+   * @param itemId the item id to delete
+   * @return a future number of affected rows
+   */
+  def delete(itemId: Int): Future[Int]
 }

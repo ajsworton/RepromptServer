@@ -28,15 +28,14 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class ScoreDto(
-                    userId: Int,
-                    contentId: Int,
-                    lastScore: Int,
-                    repromptDate: LocalDate,
-                    streak: Int
-                   )
+  userId: Int,
+  contentId: Int,
+  lastScore: Int,
+  repromptDate: LocalDate,
+  streak: Int
+)
 
 object ScoreDto {
-
 
   implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
     l => Date.valueOf(l),

@@ -18,15 +18,14 @@ package libraries
 
 import models.dao.Dao
 import models.dto.Dto
-import play.api.libs.json.{Json, OFormat}
-import play.api.mvc.{Result, Results}
+import play.api.libs.json.{ Json, OFormat }
+import play.api.mvc.{ Result, Results }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class DaoOnDtoAction(implicit ex: ExecutionContext) {
 
-  def saveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]):
-  Future[Result] = {
+  def saveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
     val saveResponse = dao.save(dto)
     saveResponse flatMap {
       r => Future(Results.Ok(Json.toJson(r.get)))
@@ -40,8 +39,7 @@ class DaoOnDtoAction(implicit ex: ExecutionContext) {
     }
   }
 
-  def validateAndSaveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]):
-  Future[Result] = {
+  def validateAndSaveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
     //check if exists
     if (dto.id.isDefined) {
       val existing = dao.find(dto.id.get)

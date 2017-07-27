@@ -16,7 +16,7 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
@@ -24,14 +24,14 @@ import env.JWTEnv
 import guards.AuthEducator
 import libraries.DaoOnDtoAction
 import models.dao.CohortDao
-import models.dto.{CohortDto, CohortMemberDto}
+import models.dto.{ CohortDto, CohortMemberDto }
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result}
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result }
 import responses.JsonErrorResponse
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class CohortController @Inject() (

@@ -23,8 +23,8 @@ import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import env.JWTEnv
 import guards.AuthEducator
 import libraries.DaoOnDtoAction
-import models.dao.{ ContentFolderDao, ContentPackageDao }
-import models.dto.{ ContentFolderDto, ContentPackageDto, Dto }
+import models.dao.{ ContentFolderDao, ContentItemDao, ContentPackageDao }
+import models.dto.{ ContentFolderDto, ContentItemDto, ContentPackageDto, Dto }
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
@@ -34,53 +34,64 @@ import responses.JsonErrorResponse
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class ContentController @Inject() (
+class PackageController @Inject() (
   messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
-  folderDao: ContentFolderDao,
   packageDao: ContentPackageDao,
+  itemDao: ContentItemDao,
   environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
   val daoHelper = new DaoOnDtoAction
 
-  def getAllFoldersByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def getPackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      val user = request.identity
-      if (user.id.isDefined) {
-        val results = folderDao.findByOwner(user.id.get)
-        results flatMap {
-          r => Future(Ok(Json.toJson(r)))
-        }
-      } else {
-        Future(Ok(Json.toJson(JsonErrorResponse("Authentication error"))))
-      }
-  }
-
-  def getFolder(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
-    .async {
-      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-        val result = folderDao.find(folderId)
-        result flatMap {
-          r => Future(Ok(Json.toJson(r)))
-        }
-    }
-
-  def saveFolder: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
-    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      ContentFolderDto.contentFolderForm.bindFromRequest.fold(
-        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
-        formData => daoHelper.validateAndSaveDto[ContentFolderDto](folderDao, formData)
-      )
-  }
-
-  def delete(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
-    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      //delete cohort with id
-      folderDao.delete(folderId) flatMap {
+      val result = packageDao.find(packageId)
+      result flatMap {
         r => Future(Ok(Json.toJson(r)))
       }
   }
+
+  def savePackage: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      ContentPackageDto.ContentPackageForm.bindFromRequest.fold(
+        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formData => daoHelper.validateAndSaveDto[ContentPackageDto](packageDao, formData)
+      )
+  }
+
+  def deletePackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      //delete package with id
+      packageDao.delete(packageId) flatMap {
+        r => Future(Ok(Json.toJson(r)))
+      }
+  }
+
+  def getItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      val result = itemDao.find(itemId)
+      result flatMap {
+        r => Future(Ok(Json.toJson(r)))
+      }
+  }
+
+  def saveItem: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      ContentItemDto.ContentItemForm.bindFromRequest.fold(
+        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formData => daoHelper.validateAndSaveDto[ContentItemDto](itemDao, formData)
+      )
+  }
+
+  def deleteItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
+    .async {
+      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+        //delete package with id
+        itemDao.delete(itemId) flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
+    }
 
 }

@@ -31,8 +31,14 @@ POST    /api/content/folder/            controllers.ContentController.saveFolder
 DELETE  /api/content/folder/:id         controllers.ContentController.delete(id: Int)
 
 #Content packages
-POST    /api/content/package/           controllers.ContentController.savePackage
-DELETE  /api/content/package/:id        controllers.ContentController.deletePackage(id: Int)
+GET     /api/content/package/:id        controllers.PackageController.getPackage(id: Int)
+POST    /api/content/package/           controllers.PackageController.savePackage
+DELETE  /api/content/package/:id        controllers.PackageController.deletePackage(id: Int)
+
+#Content items
+GET     /api/content/item/:id           controllers.PackageController.getItem(id: Int)
+POST    /api/content/item/              controllers.PackageController.saveItem
+DELETE  /api/content/item/:id           controllers.PackageController.deleteItem(id: Int)
 
 # Angular routes
 GET     /                               controllers.AngularController.index
@@ -46,7 +52,6 @@ GET     /users                          controllers.AngularController.index
 GET     /*any                           controllers.AngularController.angular(any)
 
 
-#POST    /user/:fname/:sname            controllers.UserController.create(fname: String, sname: String)
 
 #Swagger
 #GET     /swagger.json           controllers.ApiHelpController.getResources
