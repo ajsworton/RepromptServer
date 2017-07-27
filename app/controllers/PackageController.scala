@@ -16,6 +16,7 @@
 
 package controllers
 
+import java.nio.file.Paths
 import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
@@ -81,9 +82,33 @@ class PackageController @Inject() (
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentItemDto.ContentItemForm.bindFromRequest.fold(
         formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
-        formData => daoHelper.validateAndSaveDto[ContentItemDto](itemDao, formData)
+        formData => {
+          //handle file
+          val file = request.request.body.asMultipartFormData.get.file("image")
+          val userId = request.identity.id.get
+          if (file.isDefined) {
+            val f = file.get.ref
+            val filename = file.get.filename
+            val path = Paths.get(s"/media/$userId/$filename")
+            f.moveTo(path, replace = true)
+            val newData = formData.copy(imageUrl = Some(path.toString))
+            daoHelper.validateAndSaveDto[ContentItemDto](itemDao, newData)
+          } else {
+            daoHelper.validateAndSaveDto[ContentItemDto](itemDao, formData)
+          }
+        }
       )
   }
+
+  //  request.body.file("picture").map { picture =>
+  //    val filename = picture.filename
+  //    val contentType = picture.contentType
+  //    picture.ref.moveTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
+  //    Ok("File uploaded")
+  //  }.getOrElse {
+  //    Redirect(routes.ScalaFileUploadController.index).flashing(
+  //      "error" -> "Missing file")
+  //  }
 
   def deleteItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
     .async {
