@@ -36,7 +36,7 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
     sql"""
           SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
                   q.Id, q.Question, q.Format, q.ItemId,
-                  a.id, a.questionId, a.answer, a.correct
+                  a.Id, a.QuestionId, a.Answer, a.Correct
 
           FROM content_items AS ci
 
@@ -47,6 +47,8 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
             ON q.Id = a.QuestionId
 
           WHERE ci.Id = $itemId
+
+          ORDER BY ci.Name, q.Question
          """.as[(ContentItemDto, Option[QuestionDto], Option[AnswerDto])]
 
   override def find(itemId: Int): Future[Option[ContentItemDto]] = {

@@ -102,8 +102,8 @@ class PackageController @Inject() (
       daoHelper.validateAndSaveDto[ContentItemDto](itemDao, contentItem)
     } else {
       if (contentItem.id.isDefined) {
-        val path = storeImage(uploadedFiles.get, userId, contentItem.id.get)
-        writeBackImageUrl(contentItem, path, contentItem.id.get)
+        val url = storeImage(uploadedFiles.get, userId, contentItem.id.get)
+        writeBackImageUrl(contentItem, url, contentItem.id.get)
       } else {
         val futurePath = for {
           item <- itemDao.save(contentItem)
@@ -127,6 +127,13 @@ class PackageController @Inject() (
     java.nio.file.Files.createDirectories(path)
   }
 
+  def pathToUrl(filePath: Path): String = {
+    val split = filePath.toString.replace('\\', '/').split('/')
+    val dropHead = split.tail
+    val joined = dropHead.mkString("/")
+    joined
+  }
+
   def storeImage(uploadedFiles: MultipartFormData[Files.TemporaryFile], userId: Int,
     itemId: Int): Option[String] = {
 
@@ -137,7 +144,7 @@ class PackageController @Inject() (
       val filePath = Paths.get(s"public/media/$userId/content/items/$filename")
       ensurePathExists(filePath.getParent)
       f.moveTo(filePath, replace = true)
-      Some(filePath.toString)
+      Some(pathToUrl(filePath))
     } else {
       None
     }
