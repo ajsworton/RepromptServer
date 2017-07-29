@@ -38,4 +38,6 @@ class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws:
 
   def angular(file: String) = assets.versioned(path = "/public/", file)
 
+  def media(file: String) = assets.versioned(path = "/public/media/", file)
+
 }

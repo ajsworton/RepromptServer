@@ -16,6 +16,7 @@
 
 package libraries
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import models.dao.Dao
 import models.dto.Dto
 import play.api.libs.json.{ Json, OFormat }
@@ -40,6 +41,20 @@ class DaoOnDtoAction(implicit ex: ExecutionContext) {
   }
 
   def validateAndSaveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
+    //check if exists
+    if (dto.id.isDefined) {
+      val existing = dao.find(dto.id.get)
+      existing flatMap {
+        case None => saveDto(dao, dto)
+        case Some(_) => updateDto(dao, dto)
+      }
+    } else {
+      // save
+      saveDto(dao, dto)
+    }
+  }
+
+  def validateAndSaveDtoWithId[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
     //check if exists
     if (dto.id.isDefined) {
       val existing = dao.find(dto.id.get)

@@ -46,7 +46,7 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
             LEFT JOIN content_assessment_answers AS a
             ON q.Id = a.QuestionId
 
-          WHERE cp.Id = $itemId
+          WHERE ci.Id = $itemId
          """.as[(ContentItemDto, Option[QuestionDto], Option[AnswerDto])]
 
   override def find(itemId: Int): Future[Option[ContentItemDto]] = {
@@ -62,9 +62,17 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
           questionData = questions._2
           answers = questionData.map(p => p._3.get).toList.filter(m => m.id.get > 0)
           questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
-        } yield questionsProc.get
+        } yield questionsProc
 
-        Future(Some(item.copy(questions = Some(questions.toList))))
+        val culled: Iterable[QuestionDto] = questions.filter(q => q.isDefined && q.get.id.get > 0)
+          .map(q => q.get)
+
+        if (culled == Nil) {
+          Future(Some(item.copy(questions = None)))
+        } else {
+          Future(Some(item.copy(questions = Some(culled.toList))))
+        }
+
       }
     )
   }

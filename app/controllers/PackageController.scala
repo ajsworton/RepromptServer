@@ -16,7 +16,7 @@
 
 package controllers
 
-import java.nio.file.Paths
+import java.nio.file.{ Path, Paths }
 import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
@@ -26,13 +26,16 @@ import guards.AuthEducator
 import libraries.DaoOnDtoAction
 import models.dao.{ ContentFolderDao, ContentItemDao, ContentPackageDao }
 import models.dto.{ ContentFolderDto, ContentItemDto, ContentPackageDto, Dto }
+import scala.concurrent.duration._
 import play.api.Environment
 import play.api.i18n.I18nSupport
+import play.api.libs.Files
 import play.api.libs.json.Json
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result }
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MultipartFormData, Result }
 import responses.JsonErrorResponse
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
+import java.io._
 
 @Singleton
 class PackageController @Inject() (
@@ -83,32 +86,67 @@ class PackageController @Inject() (
       ContentItemDto.ContentItemForm.bindFromRequest.fold(
         formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
         formData => {
-          //handle file
-          val file = request.request.body.asMultipartFormData.get.file("image")
+          val uploadedFiles = request.request.body.asMultipartFormData
           val userId = request.identity.id.get
-          if (file.isDefined) {
-            val f = file.get.ref
-            val filename = file.get.filename
-            val path = Paths.get(s"/media/$userId/$filename")
-            f.moveTo(path, replace = true)
-            val newData = formData.copy(imageUrl = Some(path.toString))
-            daoHelper.validateAndSaveDto[ContentItemDto](itemDao, newData)
-          } else {
-            daoHelper.validateAndSaveDto[ContentItemDto](itemDao, formData)
-          }
+          SaveDataWithFile(formData, uploadedFiles, userId)
         }
       )
   }
 
-  //  request.body.file("picture").map { picture =>
-  //    val filename = picture.filename
-  //    val contentType = picture.contentType
-  //    picture.ref.moveTo(Paths.get(s"/tmp/picture/$filename"), replace = true)
-  //    Ok("File uploaded")
-  //  }.getOrElse {
-  //    Redirect(routes.ScalaFileUploadController.index).flashing(
-  //      "error" -> "Missing file")
-  //  }
+  def SaveDataWithFile(
+    contentItem: ContentItemDto,
+    uploadedFiles: Option[MultipartFormData[Files.TemporaryFile]],
+    userId: Int): Future[Result] = {
+
+    if (uploadedFiles.isEmpty) {
+      daoHelper.validateAndSaveDto[ContentItemDto](itemDao, contentItem)
+    } else {
+      if (contentItem.id.isDefined) {
+        val path = storeImage(uploadedFiles.get, userId, contentItem.id.get)
+        writeBackImageUrl(contentItem, path, contentItem.id.get)
+      } else {
+        val futurePath = for {
+          item <- itemDao.save(contentItem)
+          path = if (item.isEmpty) None else {
+            storeImage(uploadedFiles.get, userId, item.get.id.get)
+          }
+        } yield (path, item.get.id.get)
+        val path = Await.result(futurePath, 10 seconds)
+        if (path._1.isEmpty) Future(Ok(Json.toJson(JsonErrorResponse(""))))
+        else writeBackImageUrl(contentItem, path._1, path._2)
+      }
+    }
+  }
+
+  def writeBackImageUrl(item: ContentItemDto, newUrl: Option[String], itemId: Int) = {
+    val newData = item.copy(id = Some(itemId), imageUrl = newUrl)
+    daoHelper.validateAndSaveDto[ContentItemDto](itemDao, newData)
+  }
+
+  def ensurePathExists(path: Path) = {
+    java.nio.file.Files.createDirectories(path)
+  }
+
+  def storeImage(uploadedFiles: MultipartFormData[Files.TemporaryFile], userId: Int,
+    itemId: Int): Option[String] = {
+
+    val file = uploadedFiles.file("image")
+    if (file.isDefined) {
+      val f = file.get.ref
+      val filename = getFilename(file.get.filename, itemId)
+      val filePath = Paths.get(s"public/media/$userId/content/items/$filename")
+      ensurePathExists(filePath.getParent)
+      f.moveTo(filePath, replace = true)
+      Some(filePath.toString)
+    } else {
+      None
+    }
+  }
+
+  def getFilename(fileName: String, itemId: Int): String = {
+    val suffix = fileName.split('.').reverse.head
+    if (suffix.isEmpty) itemId.toString else s"${itemId.toString}.$suffix"
+  }
 
   def deleteItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
     .async {
