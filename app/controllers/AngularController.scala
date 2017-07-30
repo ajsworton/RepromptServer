@@ -16,8 +16,10 @@
 
 package controllers
 
+import java.io.{ File, FileInputStream, FileNotFoundException }
 import javax.inject._
 
+import org.apache.commons.io.IOUtils
 import play.api.Environment
 import play.api.mvc.{ AbstractController, ControllerComponents }
 import play.libs.ws.WSClient
@@ -36,8 +38,24 @@ class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws:
     assets.versioned(path = "/public/", "index.html")
   }
 
-  def angular(file: String) = assets.versioned(path = "/public/", file)
+  def angular(file: String) = assets.at(path = "/public/", file)
 
-  def media(file: String) = assets.versioned(path = "/public/media/", file)
+  def media(file: String) = Action {
+    try {
+      getAndReturnImage(file)
+    } catch {
+      case _: FileNotFoundException => NotFound("Image not found")
+    }
+  }
+
+  def getAndReturnImage(file: String) = {
+    val image: File = new File("public/media/" + file)
+    if (image.exists) {
+      val fileType = "image/" + file.split('.').reverse.head
+      Ok(IOUtils.toByteArray(new FileInputStream(image))).as(fileType)
+    } else {
+      NotFound(s"Image not found: ${image.toString}")
+    }
+  }
 
 }
