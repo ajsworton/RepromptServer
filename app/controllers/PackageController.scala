@@ -23,9 +23,10 @@ import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import env.JWTEnv
 import guards.AuthEducator
-import libraries.DaoOnDtoAction
+import libraries.{ DaoOnDtoAction, FileHelper }
 import models.dao.{ ContentFolderDao, ContentItemDao, ContentPackageDao }
 import models.dto.{ ContentFolderDto, ContentItemDto, ContentPackageDto, Dto }
+
 import scala.concurrent.duration._
 import play.api.Environment
 import play.api.i18n.I18nSupport
@@ -67,6 +68,9 @@ class PackageController @Inject() (
 
   def deletePackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      //delete media folder
+      FileHelper.deletePackageFolderIfExist(packageId, request.identity.id.get)
+
       //delete package with id
       packageDao.delete(packageId) flatMap {
         r => Future(Ok(Json.toJson(r)))
@@ -98,17 +102,19 @@ class PackageController @Inject() (
     uploadedFiles: Option[MultipartFormData[Files.TemporaryFile]],
     userId: Int): Future[Result] = {
 
-    if (uploadedFiles.isEmpty) {
+    if (uploadedFiles.isEmpty || uploadedFiles.get.file("image").isEmpty) {
+      println("ImageURl: " + contentItem.imageUrl)
       daoHelper.validateAndSaveDto[ContentItemDto](itemDao, contentItem)
     } else {
+      println("here")
       if (contentItem.id.isDefined) {
-        val url = storeImage(uploadedFiles.get, userId, contentItem.id.get)
+        val url = storeImage(uploadedFiles.get, userId, contentItem)
         writeBackImageUrl(contentItem, url, contentItem.id.get)
       } else {
         val futurePath = for {
           item <- itemDao.save(contentItem)
           path = if (item.isEmpty) None else {
-            storeImage(uploadedFiles.get, userId, item.get.id.get)
+            storeImage(uploadedFiles.get, userId, item.get)
           }
         } yield (path, item.get.id.get)
         val path = Await.result(futurePath, 10 seconds)
@@ -123,41 +129,32 @@ class PackageController @Inject() (
     daoHelper.validateAndSaveDto[ContentItemDto](itemDao, newData)
   }
 
-  def ensurePathExists(path: Path) = {
-    java.nio.file.Files.createDirectories(path)
-  }
-
-  def pathToUrl(filePath: Path): String = {
-    val split = filePath.toString.replace('\\', '/').split('/')
-    val dropHead = split.tail
-    val joined = dropHead.mkString("/")
-    joined
-  }
-
   def storeImage(uploadedFiles: MultipartFormData[Files.TemporaryFile], userId: Int,
-    itemId: Int): Option[String] = {
-
+    item: ContentItemDto): Option[String] = {
+    //remove existing images
+    FileHelper.deleteItemImagesIfExist(item, userId)
     val file = uploadedFiles.file("image")
     if (file.isDefined) {
-      val f = file.get.ref
-      val filename = getFilename(file.get.filename, itemId)
-      val filePath = Paths.get(s"public/media/$userId/content/items/$filename")
-      ensurePathExists(filePath.getParent)
-      f.moveTo(filePath, replace = true)
-      Some(pathToUrl(filePath))
+      val filePath = FileHelper.saveImage(file.get.ref, file.get.filename, item, userId)
+      Some(FileHelper.pathToUrl(filePath))
     } else {
       None
     }
   }
 
-  def getFilename(fileName: String, itemId: Int): String = {
-    val suffix = fileName.split('.').reverse.head
-    if (suffix.isEmpty) itemId.toString else s"${itemId.toString}.$suffix"
-  }
-
   def deleteItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
     .async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+
+        val futureItem = itemDao.find(itemId)
+        futureItem flatMap {
+          item => //delete item images if exist
+            if (item.isDefined) {
+              FileHelper.deleteItemImagesIfExist(item.get, request.identity.id.get)
+            }
+            Future(item)
+        }
+
         //delete package with id
         itemDao.delete(itemId) flatMap {
           r => Future(Ok(Json.toJson(r)))

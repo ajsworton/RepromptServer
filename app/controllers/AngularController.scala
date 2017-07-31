@@ -48,10 +48,13 @@ class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws:
     }
   }
 
+  //inspired by https://stackoverflow.com/questions/20317932/displaying-image-object-from-controller-in-the-browser
+  // author: users/554796/benchik accessed: 30/07/2017
   def getAndReturnImage(file: String) = {
-    val image: File = new File("public/media/" + file)
+    val image: File = new File(s"public/media/$file")
     if (image.exists) {
-      val fileType = "image/" + file.split('.').reverse.head
+      val suffix = file.split('.').reverse.head
+      val fileType = s"image/${suffix}"
       Ok(IOUtils.toByteArray(new FileInputStream(image))).as(fileType)
     } else {
       NotFound(s"Image not found: ${image.toString}")
