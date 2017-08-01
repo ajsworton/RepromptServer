@@ -16,27 +16,29 @@
 
 package controllers
 
-import java.nio.file.{ Path, Paths }
-import javax.inject.{ Inject, Singleton }
+import java.nio.file.{Path, Paths}
+import javax.inject.{Inject, Singleton}
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import env.JWTEnv
 import guards.AuthEducator
-import libraries.{ DaoOnDtoAction, FileHelper }
-import models.dao.{ ContentFolderDao, ContentItemDao, ContentPackageDao }
-import models.dto.{ ContentFolderDto, ContentItemDto, ContentPackageDto, Dto }
+import libraries.{DaoOnDtoAction, FileHelper}
+import models.dao.{ContentFolderDao, ContentItemDao, ContentPackageDao}
+import models.dto.{AnswerDto, ContentFolderDto, ContentItemDto, ContentPackageDto, Dto, QuestionDto}
 
 import scala.concurrent.duration._
-import play.api.Environment
+import play.api.{Environment, data}
 import play.api.i18n.I18nSupport
 import play.api.libs.Files
 import play.api.libs.json.Json
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MultipartFormData, Result }
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MultipartFormData, Result, Results}
 import responses.JsonErrorResponse
 
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{Await, ExecutionContext, Future}
 import java.io._
+
+import play.api
 
 @Singleton
 class PackageController @Inject() (
@@ -97,51 +99,6 @@ class PackageController @Inject() (
       )
   }
 
-  def SaveDataWithFile(
-    contentItem: ContentItemDto,
-    uploadedFiles: Option[MultipartFormData[Files.TemporaryFile]],
-    userId: Int): Future[Result] = {
-
-    if (uploadedFiles.isEmpty || uploadedFiles.get.file("image").isEmpty) {
-      println("ImageURl: " + contentItem.imageUrl)
-      daoHelper.validateAndSaveDto[ContentItemDto](itemDao, contentItem)
-    } else {
-      println("here")
-      if (contentItem.id.isDefined) {
-        val url = storeImage(uploadedFiles.get, userId, contentItem)
-        writeBackImageUrl(contentItem, url, contentItem.id.get)
-      } else {
-        val futurePath = for {
-          item <- itemDao.save(contentItem)
-          path = if (item.isEmpty) None else {
-            storeImage(uploadedFiles.get, userId, item.get)
-          }
-        } yield (path, item.get.id.get)
-        val path = Await.result(futurePath, 10 seconds)
-        if (path._1.isEmpty) Future(Ok(Json.toJson(JsonErrorResponse(""))))
-        else writeBackImageUrl(contentItem, path._1, path._2)
-      }
-    }
-  }
-
-  def writeBackImageUrl(item: ContentItemDto, newUrl: Option[String], itemId: Int) = {
-    val newData = item.copy(id = Some(itemId), imageUrl = newUrl)
-    daoHelper.validateAndSaveDto[ContentItemDto](itemDao, newData)
-  }
-
-  def storeImage(uploadedFiles: MultipartFormData[Files.TemporaryFile], userId: Int,
-    item: ContentItemDto): Option[String] = {
-    //remove existing images
-    FileHelper.deleteItemImagesIfExist(item, userId)
-    val file = uploadedFiles.file("image")
-    if (file.isDefined) {
-      val filePath = FileHelper.saveImage(file.get.ref, file.get.filename, item, userId)
-      Some(FileHelper.pathToUrl(filePath))
-    } else {
-      None
-    }
-  }
-
   def deleteItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
     .async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
@@ -160,5 +117,124 @@ class PackageController @Inject() (
           r => Future(Ok(Json.toJson(r)))
         }
     }
+
+  def getQuestion(questionId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
+    .async {
+      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+        val result = itemDao.findQuestion(questionId)
+        result flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
+    }
+
+  def saveQuestion: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      QuestionDto.QuestionForm.bindFromRequest.fold(
+        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formData => {
+          if (formData.id.isEmpty) saveQuestionData(formData)
+          else updateQuestionData(formData)
+        }
+      )
+  }
+
+  def deleteQuestion(questionId: Int): Action[AnyContent] =
+    silhouette.SecuredAction(AuthEducator()).async {
+      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+        itemDao.deleteQuestion(questionId) flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
+    }
+
+  private def saveQuestionData(data: QuestionDto): Future[Result] = {
+
+    val qResponse = itemDao.saveQuestion(data)
+    if(data.answers.isEmpty) {
+      qResponse flatMap {
+        r => Future(Results.Ok(Json.toJson(r.get)))
+      }
+    } else {
+      val answerList = data.answers.get
+
+      val responses: List[Future[Option[AnswerDto]]] = for {
+        answer <- answerList
+        r = itemDao.saveAnswer(answer)
+      } yield r
+
+      Future.sequence(responses) flatMap {
+        _ => itemDao.findQuestion(data.id.get) flatMap {
+          r => Future(Results.Ok(Json.toJson(r.get)))
+        }
+      }
+    }
+  }
+
+  private def updateQuestionData(data: QuestionDto): Future[Result] = {
+
+    val qResponse = itemDao.saveQuestion(data)
+    if(data.answers.isEmpty) {
+      qResponse flatMap {
+        r => Future(Results.Ok(Json.toJson(r.get)))
+      }
+    } else {
+      val answerList = data.answers.get
+
+      val responses: List[Future[Option[AnswerDto]]] = for {
+        answer <- answerList
+        r: Future[Option[AnswerDto]] = if(answer.id.isEmpty) itemDao.saveAnswer(answer)
+                                        else itemDao.updateAnswer(answer)
+      } yield r
+
+      Future.sequence(responses) flatMap {
+        _ => itemDao.findQuestion(data.id.get) flatMap {
+          r => Future(Results.Ok(Json.toJson(r.get)))
+        }
+      }
+    }
+
+  }
+
+  private def SaveDataWithFile(
+    contentItem: ContentItemDto,
+    uploadedFiles: Option[MultipartFormData[Files.TemporaryFile]],
+    userId: Int): Future[Result] = {
+
+    if (uploadedFiles.isEmpty || uploadedFiles.get.file("image").isEmpty) {
+      daoHelper.validateAndSaveDto[ContentItemDto](itemDao, contentItem)
+    } else {
+      if (contentItem.id.isDefined) {
+        val url = storeImage(uploadedFiles.get, userId, contentItem)
+        writeBackImageUrl(contentItem, url, contentItem.id.get)
+      } else {
+        val futurePath = for {
+          item <- itemDao.save(contentItem)
+          path = if (item.isEmpty) None else {
+            storeImage(uploadedFiles.get, userId, item.get)
+          }
+        } yield (path, item.get.id.get)
+        val path = Await.result(futurePath, 10 seconds)
+        if (path._1.isEmpty) Future(Ok(Json.toJson(JsonErrorResponse(""))))
+        else writeBackImageUrl(contentItem, path._1, path._2)
+      }
+    }
+  }
+
+  private def writeBackImageUrl(item: ContentItemDto, newUrl: Option[String], itemId: Int) = {
+    val newData = item.copy(id = Some(itemId), imageUrl = newUrl)
+    daoHelper.validateAndSaveDto[ContentItemDto](itemDao, newData)
+  }
+
+  private def storeImage(uploadedFiles: MultipartFormData[Files.TemporaryFile], userId: Int,
+    item: ContentItemDto): Option[String] = {
+    //remove existing images
+    FileHelper.deleteItemImagesIfExist(item, userId)
+    val file = uploadedFiles.file("image")
+    if (file.isDefined) {
+      val filePath = FileHelper.saveImage(file.get.ref, file.get.filename, item, userId)
+      Some(FileHelper.pathToUrl(filePath))
+    } else {
+      None
+    }
+  }
 
 }

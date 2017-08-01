@@ -16,20 +16,35 @@
 
 package models.dao
 
-import models.dto.ContentItemDto
+import models.dto.{ AnswerDto, ContentItemDto, QuestionDto }
 
 import scala.concurrent.Future
 
 trait ContentItemDao extends Dao[ContentItemDto] {
+
   /**
-   * locate a item by Id
+   * locate an item by Id.
    * @param itemId the id to match on
    * @return a future cohort
    */
-  def find(itemId: Int): Future[Option[ContentItemDto]]
+  override def find(itemId: Int): Future[Option[ContentItemDto]]
 
   /**
-   * Save a item
+   * locate a question by Id.
+   * @param questionId the questionId to match on
+   * @return a future question
+   */
+  def findQuestion(questionId: Int): Future[Option[QuestionDto]]
+
+  /**
+    *
+    * @param answerId
+    * @return
+    */
+  def findAnswer(answerId: Int): Future[Option[AnswerDto]]
+
+  /**
+   * Save an item.
    * @param itemDto the item to save
    * @return a future item
    */
@@ -40,12 +55,54 @@ trait ContentItemDao extends Dao[ContentItemDto] {
    * @param itemDto the cohort data to update (match by cohort Id)
    * @return
    */
-  def update(itemDto: ContentItemDto): Future[Option[ContentItemDto]]
+  override def update(itemDto: ContentItemDto): Future[Option[ContentItemDto]]
 
   /**
-   * Delete a item
+   * Delete an item.
    * @param itemId the item id to delete
    * @return a future number of affected rows
    */
   def delete(itemId: Int): Future[Int]
+
+  /**
+   * Save a question.
+   * @param questionDto
+   * @return a future, optional question
+   */
+  def saveQuestion(questionDto: QuestionDto): Future[Option[QuestionDto]]
+
+  /**
+   * Save an answer.
+   * @param answerDto
+   * @return a future, optional answer
+   */
+  def saveAnswer(answerDto: AnswerDto): Future[Option[AnswerDto]]
+
+  /**
+   * update a question.
+   * @param questionDto
+   * @return a future, optional question
+   */
+  def updateQuestion(questionDto: QuestionDto): Future[Option[QuestionDto]]
+
+  /**
+   * Update an answer.
+   * @param answerDto
+   * @return a future, optional question
+   */
+  def updateAnswer(answerDto: AnswerDto): Future[Option[AnswerDto]]
+
+  /**
+   * delete a question.
+   * @param questionId
+   * @return a future int describing the number of affected rows
+   */
+  def deleteQuestion(questionId: Int): Future[Int]
+
+  /**
+   * delete an answer
+   * @param answerId
+   * @return a future int describing the number of affected rows
+   */
+  def deleteAnswer(answerId: Int): Future[Int]
 }

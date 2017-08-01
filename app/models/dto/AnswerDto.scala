@@ -40,7 +40,7 @@ object AnswerDto {
     case AnswerDto(id: Option[Int], questionId: Int, answer: String, correct: Boolean) => Some(id, questionId, answer, correct)
   }
 
-  def ContentPackageForm: Form[AnswerDto] = Form(
+  def AnswerForm: Form[AnswerDto] = Form(
     mapping(
       "id" -> optional(number),
       "question" -> number,

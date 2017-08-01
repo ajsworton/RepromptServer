@@ -43,7 +43,7 @@ object QuestionDto {
       ) => Some(id, question, format, itemId)
   }
 
-  def ContentPackageForm: Form[QuestionDto] = Form(
+  def QuestionForm: Form[QuestionDto] = Form(
     mapping(
       "id" -> optional(number),
       "question" -> nonEmptyText,
