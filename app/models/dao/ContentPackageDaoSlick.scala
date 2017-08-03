@@ -51,7 +51,7 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
             ON q.Id = a.QuestionId
 
           WHERE cp.Id = $packageId
-          ORDER BY cp.Name, ci.Name
+          ORDER BY cp.Name, ci.Name, q.Question, a.Answer
          """.as[(ContentPackageDto, Option[ContentItemDto], Option[QuestionDto], Option[AnswerDto])]
 
   def findContentPackageQueryByOwner(ownerId: Int) =
