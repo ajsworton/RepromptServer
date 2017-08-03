@@ -48,8 +48,14 @@ object QuestionDto {
       "id" -> optional(number),
       "question" -> nonEmptyText,
       "format" -> nonEmptyText,
-      "itemId" -> number
-    )(QuestionDto.construct)(QuestionDto.deconstruct)
+      "itemId" -> number,
+      "answers" -> optional(list(mapping(
+        "id" -> optional(number),
+        "questionId" -> optional(number),
+        "answer" -> nonEmptyText,
+        "correct" -> boolean
+      )(AnswerDto.construct)(AnswerDto.deconstruct)))
+    )(QuestionDto.apply)(QuestionDto.unapply)
   )
 
   class QuestionsTable(tag: Tag) extends Table[QuestionDto](tag, "content_assessment_questions") {

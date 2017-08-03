@@ -16,26 +16,26 @@
 
 package controllers
 
-import java.nio.file.{Path, Paths}
-import javax.inject.{Inject, Singleton}
+import java.nio.file.{ Path, Paths }
+import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import env.JWTEnv
 import guards.AuthEducator
-import libraries.{DaoOnDtoAction, FileHelper}
-import models.dao.{ContentFolderDao, ContentItemDao, ContentPackageDao}
-import models.dto.{AnswerDto, ContentFolderDto, ContentItemDto, ContentPackageDto, Dto, QuestionDto}
+import libraries.{ DaoOnDtoAction, FileHelper }
+import models.dao.{ ContentFolderDao, ContentItemDao, ContentPackageDao }
+import models.dto.{ AnswerDto, ContentFolderDto, ContentItemDto, ContentPackageDto, Dto, QuestionDto }
 
 import scala.concurrent.duration._
-import play.api.{Environment, data}
+import play.api.{ Environment, data }
 import play.api.i18n.I18nSupport
 import play.api.libs.Files
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MultipartFormData, Result, Results}
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MultipartFormData, Result, Results }
 import responses.JsonErrorResponse
 
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import java.io._
 
 import play.api
@@ -146,49 +146,78 @@ class PackageController @Inject() (
         }
     }
 
-  private def saveQuestionData(data: QuestionDto): Future[Result] = {
+  def deleteAnswer(answerId: Int): Action[AnyContent] =
+    silhouette.SecuredAction(AuthEducator()).async {
+      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+        itemDao.deleteAnswer(answerId) flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
+    }
 
+  private def saveQuestionData(data: QuestionDto): Future[Result] = {
+    println("Save Data -------------------------------")
+    println(data)
+    println("/Save Data -------------------------------")
     val qResponse = itemDao.saveQuestion(data)
-    if(data.answers.isEmpty) {
+    if (data.answers.isEmpty) {
       qResponse flatMap {
         r => Future(Results.Ok(Json.toJson(r.get)))
       }
     } else {
-      val answerList = data.answers.get
 
-      val responses: List[Future[Option[AnswerDto]]] = for {
-        answer <- answerList
-        r = itemDao.saveAnswer(answer)
-      } yield r
+      qResponse flatMap {
+        question =>
+          {
+            if (question.isDefined) {
+              val answerList = data.answers.get.map(ans => ans.copy(questionId = question.get.id))
+              val responses: Iterable[Future[Option[AnswerDto]]] = for {
+                answer <- answerList
+                r = itemDao.saveAnswer(answer)
+              } yield r
 
-      Future.sequence(responses) flatMap {
-        _ => itemDao.findQuestion(data.id.get) flatMap {
-          r => Future(Results.Ok(Json.toJson(r.get)))
-        }
+              Future.sequence(responses) flatMap {
+                _ =>
+                  itemDao.findQuestion(question.get.id.get) flatMap {
+                    r => Future(Results.Ok(Json.toJson(r.get)))
+                  }
+              }
+            } else Future(Results.InternalServerError("Failed to write to database"))
+          }
       }
+
     }
   }
 
   private def updateQuestionData(data: QuestionDto): Future[Result] = {
-
-    val qResponse = itemDao.saveQuestion(data)
-    if(data.answers.isEmpty) {
+    println("Update Data -------------------------------")
+    println(data)
+    println("/Update Data -------------------------------")
+    val qResponse = itemDao.updateQuestion(data)
+    if (data.answers.isEmpty) {
       qResponse flatMap {
         r => Future(Results.Ok(Json.toJson(r.get)))
       }
     } else {
-      val answerList = data.answers.get
 
-      val responses: List[Future[Option[AnswerDto]]] = for {
-        answer <- answerList
-        r: Future[Option[AnswerDto]] = if(answer.id.isEmpty) itemDao.saveAnswer(answer)
-                                        else itemDao.updateAnswer(answer)
-      } yield r
+      qResponse flatMap {
+        question =>
+          {
+            if (question.isDefined) {
+              val answerList = data.answers.get.map(ans => ans.copy(questionId = question.get.id))
+              val responses: List[Future[Option[AnswerDto]]] = for {
+                answer <- answerList
+                r: Future[Option[AnswerDto]] = if (answer.id.isEmpty) itemDao.saveAnswer(answer)
+                else itemDao.updateAnswer(answer)
+              } yield r
 
-      Future.sequence(responses) flatMap {
-        _ => itemDao.findQuestion(data.id.get) flatMap {
-          r => Future(Results.Ok(Json.toJson(r.get)))
-        }
+              Future.sequence(responses) flatMap {
+                _ =>
+                  itemDao.findQuestion(question.get.id.get) flatMap {
+                    r => Future(Results.Ok(Json.toJson(r.get)))
+                  }
+              }
+            } else Future(Results.InternalServerError("Failed to write to database"))
+          }
       }
     }
 

@@ -37,10 +37,10 @@ trait ContentItemDao extends Dao[ContentItemDto] {
   def findQuestion(questionId: Int): Future[Option[QuestionDto]]
 
   /**
-    *
-    * @param answerId
-    * @return
-    */
+   *
+   * @param answerId
+   * @return
+   */
   def findAnswer(answerId: Int): Future[Option[AnswerDto]]
 
   /**

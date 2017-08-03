@@ -18,7 +18,7 @@ package models.dao
 
 import javax.inject.Inject
 
-import models.dto.{ ContentItemDto, ContentPackageDto }
+import models.dto.{ AnswerDto, ContentItemDto, ContentPackageDto, QuestionDto }
 import models.dto.ContentPackageDto.PackageTable
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.JdbcProfile
@@ -35,16 +35,24 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
   def findContentPackageQuery(packageId: Int) =
     sql"""
           SELECT  cp.Id, cp.FolderId, cp.OwnerId, cp.Name,
-                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content
+                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
+                  q.Id, q.Question, q.Format, q.ItemId,
+                  a.Id, a.QuestionId, a.Answer, a.Correct
 
           FROM content_packages AS cp
 
             LEFT JOIN content_items AS ci
             ON cp.Id = ci.PackageId
 
+            LEFT JOIN content_assessment_questions AS q
+            ON ci.Id = q.ItemId
+
+            LEFT JOIN content_assessment_answers AS a
+            ON q.Id = a.QuestionId
+
           WHERE cp.Id = $packageId
           ORDER BY cp.Name, ci.Name
-         """.as[(ContentPackageDto, Option[ContentItemDto])]
+         """.as[(ContentPackageDto, Option[ContentItemDto], Option[QuestionDto], Option[AnswerDto])]
 
   def findContentPackageQueryByOwner(ownerId: Int) =
     sql"""
@@ -67,8 +75,22 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
     run.flatMap(
       r => {
         if (r.nonEmpty) {
-          val packageList = r.map(p => p._2.get).toList.filter(m => m.id.get > 0)
-          Future(Some(r.head._1.copy(content = Some(packageList))))
+
+          val groupedByQuestion = r.groupBy(_._3)
+          val questions = for {
+            questions <- groupedByQuestion
+            questionData = questions._2
+            answers = questionData.map(p => p._4.get).toList.filter(m => m.id.get > 0)
+            questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
+          } yield questionsProc
+
+          val qList = questions.toList
+
+          val itemsSet = r.map(p => p._2.get).toSet.filter(m => m.id.get > 0)
+          val completedItems = itemsSet.toList
+            .map(item => item.copy(questions = Some(qList.filter(q => q.isDefined &&
+              q.get.itemId == item.id.get).map(q => q.get))))
+          Future(Some(r.head._1.copy(content = Some(completedItems))))
         } else {
           Future(None)
         }

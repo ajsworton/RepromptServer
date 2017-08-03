@@ -26,26 +26,26 @@ import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class AnswerDto(
   id: Option[Int],
-  questionId: Int,
+  questionId: Option[Int],
   answer: String,
   correct: Boolean
 ) extends Dto
 
 object AnswerDto {
 
-  def construct(id: Option[Int], questionId: Int, answer: String, correct: Boolean) =
+  def construct(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean) =
     new AnswerDto(id = id, questionId = questionId, answer = answer, correct = correct)
 
-  def deconstruct(dto: AnswerDto): Option[(Option[Int], Int, String, Boolean)] = dto match {
-    case AnswerDto(id: Option[Int], questionId: Int, answer: String, correct: Boolean) => Some(id, questionId, answer, correct)
+  def deconstruct(dto: AnswerDto): Option[(Option[Int], Option[Int], String, Boolean)] = dto match {
+    case AnswerDto(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean) => Some(id, questionId, answer, correct)
   }
 
   def AnswerForm: Form[AnswerDto] = Form(
     mapping(
       "id" -> optional(number),
-      "question" -> number,
-      "format" -> nonEmptyText,
-      "itemId" -> boolean
+      "questionId" -> optional(number),
+      "answer" -> nonEmptyText,
+      "correct" -> boolean
     )(AnswerDto.construct)(AnswerDto.deconstruct)
   )
 
@@ -53,7 +53,7 @@ object AnswerDto {
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
 
-    def questionId: lifted.Rep[Int] = column[Int]("QuestionId")
+    def questionId: lifted.Rep[Option[Int]] = column[Int]("QuestionId")
 
     def answer: lifted.Rep[String] = column[String]("Answer")
 
@@ -68,7 +68,7 @@ object AnswerDto {
   implicit val getAnswerResult = GetResult(r =>
     AnswerDto(
       Some(r.nextInt),
-      r.nextInt,
+      Some(r.nextInt),
       r.nextString,
       r.nextBoolean
     )
@@ -77,7 +77,7 @@ object AnswerDto {
   implicit val getSomeAnswerResult = GetResult(r =>
     Some(AnswerDto(
       Some(r.nextInt),
-      r.nextInt,
+      Some(r.nextInt),
       r.nextString,
       r.nextBoolean
     ))

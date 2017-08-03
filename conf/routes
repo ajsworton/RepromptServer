@@ -40,6 +40,16 @@ GET     /api/content/item/:id           controllers.PackageController.getItem(id
 POST    /api/content/item/              controllers.PackageController.saveItem
 DELETE  /api/content/item/:id           controllers.PackageController.deleteItem(id: Int)
 
+#Content Questions
+GET     /api/content/question/:id       controllers.PackageController.getQuestion(id: Int)
+POST    /api/content/question/          controllers.PackageController.saveQuestion
+DELETE  /api/content/question/:id       controllers.PackageController.deleteQuestion(id: Int)
+
+#Content Answers
+#GET     /api/content/answer/:id         controllers.PackageController.getAnswer(id: Int)
+#POST    /api/content/answer/            controllers.PackageController.saveAnswer
+DELETE  /api/content/answer/:id         controllers.PackageController.deleteAnswer(id: Int)
+
 #assets
 GET     /media/*file                    controllers.AngularController.media(file: String)
 
