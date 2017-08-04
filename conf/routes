@@ -32,6 +32,7 @@ DELETE  /api/content/folder/:id         controllers.ContentController.delete(id:
 
 #Content packages
 GET     /api/content/package/:id        controllers.PackageController.getPackage(id: Int)
+GET     /api/content/packages/owned     controllers.PackageController.getAllByCurrentUser
 POST    /api/content/package/           controllers.PackageController.savePackage
 DELETE  /api/content/package/:id        controllers.PackageController.deletePackage(id: Int)
 

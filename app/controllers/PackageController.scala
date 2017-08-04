@@ -60,6 +60,19 @@ class PackageController @Inject() (
       }
   }
 
+  def getAllByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      val user = request.identity
+      if (user.id.isDefined) {
+        val results = packageDao.findByOwner(user.id.get)
+        results flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
+      } else {
+        Future(Ok(Json.toJson(JsonErrorResponse("Authentication error"))))
+      }
+  }
+
   def savePackage: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentPackageDto.ContentPackageForm.bindFromRequest.fold(

@@ -154,8 +154,8 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
     } else {
       for {
         _ <- db.run(Answers.filter(_.id === answerDto.id).map(
-          a => (a.questionId, a.answer, a.correct)
-        ).update(answerDto.questionId, answerDto.answer, answerDto.correct))
+          a => (a.questionId, a.answer, a.correct, a.sequence)
+        ).update(answerDto.questionId, answerDto.answer, answerDto.correct, answerDto.sequence))
         read <- findAnswer(answerDto.id.get)
       } yield read
     }
