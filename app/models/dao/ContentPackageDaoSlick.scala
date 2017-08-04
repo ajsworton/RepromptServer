@@ -37,7 +37,7 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
           SELECT  cp.Id, cp.FolderId, cp.OwnerId, cp.Name,
                   ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
                   q.Id, q.Question, q.Format, q.ItemId,
-                  a.Id, a.QuestionId, a.Answer, a.Correct
+                  a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
 
           FROM content_packages AS cp
 

@@ -28,16 +28,19 @@ case class AnswerDto(
   id: Option[Int],
   questionId: Option[Int],
   answer: String,
-  correct: Boolean
+  correct: Boolean,
+  sequence: Int = 0
 ) extends Dto
 
 object AnswerDto {
 
-  def construct(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean) =
-    new AnswerDto(id = id, questionId = questionId, answer = answer, correct = correct)
+  def construct(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean,
+    sequence: Int) =
+    new AnswerDto(id = id, questionId = questionId, answer = answer, correct = correct, sequence = sequence)
 
-  def deconstruct(dto: AnswerDto): Option[(Option[Int], Option[Int], String, Boolean)] = dto match {
-    case AnswerDto(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean) => Some(id, questionId, answer, correct)
+  def deconstruct(dto: AnswerDto): Option[(Option[Int], Option[Int], String, Boolean, Int)] = dto match {
+    case AnswerDto(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean,
+      sequence: Int) => Some(id, questionId, answer, correct, sequence)
   }
 
   def AnswerForm: Form[AnswerDto] = Form(
@@ -45,7 +48,8 @@ object AnswerDto {
       "id" -> optional(number),
       "questionId" -> optional(number),
       "answer" -> nonEmptyText,
-      "correct" -> boolean
+      "correct" -> boolean,
+      "sequence" -> number
     )(AnswerDto.construct)(AnswerDto.deconstruct)
   )
 
@@ -59,9 +63,11 @@ object AnswerDto {
 
     def correct: lifted.Rep[Boolean] = column[Boolean]("Correct")
 
+    def sequence: lifted.Rep[Int] = column[Int]("Sequence")
+
     def pk: PrimaryKey = primaryKey("PRIMARY", id)
 
-    def * : ProvenShape[AnswerDto] = (id, questionId, answer, correct) <>
+    def * : ProvenShape[AnswerDto] = (id, questionId, answer, correct, sequence) <>
       ((AnswerDto.construct _).tupled, AnswerDto.deconstruct)
   }
 
@@ -70,7 +76,8 @@ object AnswerDto {
       Some(r.nextInt),
       Some(r.nextInt),
       r.nextString,
-      r.nextBoolean
+      r.nextBoolean,
+      r.nextInt
     )
   )
 
@@ -79,7 +86,8 @@ object AnswerDto {
       Some(r.nextInt),
       Some(r.nextInt),
       r.nextString,
-      r.nextBoolean
+      r.nextBoolean,
+      r.nextInt
     ))
   )
 

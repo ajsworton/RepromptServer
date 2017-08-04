@@ -40,7 +40,7 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
     sql"""
           SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
                   q.Id, q.Question, q.Format, q.ItemId,
-                  a.Id, a.QuestionId, a.Answer, a.Correct
+                  a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
 
           FROM content_items AS ci
 
@@ -58,7 +58,7 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
   def findQuestionQuery(questionId: Int) =
     sql"""
           SELECT  q.Id, q.Question, q.Format, q.ItemId,
-                  a.Id, a.QuestionId, a.Answer, a.Correct
+                  a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
 
           FROM content_assessment_questions AS q
 

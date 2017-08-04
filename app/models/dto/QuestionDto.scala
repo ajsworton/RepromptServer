@@ -53,7 +53,8 @@ object QuestionDto {
         "id" -> optional(number),
         "questionId" -> optional(number),
         "answer" -> nonEmptyText,
-        "correct" -> boolean
+        "correct" -> boolean,
+        "sequence" -> number
       )(AnswerDto.construct)(AnswerDto.deconstruct)))
     )(QuestionDto.apply)(QuestionDto.unapply)
   )
