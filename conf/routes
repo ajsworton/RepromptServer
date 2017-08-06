@@ -51,6 +51,12 @@ DELETE  /api/content/question/:id       controllers.PackageController.deleteQues
 #POST    /api/content/answer/            controllers.PackageController.saveAnswer
 DELETE  /api/content/answer/:id         controllers.PackageController.deleteAnswer(id: Int)
 
+#Publish
+GET     /api/published/exam/:id         controllers.PublishedController.get(id: Int)
+GET     /api/published/exams/owned      controllers.PublishedController.getAllPublishedByCurrentUser
+POST    /api/published/exam/            controllers.PublishedController.savePublishedExam
+DELETE  /api/published/exam/:id         controllers.PublishedController.deletePublishedExam(id: Int)
+
 #assets
 GET     /media/*file                    controllers.AngularController.media(file: String)
 

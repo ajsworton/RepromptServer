@@ -26,7 +26,7 @@ trait CohortDao extends Dao[CohortDto] {
    * @param cohortId the id to match on
    * @return a future cohort
    */
-  def find(cohortId: Int): Future[Option[CohortDto]]
+  override def find(cohortId: Int): Future[Option[CohortDto]]
 
   /**
    * locate a set of cohorts by owner Id

@@ -28,7 +28,7 @@ import models.dto.{ ContentFolderDto, ContentPackageDto, Dto }
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result }
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result, Results }
 import responses.JsonErrorResponse
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -70,7 +70,7 @@ class ContentController @Inject() (
   def saveFolder: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentFolderDto.contentFolderForm.bindFromRequest.fold(
-        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => daoHelper.validateAndSaveDto[ContentFolderDto](folderDao, formData)
       )
   }

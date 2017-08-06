@@ -33,7 +33,7 @@ import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.daos.{ DelegableAuthInfoDAO, InMemoryAuthInfoDAO }
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import env.JWTEnv
-import models.dao.{ AuthInfoDaoCredentialsSlick, CohortDao, CohortDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentItemDao, ContentItemDaoSlick, ContentPackageDao, ContentPackageDaoSlick, UserDao, UserDaoSlick }
+import models.dao.{ AuthInfoDaoCredentialsSlick, CohortDao, CohortDaoSlick, ContentAssignedDao, ContentAssignedDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentItemDao, ContentItemDaoSlick, ContentPackageDao, ContentPackageDaoSlick, UserDao, UserDaoSlick }
 import models.services.{ UserService, UserServiceImpl }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -70,6 +70,7 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     bind[FingerprintGenerator].toInstance(new DefaultFingerprintGenerator(false))
     bind[EventBus].toInstance(EventBus())
     bind[Clock].toInstance(Clock())
+    bind[ContentAssignedDao].to[ContentAssignedDaoSlick]
 
     // Replace this with the bindings to your concrete DAOs
     bind[DelegableAuthInfoDAO[PasswordInfo]].to[AuthInfoDaoCredentialsSlick]

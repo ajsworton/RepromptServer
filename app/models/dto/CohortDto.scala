@@ -74,5 +74,15 @@ object CohortDto {
     )
   )
 
+  implicit val getSomeCohortResult = GetResult(r =>
+    Some(CohortDto(
+      Some(r.nextInt),
+      Some(r.nextInt),
+      r.nextInt,
+      r.nextString,
+      None
+    ))
+  )
+
   implicit val serializer = Json.format[CohortDto]
 }

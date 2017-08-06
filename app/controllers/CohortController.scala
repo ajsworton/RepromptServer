@@ -28,7 +28,7 @@ import models.dto.{ CohortDto, CohortMemberDto }
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result }
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result, Results }
 import responses.JsonErrorResponse
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -80,7 +80,7 @@ class CohortController @Inject() (
   def save: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       CohortDto.cohortForm.bindFromRequest.fold(
-        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
           //check if exists
           if (formData.id.isDefined) {
@@ -100,7 +100,7 @@ class CohortController @Inject() (
   def attach: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       CohortMemberDto.cohortMemberForm.bindFromRequest.fold(
-        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
           if (formData.CohortId.isDefined && formData.UserId.isDefined) {
             saveCohortMember(formData.CohortId.get, formData.UserId.get)
