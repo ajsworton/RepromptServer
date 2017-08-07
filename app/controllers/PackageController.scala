@@ -71,7 +71,7 @@ class PackageController @Inject() (
 
   def savePackage: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      ContentPackageDto.ContentPackageForm.bindFromRequest.fold(
+      ContentPackageDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => daoHelper.validateAndSaveDto[ContentPackageDto](packageDao, formData)
       )
@@ -98,7 +98,7 @@ class PackageController @Inject() (
 
   def saveItem: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      ContentItemDto.ContentItemForm.bindFromRequest.fold(
+      ContentItemDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
           val uploadedFiles = request.request.body.asMultipartFormData
@@ -138,7 +138,7 @@ class PackageController @Inject() (
 
   def saveQuestion: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      QuestionDto.QuestionForm.bindFromRequest.fold(
+      QuestionDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
           if (formData.id.isEmpty) saveQuestionData(formData)

@@ -43,7 +43,7 @@ object AnswerDto {
       sequence: Int) => Some(id, questionId, answer, correct, sequence)
   }
 
-  def AnswerForm: Form[AnswerDto] = Form(
+  def form: Form[AnswerDto] = Form(
     mapping(
       "id" -> optional(number),
       "questionId" -> optional(number),

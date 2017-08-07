@@ -56,7 +56,7 @@ object ScoreDto {
       streak: Int) => Some(userId, contentId, lastScore, repromptDate, streak)
   }
 
-  def ScoreForm: Form[ScoreDto] = Form(
+  def form: Form[ScoreDto] = Form(
     mapping(
       "userId" -> number,
       "contentId" -> number,

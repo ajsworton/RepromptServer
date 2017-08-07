@@ -43,7 +43,7 @@ object CohortDto {
       ) => Some(id, parentId, ownerId, name)
   }
 
-  def cohortForm: Form[CohortDto] = Form(
+  def form: Form[CohortDto] = Form(
     mapping(
       "id" -> optional(number),
       "parentId" -> optional(number),

@@ -58,7 +58,7 @@ object ContentAssignedDto {
       ownerId: Option[Int], _, _) => Some(id, name, examDate, active, ownerId)
   }
 
-  def contentAssignedForm: Form[ContentAssignedDto] = Form(
+  def form: Form[ContentAssignedDto] = Form(
     mapping(
       "id" -> optional(number),
       "name" -> nonEmptyText,

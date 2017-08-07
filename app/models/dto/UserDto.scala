@@ -59,7 +59,7 @@ object UserDto {
       user.avatarUrl)
   }
 
-  def userForm: Form[UserDto] = Form(
+  def form: Form[UserDto] = Form(
     mapping(
       "id" -> optional(number),
       "firstName" -> nonEmptyText,

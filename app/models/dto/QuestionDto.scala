@@ -43,7 +43,7 @@ object QuestionDto {
       ) => Some(id, question, format, itemId)
   }
 
-  def QuestionForm: Form[QuestionDto] = Form(
+  def form: Form[QuestionDto] = Form(
     mapping(
       "id" -> optional(number),
       "question" -> nonEmptyText,

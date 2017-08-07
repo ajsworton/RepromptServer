@@ -16,22 +16,21 @@
 
 package controllers
 
-import javax.inject.{ Inject, Singleton }
+import javax.inject.{Inject, Singleton}
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import env.JWTEnv
 import guards.AuthEducator
-import libraries.FileHelper
-import models.dao.{ ContentAssignedDao, ContentItemDao }
-import models.dto.{ CohortDto, ContentAssignedDto, ContentPackageDto }
+import models.dao.{ContentAssignedDao, ContentItemDao}
+import models.dto.{CohortDto, ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto, ContentPackageDto}
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, MultipartFormData, Result, Results }
+import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result, Results}
 import responses.JsonErrorResponse
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class PublishedController @Inject() (
@@ -74,10 +73,70 @@ class PublishedController @Inject() (
 
   def savePublishedExam: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      ContentAssignedDto.contentAssignedForm.bindFromRequest.fold(
+      ContentAssignedDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => saveOrUpdateExam(formData.copy(ownerId = request.identity.id))
       )
+  }
+
+
+  def attachCohort: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      ContentAssignedCohortDto.form.bindFromRequest.fold(
+        formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
+        formData => {
+          if (formData.cohortId.isDefined && formData.cohortId.get > 0
+            && formData.assignedId.isDefined  && formData.assignedId.get > 0 ) {
+            handleAttachDetachResult(publishDao.attachCohort(formData.cohortId.get,
+              formData.assignedId.get))
+          } else {
+            Future(Results.BadRequest(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+          }
+        }
+      )
+  }
+
+  def detachCohort(cohortId: Int, assignedId: Int): Action[AnyContent] =
+  silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      if (cohortId > 0 && assignedId > 0) {
+        handleAttachDetachResult(publishDao.detachCohort(cohortId, assignedId))
+      } else {
+        Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+      }
+  }
+
+  def attachPackage: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      ContentAssignedPackageDto.form.bindFromRequest.fold(
+        formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
+        formData => {
+          if (formData.packageId.isDefined && formData.packageId.get > 0
+            && formData.assignedId.isDefined  && formData.assignedId.get > 0 ) {
+            handleAttachDetachResult(publishDao.attachCohort(formData.packageId.get,
+              formData.assignedId.get))
+          } else {
+            Future(Results.BadRequest(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+          }
+        }
+      )
+  }
+
+  def detachPackage(packageId: Int, assignedId: Int): Action[AnyContent] =
+    silhouette.SecuredAction(AuthEducator()).async {
+      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+        if (packageId > 0 && assignedId > 0) {
+          handleAttachDetachResult(publishDao.detachPackage(packageId, assignedId))
+        } else {
+          Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+        }
+    }
+
+  private def handleAttachDetachResult(eventualInt: Future[Int]): Future[Result] = eventualInt flatMap {
+    r => {
+      if (r > 0) Future(Ok(Json.toJson(r)))
+      else Future(Results.InternalServerError(Json.toJson(r)))
+    }
   }
 
   private def saveOrUpdateExam(assigned: ContentAssignedDto): Future[Result] = {
@@ -87,17 +146,17 @@ class PublishedController @Inject() (
     }
   }
 
-  def saveExam(assigned: ContentAssignedDto): Future[Result] = {
+  private def saveExam(assigned: ContentAssignedDto): Future[Result] = {
     val savedAssigned = publishDao.save(assigned)
     handleCohortAndPackageInsertion(savedAssigned, assigned)
   }
 
-  def updateExam(assigned: ContentAssignedDto, id: Int): Future[Result] = {
+  private def updateExam(assigned: ContentAssignedDto, id: Int): Future[Result] = {
     val updatedAssigned = publishDao.update(assigned)
     handleCohortAndPackageInsertion(updatedAssigned, assigned)
   }
 
-  def handleCohortAndPackageInsertion(
+  private def handleCohortAndPackageInsertion(
     savedAssigned: Future[Option[ContentAssignedDto]],
     assigned: ContentAssignedDto) = {
     savedAssigned flatMap {
@@ -122,7 +181,8 @@ class PublishedController @Inject() (
     }
   }
 
-  def attachAssignedCohorts(cohorts: Option[List[CohortDto]], assignedId: Int): Future[Boolean] = {
+  private def attachAssignedCohorts(cohorts: Option[List[CohortDto]], assignedId: Int):
+    Future[Boolean] = {
     cohorts match {
       case None => Future(false)
       case Some(cohortList) => {
@@ -142,7 +202,8 @@ class PublishedController @Inject() (
     }
   }
 
-  def attachAssignedPackages(packages: Option[List[ContentPackageDto]], assignedId: Int): Future[Boolean] = {
+  private def attachAssignedPackages(packages: Option[List[ContentPackageDto]], assignedId: Int):
+    Future[Boolean] = {
     packages match {
       case None => Future(false)
       case Some(pkgList) => {

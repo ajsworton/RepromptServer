@@ -79,7 +79,7 @@ class CohortController @Inject() (
 
   def save: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      CohortDto.cohortForm.bindFromRequest.fold(
+      CohortDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
           //check if exists
@@ -99,7 +99,7 @@ class CohortController @Inject() (
 
   def attach: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      CohortMemberDto.cohortMemberForm.bindFromRequest.fold(
+      CohortMemberDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
           if (formData.CohortId.isDefined && formData.UserId.isDefined) {

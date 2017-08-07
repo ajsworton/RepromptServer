@@ -47,7 +47,7 @@ object ContentItemDto {
         content: String, _, _) => Some(id, packageId, imageUrl, name, content)
     }
 
-  def ContentItemForm: Form[ContentItemDto] = Form(
+  def form: Form[ContentItemDto] = Form(
     mapping(
       "id" -> optional(number),
       "packageId" -> number,

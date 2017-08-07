@@ -43,7 +43,7 @@ object ContentFolderDto {
       ) => Some(id, parentId, ownerId, name)
   }
 
-  def contentFolderForm: Form[ContentFolderDto] = Form(
+  def form: Form[ContentFolderDto] = Form(
     mapping(
       "id" -> optional(number),
       "parentId" -> optional(number),

@@ -69,7 +69,7 @@ class ContentController @Inject() (
 
   def saveFolder: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      ContentFolderDto.contentFolderForm.bindFromRequest.fold(
+      ContentFolderDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => daoHelper.validateAndSaveDto[ContentFolderDto](folderDao, formData)
       )

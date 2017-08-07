@@ -43,7 +43,7 @@ object ContentPackageDto {
       ) => Some(id, folderId, ownerId, name)
   }
 
-  def ContentPackageForm: Form[ContentPackageDto] = Form(
+  def form: Form[ContentPackageDto] = Form(
     mapping(
       "id" -> optional(number),
       "folderId" -> number,

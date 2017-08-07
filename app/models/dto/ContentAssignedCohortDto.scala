@@ -52,7 +52,7 @@ object ContentAssignedCohortDto {
 
   }
 
-  def cohortMemberForm: Form[ContentAssignedCohortDto] = Form(
+  def form: Form[ContentAssignedCohortDto] = Form(
     mapping(
       "assignedId" -> optional(number),
       "cohortId" -> optional(number)

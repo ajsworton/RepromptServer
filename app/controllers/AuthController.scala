@@ -58,7 +58,7 @@ class AuthController @Inject() (
 
   def register = silhouette.UnsecuredAction.async {
     implicit request: Request[AnyContent] =>
-      UserRegisterDto.registerForm.bindFromRequest.fold(
+      UserRegisterDto.form.bindFromRequest.fold(
         formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
         formData => {
           handleTokenAuth(formData, request)
@@ -68,7 +68,7 @@ class AuthController @Inject() (
 
   def login = silhouette.UnsecuredAction.async {
     implicit request: Request[AnyContent] =>
-      UserLoginDto.loginForm.bindFromRequest.fold(
+      UserLoginDto.form.bindFromRequest.fold(
         formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
         formData => {
           val loginInfo = LoginInfo(CredentialsProvider.ID, formData.email)

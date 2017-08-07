@@ -50,7 +50,7 @@ object CohortMemberDto {
 
   }
 
-  def cohortMemberForm: Form[CohortMemberDto] = Form(
+  def form: Form[CohortMemberDto] = Form(
     mapping(
       "cohortId" -> optional(number),
       "userId" -> optional(number)

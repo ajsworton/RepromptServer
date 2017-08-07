@@ -31,7 +31,7 @@ case class UserLoginDto(
 
 object UserLoginDto {
 
-  def loginForm: Form[UserLoginDto] = Form(
+  def form: Form[UserLoginDto] = Form(
     mapping(
       "email" -> nonEmptyText,
       "password" -> nonEmptyText

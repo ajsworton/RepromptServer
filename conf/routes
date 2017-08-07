@@ -5,57 +5,63 @@
 
 
 #Auth
-POST    /api/auth/login                 controllers.AuthController.login
-POST    /api/auth/register              controllers.AuthController.register
-GET     /api/auth/profile               controllers.AuthController.profile
+POST    /api/auth/login                     controllers.AuthController.login
+POST    /api/auth/register                  controllers.AuthController.register
+GET     /api/auth/profile                   controllers.AuthController.profile
 
 #Users
-GET     /api/users/                     controllers.UserController.getAll
-GET     /api/user/:id                   controllers.UserController.get(id: Int)
+GET     /api/users/                         controllers.UserController.getAll
+GET     /api/user/:id                       controllers.UserController.get(id: Int)
 
 #Cohorts
-#GET     /api/cohort                    controllers.CohortController.getAll
-GET     /api/cohorts/testing            controllers.CohortController.getWithUsers
-GET     /api/cohort/:id                 controllers.CohortController.get(id: Int)
-GET     /api/cohorts/owned              controllers.CohortController.getAllByCurrentUser
-GET     /api/cohorts/owned/:id          controllers.CohortController.getAllByOwner(id: Int)
-POST    /api/cohort/                    controllers.CohortController.save
-DELETE  /api/cohort/:id                 controllers.CohortController.delete(id: Int)
-POST    /api/cohort/member/             controllers.CohortController.attach
-DELETE  /api/cohort/member/:cId/:uId    controllers.CohortController.detach(cId: Int, uId: Int)
+#GET     /api/cohort                        controllers.CohortController.getAll
+GET     /api/cohorts/testing                controllers.CohortController.getWithUsers
+GET     /api/cohort/:id                     controllers.CohortController.get(id: Int)
+GET     /api/cohorts/owned                  controllers.CohortController.getAllByCurrentUser
+GET     /api/cohorts/owned/:id              controllers.CohortController.getAllByOwner(id: Int)
+POST    /api/cohort/                        controllers.CohortController.save
+DELETE  /api/cohort/:id                     controllers.CohortController.delete(id: Int)
+POST    /api/cohort/member/                 controllers.CohortController.attach
+DELETE  /api/cohort/member/:cId/:uId        controllers.CohortController.detach(cId: Int, uId: Int)
 
 #Content folders
-GET     /api/content/folder/:id         controllers.ContentController.getFolder(id: Int)
-GET     /api/content/folders/owned      controllers.ContentController.getAllFoldersByCurrentUser
-POST    /api/content/folder/            controllers.ContentController.saveFolder
-DELETE  /api/content/folder/:id         controllers.ContentController.delete(id: Int)
+GET     /api/content/folder/:id             controllers.ContentController.getFolder(id: Int)
+GET     /api/content/folders/owned          controllers.ContentController.getAllFoldersByCurrentUser
+POST    /api/content/folder/                controllers.ContentController.saveFolder
+DELETE  /api/content/folder/:id             controllers.ContentController.delete(id: Int)
 
 #Content packages
-GET     /api/content/package/:id        controllers.PackageController.getPackage(id: Int)
-GET     /api/content/packages/owned     controllers.PackageController.getAllByCurrentUser
-POST    /api/content/package/           controllers.PackageController.savePackage
-DELETE  /api/content/package/:id        controllers.PackageController.deletePackage(id: Int)
+GET     /api/content/package/:id            controllers.PackageController.getPackage(id: Int)
+GET     /api/content/packages/owned         controllers.PackageController.getAllByCurrentUser
+POST    /api/content/package/               controllers.PackageController.savePackage
+DELETE  /api/content/package/:id            controllers.PackageController.deletePackage(id: Int)
 
 #Content items
-GET     /api/content/item/:id           controllers.PackageController.getItem(id: Int)
-POST    /api/content/item/              controllers.PackageController.saveItem
-DELETE  /api/content/item/:id           controllers.PackageController.deleteItem(id: Int)
+GET     /api/content/item/:id               controllers.PackageController.getItem(id: Int)
+POST    /api/content/item/                  controllers.PackageController.saveItem
+DELETE  /api/content/item/:id               controllers.PackageController.deleteItem(id: Int)
 
 #Content Questions
-GET     /api/content/question/:id       controllers.PackageController.getQuestion(id: Int)
-POST    /api/content/question/          controllers.PackageController.saveQuestion
-DELETE  /api/content/question/:id       controllers.PackageController.deleteQuestion(id: Int)
+GET     /api/content/question/:id           controllers.PackageController.getQuestion(id: Int)
+POST    /api/content/question/              controllers.PackageController.saveQuestion
+DELETE  /api/content/question/:id           controllers.PackageController.deleteQuestion(id: Int)
 
 #Content Answers
-#GET     /api/content/answer/:id         controllers.PackageController.getAnswer(id: Int)
-#POST    /api/content/answer/            controllers.PackageController.saveAnswer
-DELETE  /api/content/answer/:id         controllers.PackageController.deleteAnswer(id: Int)
+#GET     /api/content/answer/:id            controllers.PackageController.getAnswer(id: Int)
+#POST    /api/content/answer/               controllers.PackageController.saveAnswer
+DELETE  /api/content/answer/:id             controllers.PackageController.deleteAnswer(id: Int)
 
 #Publish
-GET     /api/published/exam/:id         controllers.PublishedController.get(id: Int)
-GET     /api/published/exams/owned      controllers.PublishedController.getAllPublishedByCurrentUser
-POST    /api/published/exam/            controllers.PublishedController.savePublishedExam
-DELETE  /api/published/exam/:id         controllers.PublishedController.deletePublishedExam(id: Int)
+GET     /api/published/exam/:id             controllers.PublishedController.get(id: Int)
+GET     /api/published/exams/owned          controllers.PublishedController.getAllPublishedByCurrentUser
+POST    /api/published/exam/                controllers.PublishedController.savePublishedExam
+DELETE  /api/published/exam/:id             controllers.PublishedController.deletePublishedExam(id: Int)
+
+POST    /api/published/cohort/              controllers.PublishedController.attachCohort
+DELETE  /api/published/cohort/:cId/:aId     controllers.PublishedController.detachCohort(cId: Int, aId: Int)
+POST    /api/published/package/             controllers.PublishedController.attachCohort
+DELETE  /api/published/package/:cId/:aId    controllers.PublishedController.detachCohort(cId: Int, aId: Int)
+
 
 #assets
 GET     /media/*file                    controllers.AngularController.media(file: String)
