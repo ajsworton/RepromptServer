@@ -62,6 +62,8 @@ DELETE  /api/published/cohort/:cId/:aId     controllers.PublishedController.deta
 POST    /api/published/package/             controllers.PublishedController.attachCohort
 DELETE  /api/published/package/:cId/:aId    controllers.PublishedController.detachCohort(cId: Int, aId: Int)
 
+#Study
+GET     /api/study/                         controllers.StudyController.getContentItems
 
 #assets
 GET     /media/*file                    controllers.AngularController.media(file: String)
