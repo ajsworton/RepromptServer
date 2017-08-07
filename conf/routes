@@ -68,7 +68,7 @@ GET     /media/*file                    controllers.AngularController.media(file
 
 # Angular routes
 GET     /                               controllers.AngularController.index
-GET     /login                          controllers.AngularController.index
+GET     /auth                           controllers.AngularController.index
 GET     /register                       controllers.AngularController.index
 GET     /home                           controllers.AngularController.index
 GET     /cohorts                        controllers.AngularController.index
