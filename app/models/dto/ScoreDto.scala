@@ -29,7 +29,7 @@ import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class ScoreDto(
   userId: Int,
-  contentId: Int,
+  contentItemId: Int,
   lastScore: Int,
   repromptDate: LocalDate,
   streak: Int
@@ -47,8 +47,8 @@ object ScoreDto {
     d => d.toLocalDateTime
   )
 
-  def construct(userId: Int, contentId: Int, lastScore: Int, repromptDate: LocalDate, streak: Int) =
-    new ScoreDto(userId = userId, contentId = contentId, lastScore = lastScore,
+  def construct(userId: Int, contentItemId: Int, lastScore: Int, repromptDate: LocalDate, streak: Int) =
+    new ScoreDto(userId = userId, contentItemId = contentItemId, lastScore = lastScore,
       repromptDate = repromptDate, streak = streak)
 
   def deconstruct(dto: ScoreDto): Option[(Int, Int, Int, LocalDate, Int)] = dto match {
@@ -69,13 +69,13 @@ object ScoreDto {
   class ScoreTable(tag: Tag) extends Table[ScoreDto](tag, "content_scores") {
 
     def userId: lifted.Rep[Int] = column[Int]("UserId", O.PrimaryKey)
-    def contentId: lifted.Rep[Int] = column[Int]("ContentId", O.PrimaryKey)
+    def contentItemId: lifted.Rep[Int] = column[Int]("ContentItemId", O.PrimaryKey)
     def lastScore: lifted.Rep[Int] = column[Int]("LastScore")
     def repromptDate: lifted.Rep[LocalDate] = column[LocalDate]("RepromptDate")
     def streak: lifted.Rep[Int] = column[Int]("Streak")
-    def pk: PrimaryKey = primaryKey("PRIMARY", (userId, contentId))
+    def pk: PrimaryKey = primaryKey("PRIMARY", (userId, contentItemId))
 
-    def * : ProvenShape[ScoreDto] = (userId, contentId, lastScore, repromptDate, streak) <>
+    def * : ProvenShape[ScoreDto] = (userId, contentItemId, lastScore, repromptDate, streak) <>
       ((ScoreDto.construct _).tupled, ScoreDto.deconstruct)
   }
 
@@ -87,6 +87,16 @@ object ScoreDto {
       r.nextDate.toLocalDate,
       r.nextInt
     )
+  )
+
+  implicit val getSomeScoreResult = GetResult(r =>
+    Some(ScoreDto(
+      r.nextInt,
+      r.nextInt,
+      r.nextInt,
+      r.nextDate.toLocalDate,
+      r.nextInt
+    ))
   )
 
   implicit val serializer = Json.format[ScoreDto]
