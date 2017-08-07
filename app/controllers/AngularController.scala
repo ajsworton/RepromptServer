@@ -35,7 +35,11 @@ class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws:
   environment: Environment)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
   def index = {
-    assets.versioned(path = "/public/", "index.html")
+    assets.at(path = "/public/", "index.html")
+  }
+
+  def indexParam(id: Int) = {
+    assets.at(path = "/public/", "index.html")
   }
 
   def angular(file: String) = assets.at(path = "/public/", file)
