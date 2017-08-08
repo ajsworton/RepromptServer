@@ -16,17 +16,17 @@
 
 package models.dao
 
-import models.dto.{ContentAssignedDto, ContentItemDto}
+import models.dto.{ ContentAssignedDto, ContentItemDto }
 
 import scala.concurrent.Future
 
 trait StudyDao {
 
   /**
-    * Get all content items for this user based on cohort membership.
-    * @param userId the userId to restrict on
-    * @return
-    */
-  def getContentItems(userId: Int): Future[ContentItemDto]
+   * Get all content items for this user based on cohort membership.
+   * @param userId the userId to restrict on
+   * @return
+   */
+  def getContentItems(userId: Int): Future[List[ContentItemDto]]
 
 }

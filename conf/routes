@@ -66,17 +66,17 @@ DELETE  /api/published/package/:cId/:aId    controllers.PublishedController.deta
 GET     /api/study/                         controllers.StudyController.getContentItems
 
 #assets
-GET     /media/*file                    controllers.AngularController.media(file: String)
+GET     /media/*file                        controllers.AngularController.media(file: String)
 
 # Angular routes
-GET     /                               controllers.AngularController.index
-GET     /auth                           controllers.AngularController.index
-GET     /register                       controllers.AngularController.index
-GET     /home                           controllers.AngularController.index
-GET     /cohorts                        controllers.AngularController.index
-GET     /content                        controllers.AngularController.index
-GET     /content/package/:id            controllers.AngularController.indexParam(id: Int)
-GET     /users                          controllers.AngularController.index
+GET     /                                   controllers.AngularController.index
+GET     /auth                               controllers.AngularController.index
+GET     /register                           controllers.AngularController.index
+GET     /home                               controllers.AngularController.index
+GET     /cohorts                            controllers.AngularController.index
+GET     /content                            controllers.AngularController.index
+GET     /content/package/:id                controllers.AngularController.indexParam(id: Int)
+GET     /users                              controllers.AngularController.index
 
 
 

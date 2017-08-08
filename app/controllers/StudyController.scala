@@ -16,7 +16,7 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
@@ -26,32 +26,32 @@ import models.dao.StudyDao
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Results}
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Results }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class StudyController @Inject() (
-                                      messagesAction: MessagesActionBuilder,
-                                      cc: ControllerComponents,
-                                      silhouette: Silhouette[JWTEnv],
-                                      studyDao: StudyDao,
-                                      environment: Environment)(implicit ec: ExecutionContext)
+  messagesAction: MessagesActionBuilder,
+  cc: ControllerComponents,
+  silhouette: Silhouette[JWTEnv],
+  studyDao: StudyDao,
+  environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
   def getContentItems(): Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)
-        case Some(id: Int) => {
-          val result = studyDao.getContentItems(id)
-          result flatMap {
-            r => Future(Ok(Json.toJson(r)))
-          }
-        }
+        case Some(id: Int) => returnStudyItems(id)
       }
-
   }
 
+  private def returnStudyItems(id: Int) = {
+    val result = studyDao.getContentItems(id)
+    result flatMap {
+      r => Future(Ok(Json.toJson(r)))
+    }
+  }
 
 }

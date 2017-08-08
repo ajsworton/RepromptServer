@@ -17,18 +17,18 @@
 package models.dao
 import javax.inject.Inject
 
-import models.dto.{AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import models.dto.{ AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.JdbcProfile
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
-class StudyDaoSlick  @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
+class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends StudyDao with HasDatabaseConfigProvider[JdbcProfile] {
 
-  def findContentItemQuery(userId: Int) =
+  def findContentItemsQuery(userId: Int) =
     sql"""
           SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
                   q.Id, q.Question, q.Format, q.ItemId,
@@ -36,48 +36,71 @@ class StudyDaoSlick  @Inject() (protected val dbConfigProvider: DatabaseConfigPr
 
           FROM content_assigned as ca
 
-            LEFT JOIN content_assigned_packages as cap
-            ON cap.assignedId = ca.Id
+            JOIN content_assigned_cohorts as cac
+            ON cac.AssignedId = ca.Id
 
-            LEFT JOIN content_items AS ci
-            ON ci.PackageId = cp.cap.PackageId
+            JOIN cohorts
+            ON cohorts.Id = cac.CohortId
 
-            LEFT JOIN content_assessment_questions AS q
+            JOIN cohort_members as cm
+            ON cm.CohortId = cohorts.Id
+
+            JOIN content_assigned_packages as cap
+            ON cap.AssignedId = ca.Id
+
+            JOIN content_items AS ci
+            ON ci.PackageId = cap.PackageId
+
+            JOIN content_assessment_questions AS q
             ON ci.Id = q.ItemId
 
-            LEFT JOIN content_assessment_answers AS a
+            JOIN content_assessment_answers AS a
             ON q.Id = a.QuestionId
 
-          WHERE ci.Id = $userId
+          WHERE cm.UserId = $userId
 
           ORDER BY ci.Name, q.Question
          """.as[(ContentItemDto, Option[QuestionDto], Option[AnswerDto])]
 
   override def getContentItems(userId: Int): Future[List[ContentItemDto]] = {
-    val result = findContentItemQuery(userId)
+    val result = findContentItemsQuery(userId)
     val run = db.run(result)
 
     run.flatMap(
       r => {
-        val groupedByQuestion = r.groupBy(_._2)
-        val item = r.head._1
-        val questions = for {
-          questions <- groupedByQuestion
-          questionData = questions._2
-          answers = questionData.map(p => p._3.get).toList.filter(m => m.id.get > 0)
-          questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
-        } yield questionsProc
+        val questions = extractQuestionsWithAnswersFromResultVector(r)
+        val contentItems = extractContentItemsFromResultVector(r)
 
-        val culled: Iterable[QuestionDto] = questions.filter(q => q.isDefined && q.get.id.get > 0)
-          .map(q => q.get)
-
-        if (culled == Nil) {
-          Future(Some(item.copy(questions = None)))
-        } else {
-          Future(Some(item.copy(questions = Some(culled.toList))))
-        }
-
+        Future(applyQuestionsToParentContentItems(contentItems, questions))
       }
     )
   }
+
+  private def extractQuestionsWithAnswersFromResultVector(r: Vector[(ContentItemDto, Option[QuestionDto], Option[AnswerDto])]) = {
+
+    val groupedByQuestion = r.groupBy(_._2)
+    for {
+      questions <- groupedByQuestion
+      questionData = questions._2
+      answers = questionData.map(p => p._3.get).toSet.toList.filter(m => m.id.get > 0)
+      questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
+      if (questionsProc.isDefined)
+    } yield questionsProc.get
+  }
+
+  private def extractContentItemsFromResultVector(r: Vector[(ContentItemDto, Option[QuestionDto], Option[AnswerDto])]) = {
+    val groupedByContentItem = r.groupBy(_._1)
+    for {
+      items <- groupedByContentItem
+      itemData = items._1
+    } yield itemData
+  }
+
+  private def applyQuestionsToParentContentItems(
+    contentItems: Iterable[ContentItemDto],
+    questions: Iterable[QuestionDto]) = {
+    contentItems.map(item => item.copy(questions =
+      Some(questions.toSet.toList.filter(q => q.itemId == item.id.get)))).toList
+  }
+
 }
