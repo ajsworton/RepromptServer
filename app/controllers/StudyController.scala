@@ -23,10 +23,12 @@ import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import env.JWTEnv
 import guards.AuthStudent
 import models.dao.StudyDao
+import models.dto.{ ContentAssignedDto, ScoreDto }
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Results }
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result, Results }
+import responses.JsonErrorResponse
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -45,6 +47,22 @@ class StudyController @Inject() (
         case None => Future(Results.Unauthorized)
         case Some(id: Int) => returnStudyItems(id)
       }
+  }
+
+  def saveStudyScore: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      ScoreDto.form.bindFromRequest.fold(
+        formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
+        formData => persistStudyData(formData.copy(userId = request.identity.id.get))
+      )
+  }
+
+  private def persistStudyData(scoreData: ScoreDto): Future[Result] = {
+    studyDao.saveScoreData(scoreData) flatMap {
+      r =>
+        if (r.isDefined) { Future(Ok(Json.toJson(r))) }
+        else { Future(Results.InternalServerError("Failed to write to database")) }
+    }
   }
 
   private def returnStudyItems(id: Int) = {

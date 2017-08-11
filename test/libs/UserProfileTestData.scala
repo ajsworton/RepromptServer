@@ -14,14 +14,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package libraries
+package libs
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordInfo }
+import com.mohiva.play.silhouette.api.util.{PasswordHasher, PasswordInfo}
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
-import libs.AppFactory
 import models.dao.UserDaoSlick
-import models.{ Profile, User }
+import models.{Profile, User}
 
 import scala.util.Random
 

@@ -16,10 +16,9 @@
 
 package models.dao
 
-import libraries.{ CohortTestData, UserProfileTestData }
-import libs.AppFactory
+import libs.{AppFactory, CohortTestData, UserProfileTestData}
 import models.dto.CohortDto
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future

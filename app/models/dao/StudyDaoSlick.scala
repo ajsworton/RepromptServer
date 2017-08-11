@@ -17,13 +17,13 @@
 package models.dao
 import javax.inject.Inject
 
-import models.dto.{ AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import models.dto.{AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto, ScoreDto}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
 class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends StudyDao with HasDatabaseConfigProvider[JdbcProfile] {
@@ -84,7 +84,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
       questionData = questions._2
       answers = questionData.map(p => p._3.get).toSet.toList.filter(m => m.id.get > 0)
       questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
-      if (questionsProc.isDefined)
+      if questionsProc.isDefined
     } yield questionsProc.get
   }
 
@@ -103,4 +103,5 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
       Some(questions.toSet.toList.filter(q => q.itemId == item.id.get)))).toList
   }
 
+  override def saveScoreData(scoreData: ScoreDto) = ???
 }

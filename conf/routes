@@ -63,7 +63,8 @@ POST    /api/published/package/             controllers.PublishedController.atta
 DELETE  /api/published/package/:cId/:aId    controllers.PublishedController.detachCohort(cId: Int, aId: Int)
 
 #Study
-GET     /api/study/                         controllers.StudyController.getContentItems
+GET     /api/studies/                       controllers.StudyController.getContentItems
+POST    /api/study/score/                   controllers.StudyController.saveStudyScore
 
 #assets
 GET     /media/*file                        controllers.AngularController.media(file: String)

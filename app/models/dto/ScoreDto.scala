@@ -21,7 +21,7 @@ import java.time.{ LocalDate, LocalDateTime }
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 import slick.jdbc.GetResult
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
@@ -30,9 +30,10 @@ import slick.lifted.{ PrimaryKey, ProvenShape }
 case class ScoreDto(
   userId: Int,
   contentItemId: Int,
-  lastScore: Int,
-  repromptDate: LocalDate,
-  streak: Int
+  score: Int,
+  scoreDate: LocalDate,
+  streak: Int,
+  repromptDate: Option[LocalDate] = None
 )
 
 object ScoreDto {
@@ -47,22 +48,25 @@ object ScoreDto {
     d => d.toLocalDateTime
   )
 
-  def construct(userId: Int, contentItemId: Int, lastScore: Int, repromptDate: LocalDate, streak: Int) =
-    new ScoreDto(userId = userId, contentItemId = contentItemId, lastScore = lastScore,
-      repromptDate = repromptDate, streak = streak)
+  def construct(userId: Int, contentItemId: Int, score: Int, scoreDate: LocalDate, streak: Int,
+                repromptDate: Option[LocalDate]) =
+    new ScoreDto(userId = userId, contentItemId = contentItemId, score = score,
+      scoreDate = scoreDate, streak = streak, repromptDate = repromptDate)
 
-  def deconstruct(dto: ScoreDto): Option[(Int, Int, Int, LocalDate, Int)] = dto match {
-    case ScoreDto(userId: Int, contentId: Int, lastScore: Int, repromptDate: LocalDate,
-      streak: Int) => Some(userId, contentId, lastScore, repromptDate, streak)
+  def deconstruct(dto: ScoreDto): Option[(Int, Int, Int, LocalDate, Int, Option[LocalDate])] = dto match {
+    case ScoreDto(userId: Int, contentItemId: Int, score: Int, scoreDate: LocalDate,
+      streak: Int, repromptDate: Option[LocalDate])
+                  => Some(userId, contentItemId, score, scoreDate, streak, repromptDate)
   }
 
   def form: Form[ScoreDto] = Form(
     mapping(
       "userId" -> number,
-      "contentId" -> number,
-      "lastScore" -> number,
-      "repromptDate" -> localDate,
-      "streak" -> number
+      "contentItemId" -> number,
+      "score" -> number,
+      "scoreDate" -> localDate,
+      "streak" -> number,
+      "repromptDate" -> optional(localDate)
     )(ScoreDto.construct)(ScoreDto.deconstruct)
   )
 
@@ -70,34 +74,37 @@ object ScoreDto {
 
     def userId: lifted.Rep[Int] = column[Int]("UserId", O.PrimaryKey)
     def contentItemId: lifted.Rep[Int] = column[Int]("ContentItemId", O.PrimaryKey)
-    def lastScore: lifted.Rep[Int] = column[Int]("LastScore")
-    def repromptDate: lifted.Rep[LocalDate] = column[LocalDate]("RepromptDate")
+    def score: lifted.Rep[Int] = column[Int]("Score")
+    def scoreDate: lifted.Rep[LocalDate] = column[LocalDate]("ScoreDate")
     def streak: lifted.Rep[Int] = column[Int]("Streak")
-    def pk: PrimaryKey = primaryKey("PRIMARY", (userId, contentItemId))
+    def repromptDate: lifted.Rep[Option[LocalDate]] = column[LocalDate]("RepromptDate")
+    def pk: PrimaryKey = primaryKey("PRIMARY", (userId, contentItemId, scoreDate))
 
-    def * : ProvenShape[ScoreDto] = (userId, contentItemId, lastScore, repromptDate, streak) <>
+    def * : ProvenShape[ScoreDto] = (userId, contentItemId, score, scoreDate, streak, repromptDate) <>
       ((ScoreDto.construct _).tupled, ScoreDto.deconstruct)
   }
 
-  implicit val getScoreResult = GetResult(r =>
+  implicit val getScoreResult: GetResult[ScoreDto] = GetResult(r =>
     ScoreDto(
       r.nextInt,
       r.nextInt,
       r.nextInt,
       r.nextDate.toLocalDate,
-      r.nextInt
+      r.nextInt,
+      Some(r.nextDate.toLocalDate)
     )
   )
 
-  implicit val getSomeScoreResult = GetResult(r =>
+  implicit val getSomeScoreResult: GetResult[Some[ScoreDto]] = GetResult(r =>
     Some(ScoreDto(
       r.nextInt,
       r.nextInt,
       r.nextInt,
       r.nextDate.toLocalDate,
-      r.nextInt
+      r.nextInt,
+      Some(r.nextDate.toLocalDate)
     ))
   )
 
-  implicit val serializer = Json.format[ScoreDto]
+  implicit val serializer: OFormat[ScoreDto] = Json.format[ScoreDto]
 }

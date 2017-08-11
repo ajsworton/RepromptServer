@@ -14,25 +14,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package models.dao
+package libraries
 
-import models.dto.{ ContentAssignedDto, ContentItemDto, ScoreDto }
+import java.time.LocalDate
 
-import scala.concurrent.Future
+import models.dto.ScoreDto
 
-trait StudyDao {
-
-  /**
-   * Get all content items for this user based on cohort membership.
-   * @param userId the userId to restrict on
-   * @return
-   */
-  def getContentItems(userId: Int): Future[List[ContentItemDto]]
+trait RepromptCalculator {
 
   /**
-   * Save the provided score data for a content item
-   * @return a future optional scoreDto
-   */
-  def saveScoreData(scoreData: ScoreDto): Future[Option[ScoreDto]]
+    * Calculate and add a reprompt date to the ScoreDto based on the score data
+    * and the date of the upcoming examination
+    * @param score a ScoreDto
+    * @return the ScoreDto with the embedded date for next content exposure
+    */
+  def addRepromptDate(score: ScoreDto, examinationDate: LocalDate): ScoreDto
 
 }
