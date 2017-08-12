@@ -22,21 +22,21 @@ import models.dto.ScoreDto
 class RepromptCalculatorStudyMode extends RepromptCalculator {
 
   /**
-    * add the calculated reprompt date to the scoreDto and return it.
-    * @param score a supplied ScoreDto.
-    * @param examinationDate the upcoming examination date.
-    * @return the ScoreDto with the embedded date for next content exposure.
-    */
+   * add the calculated reprompt date to the scoreDto and return it.
+   * @param score a supplied ScoreDto.
+   * @param examinationDate the upcoming examination date.
+   * @return the ScoreDto with the embedded date for next content exposure.
+   */
   override def addRepromptDate(score: ScoreDto, examinationDate: LocalDate): ScoreDto = {
     score.copy(repromptDate = getRepromptDate(score, examinationDate))
   }
 
   /**
-    * Calculate and retrieve the date for next prompting, or none if the examination occurs first.
-    * @param score the scoreDto.
-    * @param examinationDate the upcoming examination date.
-    * @return an optional date for next exposure
-    */
+   * Calculate and retrieve the date for next prompting, or none if the examination occurs first.
+   * @param score the scoreDto.
+   * @param examinationDate the upcoming examination date.
+   * @return an optional date for next exposure
+   */
   private def getRepromptDate(score: ScoreDto, examinationDate: LocalDate): Option[LocalDate] = {
     val dayInterval = score.streak
     val repromptDate = score.scoreDate.plusDays(dayInterval)
@@ -45,15 +45,15 @@ class RepromptCalculatorStudyMode extends RepromptCalculator {
   }
 
   /**
-    * Logic to determine which date to use
-    * @param repromptDate the ideal calculated reprompt date
-    * @param tomorrow the date after the score date
-    * @param examDate the date of the pending exam
-    * @return an optional date for next exposure
-    */
-  private def selectDate(repromptDate: LocalDate, tomorrow: LocalDate, examDate: LocalDate) : Option[LocalDate] = {
+   * Logic to determine which date to use
+   * @param repromptDate the ideal calculated reprompt date
+   * @param tomorrow the date after the score date
+   * @param examDate the date of the pending exam
+   * @return an optional date for next exposure
+   */
+  private def selectDate(repromptDate: LocalDate, tomorrow: LocalDate, examDate: LocalDate): Option[LocalDate] = {
     if (repromptDate.isBefore(examDate)) { Some(repromptDate) }
-    else if ( tomorrow.isBefore(examDate) ) { Some(tomorrow) }
+    else if (tomorrow.isBefore(examDate)) { Some(tomorrow) }
     else { None }
   }
 }

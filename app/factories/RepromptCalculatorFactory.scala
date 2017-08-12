@@ -16,7 +16,7 @@
 
 package factories
 
-import libraries.{RepromptCalculator, RepromptCalculatorExamMode, RepromptCalculatorStudyMode}
+import libraries.{ RepromptCalculator, RepromptCalculatorExamMode, RepromptCalculatorStudyMode }
 import models.dto.ScoreDto
 
 object RepromptCalculatorFactory {

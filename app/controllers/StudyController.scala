@@ -17,7 +17,7 @@
 package controllers
 
 import java.time.LocalDate
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
@@ -25,14 +25,14 @@ import env.JWTEnv
 import factories.RepromptCalculatorFactory
 import guards.AuthStudent
 import models.dao.StudyDao
-import models.dto.{ContentAssignedDto, ScoreDto}
+import models.dto.{ ContentAssignedDto, ScoreDto }
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result, Results}
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result, Results }
 import responses.JsonErrorResponse
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class StudyController @Inject() (
@@ -55,18 +55,19 @@ class StudyController @Inject() (
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ScoreDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
-        formData => handleDataForPersist(formData.copy( userId = request.identity.id.get))
+        formData => handleDataForPersist(formData.copy(userId = request.identity.id.get))
       )
   }
 
   def handleDataForPersist(scoreData: ScoreDto): Future[Result] = {
     val examDate = studyDao.getExamDateByContentItemId(scoreData.contentItemId)
     examDate flatMap {
-      r: Option[LocalDate] => r match {
-        case None         => Future(Results.InternalServerError("Failed to retrieve examination date"))
-        case Some(eDate)  => persistStudyData(RepromptCalculatorFactory.getCalculator(scoreData)
-                                                              .addRepromptDate(scoreData, eDate))
-      }
+      r: Option[LocalDate] =>
+        r match {
+          case None => Future(Results.InternalServerError("Failed to retrieve examination date"))
+          case Some(eDate) => persistStudyData(RepromptCalculatorFactory.getCalculator(scoreData)
+            .addRepromptDate(scoreData, eDate))
+        }
     }
   }
 

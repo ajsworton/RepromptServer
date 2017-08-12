@@ -23,11 +23,11 @@ import models.dto.ScoreDto
 trait RepromptCalculator {
 
   /**
-    * Calculate and add a reprompt date to the ScoreDto based on the score data
-    * and the date of the upcoming examination
-    * @param score a ScoreDto
-    * @return the ScoreDto with the embedded date for next content exposure
-    */
+   * Calculate and add a reprompt date to the ScoreDto based on the score data
+   * and the date of the upcoming examination
+   * @param score a ScoreDto
+   * @return the ScoreDto with the embedded date for next content exposure
+   */
   def addRepromptDate(score: ScoreDto, examinationDate: LocalDate): ScoreDto
 
 }

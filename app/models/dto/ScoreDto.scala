@@ -49,14 +49,13 @@ object ScoreDto {
   )
 
   def construct(userId: Int, contentItemId: Int, score: Int, scoreDate: LocalDate, streak: Int,
-                repromptDate: Option[LocalDate]) =
+    repromptDate: Option[LocalDate]) =
     new ScoreDto(userId = userId, contentItemId = contentItemId, score = score,
       scoreDate = scoreDate, streak = streak, repromptDate = repromptDate)
 
   def deconstruct(dto: ScoreDto): Option[(Int, Int, Int, LocalDate, Int, Option[LocalDate])] = dto match {
     case ScoreDto(userId: Int, contentItemId: Int, score: Int, scoreDate: LocalDate,
-      streak: Int, repromptDate: Option[LocalDate])
-                  => Some(userId, contentItemId, score, scoreDate, streak, repromptDate)
+      streak: Int, repromptDate: Option[LocalDate]) => Some(userId, contentItemId, score, scoreDate, streak, repromptDate)
   }
 
   def form: Form[ScoreDto] = Form(

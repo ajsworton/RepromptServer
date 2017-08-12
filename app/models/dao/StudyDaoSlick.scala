@@ -19,14 +19,14 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 import models.dto.ScoreDto.ScoreTable
-import models.dto.{AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto, ScoreDto}
-import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.jdbc.{GetResult, JdbcProfile}
+import models.dto.{ AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto, ScoreDto }
+import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import slick.jdbc.{ GetResult, JdbcProfile }
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success }
 
 class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends StudyDao with HasDatabaseConfigProvider[JdbcProfile] {

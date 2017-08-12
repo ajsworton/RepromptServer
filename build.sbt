@@ -13,6 +13,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 scalaVersion := "2.12.3"
 
 resolvers += "Atlassian Releases" at "https://maven.atlassian.com/public/"
+resolvers += Resolver.jcenterRepo
 
 libraryDependencies ++= Seq(
   guice,
