@@ -10,7 +10,7 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.12.2"
+scalaVersion := "2.12.3"
 
 resolvers += "Atlassian Releases" at "https://maven.atlassian.com/public/"
 
@@ -25,13 +25,13 @@ libraryDependencies ++= Seq(
   "com.google.code.findbugs" % "findbugs" % "3.0.1",
   "com.google.code.findbugs" % "jFormatString" % "2.0.1",
   "net.codingwell" %% "scala-guice" % "4.1.0",
-  "com.mohiva" %% "play-silhouette" % "5.0.0-RC2",
-  "com.mohiva" %% "play-silhouette-password-bcrypt" % "5.0.0-RC2",
-  "com.mohiva" %% "play-silhouette-crypto-jca" % "5.0.0-RC2",
+  "com.mohiva" %% "play-silhouette" % "5.0.0-RC3",
+  "com.mohiva" %% "play-silhouette-password-bcrypt" % "5.0.0-RC3",
+  "com.mohiva" %% "play-silhouette-crypto-jca" % "5.0.0-RC3",
   "com.typesafe.play" %% "play-mailer" % "6.0.0",
   "com.typesafe.play" %% "play-mailer-guice" % "6.0.0",
-  "com.mohiva" %% "play-silhouette-persistence" % "5.0.0-RC2",
-  "com.mohiva" %% "play-silhouette-testkit" % "5.0.0-RC2" % "test",
+  "com.mohiva" %% "play-silhouette-persistence" % "5.0.0-RC3",
+  "com.mohiva" %% "play-silhouette-testkit" % "5.0.0-RC3" % "test",
   "org.mockito" % "mockito-core" % "2.8.47" % "test",
   ws
 )
