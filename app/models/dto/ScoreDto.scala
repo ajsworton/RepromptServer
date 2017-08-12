@@ -28,7 +28,7 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class ScoreDto(
-  userId: Int,
+  userId: Option[Int],
   contentItemId: Int,
   score: Int,
   scoreDate: LocalDate,
@@ -48,19 +48,19 @@ object ScoreDto {
     d => d.toLocalDateTime
   )
 
-  def construct(userId: Int, contentItemId: Int, score: Int, scoreDate: LocalDate, streak: Int,
+  def construct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: LocalDate, streak: Int,
     repromptDate: Option[LocalDate]) =
     new ScoreDto(userId = userId, contentItemId = contentItemId, score = score,
       scoreDate = scoreDate, streak = streak, repromptDate = repromptDate)
 
-  def deconstruct(dto: ScoreDto): Option[(Int, Int, Int, LocalDate, Int, Option[LocalDate])] = dto match {
-    case ScoreDto(userId: Int, contentItemId: Int, score: Int, scoreDate: LocalDate,
+  def deconstruct(dto: ScoreDto): Option[(Option[Int], Int, Int, LocalDate, Int, Option[LocalDate])] = dto match {
+    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: LocalDate,
       streak: Int, repromptDate: Option[LocalDate]) => Some(userId, contentItemId, score, scoreDate, streak, repromptDate)
   }
 
   def form: Form[ScoreDto] = Form(
     mapping(
-      "userId" -> number,
+      "userId" -> optional(number),
       "contentItemId" -> number,
       "score" -> number,
       "scoreDate" -> localDate,
@@ -71,7 +71,7 @@ object ScoreDto {
 
   class ScoreTable(tag: Tag) extends Table[ScoreDto](tag, "content_scores") {
 
-    def userId: lifted.Rep[Int] = column[Int]("UserId", O.PrimaryKey)
+    def userId: lifted.Rep[Option[Int]] = column[Int]("UserId", O.PrimaryKey)
     def contentItemId: lifted.Rep[Int] = column[Int]("ContentItemId", O.PrimaryKey)
     def score: lifted.Rep[Int] = column[Int]("Score")
     def scoreDate: lifted.Rep[LocalDate] = column[LocalDate]("ScoreDate")
@@ -85,7 +85,7 @@ object ScoreDto {
 
   implicit val getScoreResult: GetResult[ScoreDto] = GetResult(r =>
     ScoreDto(
-      r.nextInt,
+      Some(r.nextInt),
       r.nextInt,
       r.nextInt,
       r.nextDate.toLocalDate,
@@ -96,7 +96,7 @@ object ScoreDto {
 
   implicit val getSomeScoreResult: GetResult[Some[ScoreDto]] = GetResult(r =>
     Some(ScoreDto(
-      r.nextInt,
+      Some(r.nextInt),
       r.nextInt,
       r.nextInt,
       r.nextDate.toLocalDate,

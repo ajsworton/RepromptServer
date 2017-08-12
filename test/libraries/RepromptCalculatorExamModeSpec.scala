@@ -23,7 +23,7 @@ import org.scalatest.{FunSpec, BeforeAndAfter, Matchers}
 
 class RepromptCalculatorExamModeSpec extends FunSpec with Matchers with BeforeAndAfter{
 
-  val score: ScoreDto = new ScoreDto(1, 1, 66, LocalDate.of(2017,6,1), 5, None)
+  val score: ScoreDto = new ScoreDto(Some(1), 1, 66, LocalDate.of(2017,6,1), 5, None)
   val calc: RepromptCalculator = new RepromptCalculatorExamMode
 
   describe("RepromptCalculatorStudyMode") {

@@ -55,7 +55,14 @@ class StudyController @Inject() (
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ScoreDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
-        formData => handleDataForPersist(formData.copy(userId = request.identity.id.get))
+        formData => {
+          if (formData.score >= 58) {
+            handleDataForPersist(formData.copy(userId = request.identity.id, streak =
+              formData.streak + 1))
+          } else {
+            handleDataForPersist(formData.copy(userId = request.identity.id, streak = 0))
+          }
+        }
       )
   }
 

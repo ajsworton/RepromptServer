@@ -36,6 +36,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   def findContentItemsQuery(userId: Int) =
     sql"""
           SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
+                  cid.UserId, cid.ContentItemId, cid.Score, cid.ScoreDate, cid.Streak, cid.RepromptDate
                   q.Id, q.Question, q.Format, q.ItemId,
                   a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
 
@@ -56,6 +57,10 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             JOIN content_items AS ci
             ON ci.PackageId = cap.PackageId
 
+            JOIN content_item_id as cid
+            ON ci.Id = cid.ContentItemId
+            AND cid.UserId = $userId
+
             JOIN content_assessment_questions AS q
             ON ci.Id = q.ItemId
 
@@ -65,7 +70,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
           WHERE cm.UserId = $userId
 
           ORDER BY ci.Name, q.Question
-         """.as[(ContentItemDto, Option[QuestionDto], Option[AnswerDto])]
+         """.as[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]
 
   override def getContentItems(userId: Int): Future[List[ContentItemDto]] = {
     val result = findContentItemsQuery(userId)
@@ -81,23 +86,23 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
     )
   }
 
-  private def extractQuestionsWithAnswersFromResultVector(r: Vector[(ContentItemDto, Option[QuestionDto], Option[AnswerDto])]) = {
+  private def extractQuestionsWithAnswersFromResultVector(r: Vector[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]) = {
 
-    val groupedByQuestion = r.groupBy(_._2)
+    val groupedByQuestion = r.groupBy(_._3)
     for {
       questions <- groupedByQuestion
       questionData = questions._2
-      answers = questionData.map(p => p._3.get).toSet.toList.filter(m => m.id.get > 0)
-      questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
+      answerList = questionData.map(p => p._4.get).toSet.toList.filter(m => m.id.get > 0)
+      questionsProc = questions._1.map(q => q.copy(answers = Some(answerList)))
       if questionsProc.isDefined
     } yield questionsProc.get
   }
 
-  private def extractContentItemsFromResultVector(r: Vector[(ContentItemDto, Option[QuestionDto], Option[AnswerDto])]) = {
+  private def extractContentItemsFromResultVector(r: Vector[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]) = {
     val groupedByContentItem = r.groupBy(_._1)
     for {
       items <- groupedByContentItem
-      itemData = items._1
+      itemData = items._1.copy(score = items._2.head._2)
     } yield itemData
   }
 
