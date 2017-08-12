@@ -19,50 +19,54 @@ package libraries
 import java.time.LocalDate
 
 import models.dto.ScoreDto
-import org.scalatest.{FunSpec, BeforeAndAfter, Matchers}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 
-class RepromptCalculatorStudyModeSpec extends FunSpec with Matchers with BeforeAndAfter{
+class RepromptCalculatorStudyModeSpec extends FunSpec with Matchers with BeforeAndAfter {
 
-  val score: ScoreDto = new ScoreDto(1, 1, 66, LocalDate.of(2017,6,1), 5, None)
+  var score: ScoreDto = new ScoreDto(1, 1, 66, LocalDate.of(2017, 6, 1), 5, None)
   val calc: RepromptCalculator = new RepromptCalculatorStudyMode
 
-  describe("RepromptCalculatorStudyMode") {
+  describe("RepromptCalculatorLearningMode") {
 
     it("should return none if the exam date is in the past") {
-      val response = calc.addRepromptDate(score, LocalDate.of(2016,6,1))
-      response.repromptDate should be (None)
+      val response = calc.addRepromptDate(score, LocalDate.of(2016, 6, 1))
+      response.repromptDate should be(None)
     }
 
-    it("should return none if the exam date is the same as the score date") {
-      val response = calc.addRepromptDate(score, LocalDate.of(2017,6,1))
-      response.repromptDate should be (None)
+    it("should return none if the exam date matches the score date") {
+      val response = calc.addRepromptDate(score, LocalDate.of(2017, 6, 1))
+      response.repromptDate should be(None)
     }
 
-    it("should return a date that matches the percentage between the dates if valid") {
-      val response = calc.addRepromptDate(score, LocalDate.of(2017,6,11))
-      response.repromptDate should be (Some(LocalDate.of(2017,6,3)))
+    it("should return a date a day later for a streak of 1") {
+      score = new ScoreDto(1, 1, 66, LocalDate.of(2017, 6, 1), 1, None)
+      val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 2))
+      response.repromptDate should be(Some(LocalDate.of(2017, 6, 2)))
     }
 
-    it("should return a date matching the percentage between the dates if valid across months") {
-      val response = calc.addRepromptDate(score, LocalDate.of(2017,7,31))
-      response.repromptDate should be (Some(LocalDate.of(2017,6,13)))
+    it("should return a date two days later for a streak of 2") {
+      score = new ScoreDto(1, 1, 66, LocalDate.of(2017, 6, 1), 2, None)
+      val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 3))
+      response.repromptDate should be(Some(LocalDate.of(2017, 6, 3)))
     }
 
-    it("should return a date matching the percentage between the dates if % distance below one") {
-      val response = calc.addRepromptDate(score, LocalDate.of(2017,6,5))
-      response.repromptDate should be (Some(LocalDate.of(2017,6,2)))
+    it("should return a date three days later for a streak of 3") {
+      score = new ScoreDto(1, 1, 66, LocalDate.of(2017, 6, 1), 3, None)
+      val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 4))
+      response.repromptDate should be(Some(LocalDate.of(2017, 6, 4)))
     }
 
-    it("should return the next day if % distance below one") {
-      val response = calc.addRepromptDate(score, LocalDate.of(2017,6,3))
-      response.repromptDate should be (Some(LocalDate.of(2017,6,2)))
+    it("should return a date four days later for a streak of 4") {
+      score = new ScoreDto(1, 1, 66, LocalDate.of(2017, 6, 1), 4, None)
+      val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 5))
+      response.repromptDate should be(Some(LocalDate.of(2017, 6, 5)))
     }
 
-    it("should return none if the % distance is below one and the next day is the exam") {
-      val response = calc.addRepromptDate(score, LocalDate.of(2017,6,2))
-      response.repromptDate should be (None)
+    it("should return a date one day later for a streak of 4 with a close exam date") {
+      score = new ScoreDto(1, 1, 66, LocalDate.of(2017, 6, 1), 4, None)
+      val response = calc.addRepromptDate(score, LocalDate.of(2017, 6, 4))
+      response.repromptDate should be(Some(LocalDate.of(2017, 6, 2)))
     }
 
   }
-
 }

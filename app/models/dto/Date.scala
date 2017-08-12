@@ -14,11 +14,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package libraries
+package models.dto
+
 import java.time.LocalDate
 
-import models.dto.ScoreDto
+import slick.jdbc.GetResult
 
-class RepromptCalculatorLearningMode extends RepromptCalculator {
-  override def addRepromptDate(score: ScoreDto, examinationDate: LocalDate) = ???
+case class Date(date: LocalDate)
+
+object Date {
+  implicit val getScoreResult: GetResult[Date] = GetResult(r =>
+    Date(
+      r.nextDate.toLocalDate
+    )
+  )
 }

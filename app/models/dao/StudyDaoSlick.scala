@@ -15,18 +15,23 @@
 // limitations under the License.
 
 package models.dao
+import java.time.LocalDate
 import javax.inject.Inject
 
-import models.dto.{AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto, ScoreDto}
+import models.dto.ScoreDto.ScoreTable
+import models.dto.{AnswerDto, ContentAssignedDto, ContentItemDto, Date, QuestionDto, ScoreDto}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
-import slick.jdbc.JdbcProfile
+import slick.jdbc.{GetResult, JdbcProfile}
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted.TableQuery
 
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends StudyDao with HasDatabaseConfigProvider[JdbcProfile] {
+
+  private val Scores = TableQuery[ScoreTable]
 
   def findContentItemsQuery(userId: Int) =
     sql"""
@@ -103,5 +108,32 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
       Some(questions.toSet.toList.filter(q => q.itemId == item.id.get)))).toList
   }
 
-  override def saveScoreData(scoreData: ScoreDto) = ???
+  override def saveScoreData(scoreData: ScoreDto): Future[Option[ScoreDto]] = {
+    db.run((Scores += scoreData).asTry) map {
+      case Failure(ex) => {
+        println(s"error : ${ex.getMessage}")
+        Some(scoreData)
+      }
+      case Success(x) => Some(scoreData)
+    }
+  }
+
+  implicit val getLocalDate: GetResult[LocalDate] = GetResult(r => r.nextDate.toLocalDate)
+
+  def findExamDateQuery(contentItemId: Int) =
+    sql"""
+          SELECT  ca.ExamDate
+          FROM content_items as ci, content_assigned_packages as cap, content_assigned as ca
+
+          WHERE ci.PackageId = cap.PackageId
+          AND cap.AssignedId = ca.Id
+          AND ci.Id = $contentItemId
+
+          LIMIT 1
+         """.as[LocalDate]
+
+  override def getExamDateByContentItemId(contentItemId: Int): Future[Option[LocalDate]] = {
+    val result = findExamDateQuery(contentItemId)
+    db.run(result.headOption)
+  }
 }

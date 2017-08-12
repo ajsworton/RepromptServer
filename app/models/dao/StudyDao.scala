@@ -16,7 +16,9 @@
 
 package models.dao
 
-import models.dto.{ ContentAssignedDto, ContentItemDto, ScoreDto }
+import java.time.LocalDate
+
+import models.dto.{ContentAssignedDto, ContentItemDto, ScoreDto}
 
 import scala.concurrent.Future
 
@@ -34,5 +36,13 @@ trait StudyDao {
    * @return a future optional scoreDto
    */
   def saveScoreData(scoreData: ScoreDto): Future[Option[ScoreDto]]
+
+
+  /**
+    * Retrieve the examination date for a specific content item.
+    * @param contentItemId the content item id.
+    * @return
+    */
+  def getExamDateByContentItemId(contentItemId: Int): Future[Option[LocalDate]]
 
 }
