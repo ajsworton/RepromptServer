@@ -19,7 +19,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 import models.dto.ScoreDto.ScoreTable
-import models.dto.{AnswerDto, ContentAssignedDto, ContentItemDto, Date, QuestionDto, ScoreDto}
+import models.dto.{AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto, ScoreDto}
 import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.{GetResult, JdbcProfile}
 import slick.jdbc.MySQLProfile.api._
