@@ -36,7 +36,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   def findContentItemsQuery(userId: Int) =
     sql"""
           SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
-                  cid.UserId, cid.ContentItemId, cid.Score, cid.ScoreDate, cid.Streak, cid.RepromptDate
+                  cs.UserId, cs.ContentItemId, cs.Score, CURDATE(), cs.Streak, cs.RepromptDate,
                   q.Id, q.Question, q.Format, q.ItemId,
                   a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
 
@@ -57,9 +57,9 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             JOIN content_items AS ci
             ON ci.PackageId = cap.PackageId
 
-            JOIN content_item_id as cid
-            ON ci.Id = cid.ContentItemId
-            AND cid.UserId = $userId
+            JOIN content_scores as cs
+            ON ci.Id = cs.ContentItemId
+            AND cs.UserId = $userId
 
             JOIN content_assessment_questions AS q
             ON ci.Id = q.ItemId
@@ -68,6 +68,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             ON q.Id = a.QuestionId
 
           WHERE cm.UserId = $userId
+          AND (cs.RepromptDate IS NULL OR cs.RepromptDate <= CURDATE())
 
           ORDER BY ci.Name, q.Question
          """.as[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]
