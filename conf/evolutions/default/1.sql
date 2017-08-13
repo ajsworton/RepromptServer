@@ -19,6 +19,15 @@ CREATE TABLE users (
 INSERT INTO users (Id, FirstName, SurName, Email, IsEmailVerified, IsEducator, IsAdministrator)
 VALUES (1, 'Admin', 'User', 'Undefined', '1', '1', '1');
 
+INSERT INTO users (Id, FirstName, SurName, Email, IsEmailVerified, IsEducator, IsAdministrator)
+VALUES (2, 'Professor', 'Teacher', 't@e', '1', '1', '0');
+
+INSERT INTO users (Id, FirstName, SurName, Email, IsEmailVerified, IsEducator, IsAdministrator)
+VALUES (3, 'Professor2', 'Teacher2', 't@e2', '1', '1', '0');
+
+INSERT INTO users (Id, FirstName, SurName, Email, IsEmailVerified, IsEducator, IsAdministrator)
+VALUES (4, 'Test', 'Student', 't@s', '1', '0', '0');
+
 CREATE TABLE profiles(
   UserId INT NOT NULL,
   ProviderId VARCHAR(255) NOT NULL,
@@ -38,6 +47,18 @@ CREATE TABLE profiles(
 
 INSERT INTO profiles (UserId, ProviderId, ProviderKey, Confirmed, FirstName)
 VALUES (1, 'credentials', 'admin', 1 , 'Admin');
+
+INSERT INTO profiles (UserId, ProviderId, ProviderKey, Confirmed, PasswordInfo)
+VALUES (2, 'credentials', 't@e', 1 , '{"hasher": "bcrypt",
+"password": "$2a$10$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}');
+
+INSERT INTO profiles (UserId, ProviderId, ProviderKey, Confirmed, PasswordInfo)
+VALUES (3, 'credentials', 't@e', 1 , '{"hasher": "bcrypt",
+"password": "$2a$10$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}');
+
+INSERT INTO profiles (UserId, ProviderId, ProviderKey, Confirmed, PasswordInfo)
+VALUES (4, 'credentials', 't@s', 1 , '{"hasher": "bcrypt",
+"password": "$2a$10$1sKWPcIQo8anKCb1XZ4m/.fLWRj6b1XJP6L47LIJNhtvyv13rpEpS"}');
 
 CREATE TABLE cohorts (
   Id int(11) NOT NULL AUTO_INCREMENT,
@@ -145,10 +166,11 @@ CREATE TABLE content_assessment_answers (
 CREATE TABLE content_scores (
   UserId int(11) NOT NULL,
   ContentItemId int(11) NOT NULL,
-  LastScore int(3) DEFAULT NULL,
-  RepromptDate date DEFAULT NULL,
+  Score int(3) DEFAULT NULL,
+  ScoreDate date NOT NULL,
   Streak int(3) DEFAULT NULL,
-  PRIMARY KEY (UserId,ContentItemId),
+  RepromptDate date DEFAULT NULL,
+  PRIMARY KEY (UserId,ContentItemId,ScoreDate),
   KEY ContentId (ContentItemId),
   CONSTRAINT content_scores_ibfk_1 FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT content_scores_ibfk_2 FOREIGN KEY (ContentItemId) REFERENCES content_items (Id) ON DELETE CASCADE ON UPDATE CASCADE
@@ -159,14 +181,13 @@ CREATE TABLE content_scores (
 DROP TABLE IF EXISTS content_scores;
 DROP TABLE IF EXISTS content_assessment_answers;
 DROP TABLE IF EXISTS content_assessment_questions;
-DROP TABLE IF EXISTS content_assigned_cohorts;
-DROP TABLE IF EXISTS content_assigned_packages;
-DROP TABLE IF EXISTS content_assigned;
 DROP TABLE IF EXISTS content_items;
+DROP TABLE IF EXISTS content_assigned_packages;
 DROP TABLE IF EXISTS content_packages;
 DROP TABLE IF EXISTS content_folders;
-
+DROP TABLE IF EXISTS content_assigned_cohorts;
+DROP TABLE IF EXISTS content_assigned;
+DROP TABLE IF EXISTS cohort_members;
 DROP TABLE IF EXISTS cohorts;
 DROP TABLE IF EXISTS profiles;
 DROP TABLE IF EXISTS users;
-DROP TABLE IF EXISTS cohort_members;

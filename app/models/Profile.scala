@@ -98,21 +98,33 @@ object Profile {
     }
 
     def parsePasswordInfo(passwordInfo: Option[String]): Option[PasswordInfo] =
-      Json.parse(passwordInfo.get).validate[PasswordInfo] match {
-        case s: JsSuccess[PasswordInfo] => Some(s.get)
-        case _ => Option.empty[PasswordInfo]
+      passwordInfo match {
+        case None => None
+        case Some(authInfo) =>
+          Json.parse(authInfo).validate[PasswordInfo] match {
+            case s: JsSuccess[PasswordInfo] => Some(s.get)
+            case _ => Option.empty[PasswordInfo]
+          }
       }
 
     def parseOauth1Info(oAuth1Info: Option[String]): Option[OAuth1Info] =
-      Json.parse(oAuth1Info.get).validate[PasswordInfo] match {
-        case s: JsSuccess[OAuth1Info] => Some(s.get)
-        case _ => Option.empty[OAuth1Info]
+      oAuth1Info match {
+        case None => None
+        case Some(authInfo) =>
+          Json.parse(authInfo).validate[PasswordInfo] match {
+            case s: JsSuccess[OAuth1Info] => Some(s.get)
+            case _ => Option.empty[OAuth1Info]
+          }
       }
 
     def parseOauth2Info(oAuth2Info: Option[String]): Option[OAuth2Info] =
-      Json.parse(oAuth2Info.get).validate[OAuth2Info] match {
-        case s: JsSuccess[OAuth2Info] => Some(s.get)
-        case _ => Option.empty[OAuth2Info]
+      oAuth2Info match {
+        case None => None
+        case Some(authInfo) =>
+          Json.parse(authInfo).validate[OAuth2Info] match {
+            case s: JsSuccess[OAuth2Info] => Some(s.get)
+            case _ => Option.empty[OAuth2Info]
+          }
       }
 
   }
