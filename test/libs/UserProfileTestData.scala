@@ -17,10 +17,10 @@
 package libs
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import com.mohiva.play.silhouette.api.util.{PasswordHasher, PasswordInfo}
+import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordInfo }
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
 import models.dao.UserDaoSlick
-import models.{Profile, User}
+import models.{ Profile, User }
 
 import scala.util.Random
 

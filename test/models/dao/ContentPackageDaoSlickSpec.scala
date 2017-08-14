@@ -20,8 +20,8 @@ import libs.AppFactory
 import models.User
 
 import scala.concurrent.duration._
-import models.dto.{ContentFolderDto, ContentPackageDto}
-import org.scalatest.{AsyncFunSpec, BeforeAndAfterAll, Matchers}
+import models.dto.{ ContentFolderDto, ContentPackageDto }
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfterAll, Matchers }
 import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Await
@@ -71,7 +71,6 @@ class ContentPackageDaoSlickSpec extends AsyncFunSpec with Matchers
   }
 
   describe("ContentpackageDaoSlick") {
-
 
     it("should correctly find an existing package by id") {
       for {

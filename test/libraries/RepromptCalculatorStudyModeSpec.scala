@@ -19,11 +19,11 @@ package libraries
 import java.time.LocalDate
 
 import models.dto.ScoreDto
-import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
+import org.scalatest.{ BeforeAndAfter, FunSpec, Matchers }
 
 class RepromptCalculatorStudyModeSpec extends FunSpec with Matchers with BeforeAndAfter {
 
-  var score: ScoreDto = new ScoreDto(Some(1), 1, 66, LocalDate.of(2017, 6, 1), 5, None)
+  var score: ScoreDto = new ScoreDto(Some(1), 1, 66, Some(LocalDate.of(2017, 6, 1)), 5, None)
   val calc: RepromptCalculator = new RepromptCalculatorStudyMode
 
   describe("RepromptCalculatorLearningMode") {
@@ -39,31 +39,31 @@ class RepromptCalculatorStudyModeSpec extends FunSpec with Matchers with BeforeA
     }
 
     it("should return a date a day later for a streak of 1") {
-      score = new ScoreDto(Some(1), 1, 66, LocalDate.of(2017, 6, 1), 1, None)
+      score = new ScoreDto(Some(1), 1, 66, Some(LocalDate.of(2017, 6, 1)), 1, None)
       val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 2))
       response.repromptDate should be(Some(LocalDate.of(2017, 6, 2)))
     }
 
     it("should return a date two days later for a streak of 2") {
-      score = new ScoreDto(Some(1), 1, 66, LocalDate.of(2017, 6, 1), 2, None)
+      score = new ScoreDto(Some(1), 1, 66, Some(LocalDate.of(2017, 6, 1)), 2, None)
       val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 3))
       response.repromptDate should be(Some(LocalDate.of(2017, 6, 3)))
     }
 
     it("should return a date three days later for a streak of 3") {
-      score = new ScoreDto(Some(1), 1, 66, LocalDate.of(2017, 6, 1), 3, None)
+      score = new ScoreDto(Some(1), 1, 66, Some(LocalDate.of(2017, 6, 1)), 3, None)
       val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 4))
       response.repromptDate should be(Some(LocalDate.of(2017, 6, 4)))
     }
 
     it("should return a date four days later for a streak of 4") {
-      score = new ScoreDto(Some(1), 1, 66, LocalDate.of(2017, 6, 1), 4, None)
+      score = new ScoreDto(Some(1), 1, 66, Some(LocalDate.of(2017, 6, 1)), 4, None)
       val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 5))
       response.repromptDate should be(Some(LocalDate.of(2017, 6, 5)))
     }
 
     it("should return a date one day later for a streak of 4 with a close exam date") {
-      score = new ScoreDto(Some(1), 1, 66, LocalDate.of(2017, 6, 1), 4, None)
+      score = new ScoreDto(Some(1), 1, 66, Some(LocalDate.of(2017, 6, 1)), 4, None)
       val response = calc.addRepromptDate(score, LocalDate.of(2017, 6, 4))
       response.repromptDate should be(Some(LocalDate.of(2017, 6, 2)))
     }

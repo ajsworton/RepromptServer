@@ -16,10 +16,10 @@
 
 package models.dao
 
-import com.mohiva.play.silhouette.api.util.{PasswordHasher, PasswordInfo}
-import libs.{AppFactory, UserProfileTestData}
+import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordInfo }
+import libs.{ AppFactory, UserProfileTestData }
 import play.api.db.DBApi
-import org.scalatest.{AsyncFunSpec, BeforeAndAfter, BeforeAndAfterAll, Matchers}
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, BeforeAndAfterAll, Matchers }
 import org.scalatest.mockito.MockitoSugar
 import play.api.db.evolutions.Evolutions
 

@@ -2,7 +2,7 @@ package controllers
 
 import libs.AppFactory
 import models.dao.CohortDaoSlick
-import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import org.scalatest.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
@@ -25,26 +25,26 @@ class UserControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   describe("UserController") {
     it("should return code 401 If not authenticated") {
       val response: Future[Result] = userController.getAll()(FakeRequest())
-      status(response) should be (UNAUTHORIZED)
+      status(response) should be(UNAUTHORIZED)
     }
 
-//    it("should return json") {
-//      val response: Future[Result] = userController.getAll()(FakeRequest())
-//
-//      contentType(response) should be ("application/json")
-//    }
-//
-//    it("should return utf-8") {
-//      val response: Future[Result] = userController.getAll()(FakeRequest())
-//
-//      charset(response) should be ("utf-8")
-//    }
-//
-//    it("should return content") {
-//      val response: Future[Result] = userController.getAll()(FakeRequest())
-//
-//      contentAsString(response) should contain ("Hello Bob")
-//    }
+    //    it("should return json") {
+    //      val response: Future[Result] = userController.getAll()(FakeRequest())
+    //
+    //      contentType(response) should be ("application/json")
+    //    }
+    //
+    //    it("should return utf-8") {
+    //      val response: Future[Result] = userController.getAll()(FakeRequest())
+    //
+    //      charset(response) should be ("utf-8")
+    //    }
+    //
+    //    it("should return content") {
+    //      val response: Future[Result] = userController.getAll()(FakeRequest())
+    //
+    //      contentAsString(response) should contain ("Hello Bob")
+    //    }
   }
 
 }

@@ -21,18 +21,18 @@ import models.User
 
 import scala.concurrent.duration._
 import models.dto.ContentFolderDto
-import org.scalatest.{AsyncFunSpec, BeforeAndAfterAll, Matchers}
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfterAll, Matchers }
 import org.scalatest.mockito.MockitoSugar
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 
 class ContentFolderDaoSlickSpec extends AsyncFunSpec with Matchers
   with MockitoSugar with AppFactory with BeforeAndAfterAll {
 
   var folderDao: ContentFolderDao = fakeApplication().injector
-                                        .instanceOf[ContentFolderDaoSlick]
+    .instanceOf[ContentFolderDaoSlick]
   var userDao: UserDao = fakeApplication().injector
-                                        .instanceOf[UserDaoSlick]
+    .instanceOf[UserDaoSlick]
 
   var owner: User = new User(None, "Test", "User", "fake@faked.com")
 
@@ -60,7 +60,6 @@ class ContentFolderDaoSlickSpec extends AsyncFunSpec with Matchers
   }
 
   describe("ContentFolderDaoSlick") {
-
 
     it("should correctly find an existing folder by id") {
       for {

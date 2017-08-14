@@ -46,23 +46,34 @@ class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws:
 
   def media(file: String) = Action {
     try {
-      getAndReturnImage(file)
+      Ok.sendFile(
+        content = new File(s"public/media/$file"),
+        inline = true
+      )
     } catch {
       case _: FileNotFoundException => NotFound("Image not found")
     }
   }
 
+  //  def media(file: String) = Action {
+  //    try {
+  //      getAndReturnImage(file)
+  //    } catch {
+  //      case _: FileNotFoundException => NotFound("Image not found")
+  //    }
+  //  }
+
   //inspired by https://stackoverflow.com/questions/20317932/displaying-image-object-from-controller-in-the-browser
   // author: users/554796/benchik accessed: 30/07/2017
-  def getAndReturnImage(file: String) = {
-    val image: File = new File(s"public/media/$file")
-    if (image.exists) {
-      val suffix = file.split('.').reverse.head
-      val fileType = s"image/${suffix}"
-      Ok(IOUtils.toByteArray(new FileInputStream(image))).as(fileType)
-    } else {
-      NotFound(s"Image not found: ${image.toString}")
-    }
-  }
+  //  def getAndReturnImage(file: String) = {
+  //    val image: File = new File(s"public/media/$file")
+  //    if (image.exists) {
+  //      val suffix = file.split('.').reverse.head
+  //      val fileType = s"image/${suffix}"
+  //      Ok(IOUtils.toByteArray(new FileInputStream(image))).as(fileType)
+  //    } else {
+  //      NotFound(s"Image not found: ${image.toString}")
+  //    }
+  //  }
 
 }

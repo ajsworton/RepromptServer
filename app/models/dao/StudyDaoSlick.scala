@@ -19,7 +19,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 import models.dto.ScoreDto.ScoreTable
-import models.dto.{ AnswerDto, ContentAssignedDto, ContentItemDto, QuestionDto, ScoreDto }
+import models.dto.{ AnswerDto, ContentItemDto, QuestionDto, ScoreDto }
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.{ GetResult, JdbcProfile }
 import slick.jdbc.MySQLProfile.api._
@@ -36,30 +36,26 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   def findContentItemsQuery(userId: Int) =
     sql"""
           SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
-                  cs.UserId, cs.ContentItemId, cs.Score, CURDATE(), cs.Streak, cs.RepromptDate,
-                  q.Id, q.Question, q.Format, q.ItemId,
-                  a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
+                           cs.UserId, cs.ContentItemId, cs.Score, cs.ScoreDate, cs.Streak, cs.RepromptDate,
+                           q.Id, q.Question, q.Format, q.ItemId,
+                           a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
 
-          FROM content_assigned as ca
+          FROM content_assigned AS ca
 
-            JOIN content_assigned_cohorts as cac
+            JOIN content_assigned_cohorts AS cac
             ON cac.AssignedId = ca.Id
 
             JOIN cohorts
             ON cohorts.Id = cac.CohortId
 
-            JOIN cohort_members as cm
+            JOIN cohort_members AS cm
             ON cm.CohortId = cohorts.Id
 
-            JOIN content_assigned_packages as cap
+            JOIN content_assigned_packages AS cap
             ON cap.AssignedId = ca.Id
 
             JOIN content_items AS ci
             ON ci.PackageId = cap.PackageId
-
-            JOIN content_scores as cs
-            ON ci.Id = cs.ContentItemId
-            AND cs.UserId = $userId
 
             JOIN content_assessment_questions AS q
             ON ci.Id = q.ItemId
@@ -67,10 +63,19 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             JOIN content_assessment_answers AS a
             ON q.Id = a.QuestionId
 
-          WHERE cm.UserId = $userId
-          AND (cs.RepromptDate IS NULL OR cs.RepromptDate <= CURDATE())
+            LEFT JOIN content_scores AS cs
+            ON ci.Id = cs.ContentItemId
+            AND cs.UserId = cm.UserId
 
-          ORDER BY ci.Name, q.Question
+          WHERE cm.UserId = 4
+          AND (cs.RepromptDate IS NULL OR cs.RepromptDate <= CURDATE())
+          AND NOT EXISTS (
+            SELECT 1
+            FROM content_scores csx
+            WHERE csx.ScoreDate > cs.ScoreDate
+          )
+
+            ORDER BY ci.Name, q.Question
          """.as[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]
 
   override def getContentItems(userId: Int): Future[List[ContentItemDto]] = {
@@ -80,7 +85,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
     run.flatMap(
       r => {
         val questions = extractQuestionsWithAnswersFromResultVector(r)
-        val contentItems = extractContentItemsFromResultVector(r)
+        val contentItems = extractContentItemsFromResultVector(r, userId)
 
         Future(applyQuestionsToParentContentItems(contentItems, questions))
       }
@@ -88,7 +93,6 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   }
 
   private def extractQuestionsWithAnswersFromResultVector(r: Vector[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]) = {
-
     val groupedByQuestion = r.groupBy(_._3)
     for {
       questions <- groupedByQuestion
@@ -99,11 +103,19 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
     } yield questionsProc.get
   }
 
-  private def extractContentItemsFromResultVector(r: Vector[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]) = {
+  private def extractContentItemsFromResultVector(r: Vector[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])], userId: Int) = {
     val groupedByContentItem = r.groupBy(_._1)
     for {
       items <- groupedByContentItem
-      itemData = items._1.copy(score = items._2.head._2)
+      score = items._2.head._2
+      itemData = score match {
+        case None => items._1
+        case Some(scoreDto) => items._1.copy(score = Some(scoreDto.copy(
+          userId = Some(userId),
+          contentItemId = items._1.id.get)
+        )
+        )
+      }
     } yield itemData
   }
 

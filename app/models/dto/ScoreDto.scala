@@ -31,7 +31,7 @@ case class ScoreDto(
   userId: Option[Int],
   contentItemId: Int,
   score: Int,
-  scoreDate: LocalDate,
+  scoreDate: Option[LocalDate],
   streak: Int,
   repromptDate: Option[LocalDate] = None
 )
@@ -48,13 +48,13 @@ object ScoreDto {
     d => d.toLocalDateTime
   )
 
-  def construct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: LocalDate, streak: Int,
+  def construct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate], streak: Int,
     repromptDate: Option[LocalDate]) =
     new ScoreDto(userId = userId, contentItemId = contentItemId, score = score,
       scoreDate = scoreDate, streak = streak, repromptDate = repromptDate)
 
-  def deconstruct(dto: ScoreDto): Option[(Option[Int], Int, Int, LocalDate, Int, Option[LocalDate])] = dto match {
-    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: LocalDate,
+  def deconstruct(dto: ScoreDto): Option[(Option[Int], Int, Int, Option[LocalDate], Int, Option[LocalDate])] = dto match {
+    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate],
       streak: Int, repromptDate: Option[LocalDate]) => Some(userId, contentItemId, score, scoreDate, streak, repromptDate)
   }
 
@@ -63,7 +63,7 @@ object ScoreDto {
       "userId" -> optional(number),
       "contentItemId" -> number,
       "score" -> number,
-      "scoreDate" -> localDate,
+      "scoreDate" -> optional(localDate),
       "streak" -> number,
       "repromptDate" -> optional(localDate)
     )(ScoreDto.construct)(ScoreDto.deconstruct)
@@ -74,7 +74,7 @@ object ScoreDto {
     def userId: lifted.Rep[Option[Int]] = column[Int]("UserId", O.PrimaryKey)
     def contentItemId: lifted.Rep[Int] = column[Int]("ContentItemId", O.PrimaryKey)
     def score: lifted.Rep[Int] = column[Int]("Score")
-    def scoreDate: lifted.Rep[LocalDate] = column[LocalDate]("ScoreDate")
+    def scoreDate: lifted.Rep[Option[LocalDate]] = column[LocalDate]("ScoreDate")
     def streak: lifted.Rep[Int] = column[Int]("Streak")
     def repromptDate: lifted.Rep[Option[LocalDate]] = column[LocalDate]("RepromptDate")
     def pk: PrimaryKey = primaryKey("PRIMARY", (userId, contentItemId, scoreDate))
@@ -88,9 +88,15 @@ object ScoreDto {
       Some(r.nextInt),
       r.nextInt,
       r.nextInt,
-      r.nextDate.toLocalDate,
+      r.nextDate match {
+        case null => None
+        case date: Date => Some(date.toLocalDate)
+      },
       r.nextInt,
-      Some(r.nextDate.toLocalDate)
+      r.nextDate match {
+        case null => None
+        case date: Date => Some(date.toLocalDate)
+      }
     )
   )
 
@@ -99,9 +105,15 @@ object ScoreDto {
       Some(r.nextInt),
       r.nextInt,
       r.nextInt,
-      r.nextDate.toLocalDate,
+      r.nextDate match {
+        case null => None
+        case date: Date => Some(date.toLocalDate)
+      },
       r.nextInt,
-      Some(r.nextDate.toLocalDate)
+      r.nextDate match {
+        case null => None
+        case date: Date => Some(date.toLocalDate)
+      }
     ))
   )
 

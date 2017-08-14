@@ -28,7 +28,7 @@ class RepromptCalculatorStudyMode extends RepromptCalculator {
    * @return the ScoreDto with the embedded date for next content exposure.
    */
   override def addRepromptDate(score: ScoreDto, examinationDate: LocalDate): ScoreDto = {
-    score.copy(repromptDate = getRepromptDate(score, examinationDate))
+    score.copy(scoreDate = Some(getScoreDate(score)), repromptDate = getRepromptDate(score, examinationDate))
   }
 
   /**
@@ -38,9 +38,10 @@ class RepromptCalculatorStudyMode extends RepromptCalculator {
    * @return an optional date for next exposure
    */
   private def getRepromptDate(score: ScoreDto, examinationDate: LocalDate): Option[LocalDate] = {
+    val scoreDate = getScoreDate(score)
     val dayInterval = score.streak
-    val repromptDate = score.scoreDate.plusDays(dayInterval)
-    val tomorrow = score.scoreDate.plusDays(1)
+    val repromptDate = scoreDate.plusDays(dayInterval)
+    val tomorrow = scoreDate.plusDays(1)
     selectDate(repromptDate, tomorrow, examinationDate)
   }
 

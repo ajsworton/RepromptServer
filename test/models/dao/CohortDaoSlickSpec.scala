@@ -16,9 +16,9 @@
 
 package models.dao
 
-import libs.{AppFactory, CohortTestData, UserProfileTestData}
+import libs.{ AppFactory, CohortTestData, UserProfileTestData }
 import models.dto.CohortDto
-import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
@@ -33,7 +33,7 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
     //find(cohortId: Int): Future[Option[CohortDto]]
     it("should correctly find an existing cohort by id") {
-        for {
+      for {
         retCohort <- cohortDao.save(testData.cohortNoId1)
         foundCohort <- cohortDao.find(retCohort.get.id.get)
         _ <- cohortDao.delete(retCohort.get.id.get)

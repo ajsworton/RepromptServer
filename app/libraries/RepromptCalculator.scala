@@ -30,4 +30,15 @@ trait RepromptCalculator {
    */
   def addRepromptDate(score: ScoreDto, examinationDate: LocalDate): ScoreDto
 
+  /**
+   * Retrieve the score date if set or fail over to the current date
+   * @param score the scoreDto
+   * @return the score date as a LocalDate
+   */
+  def getScoreDate(score: ScoreDto): LocalDate = {
+    score.scoreDate match {
+      case None => LocalDate.now()
+      case Some(date) => date
+    }
+  }
 }

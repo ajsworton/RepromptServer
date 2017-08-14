@@ -56,7 +56,7 @@ class StudyController @Inject() (
       ScoreDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
-          if (formData.score >= 58) {
+          if (formData.score >= 50) {
             handleDataForPersist(formData.copy(userId = request.identity.id, streak =
               formData.streak + 1))
           } else {

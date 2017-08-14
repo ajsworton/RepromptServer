@@ -78,6 +78,8 @@ GET     /cohorts                            controllers.AngularController.index
 GET     /content                            controllers.AngularController.index
 GET     /content/package/:id                controllers.AngularController.indexParam(id: Int)
 GET     /users                              controllers.AngularController.index
+GET     /study                              controllers.AngularController.index
+GET     /manage                             controllers.AngularController.index
 
 
 

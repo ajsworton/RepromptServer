@@ -26,18 +26,19 @@ class RepromptCalculatorExamMode(percentage: Int = 20) extends RepromptCalculato
    * In study mode, the reprompt date is set as a date in the 10-20% range of
    * the time remaining until the examination date. For the purposes of the initial
    * setup, 20% will be used as the value.
-   * This will be configurable via a constructor argument.
+   * This is configurable via a constructor argument.
    * @param score a ScoreDto
-   * @param examinationDate
+   * @param examinationDate the date of the exam.
    */
   override def addRepromptDate(score: ScoreDto, examinationDate: LocalDate): ScoreDto = {
-    val daysBetweenDates = ChronoUnit.DAYS.between(score.scoreDate, examinationDate)
+    val scoreDate = getScoreDate(score)
+    val daysBetweenDates = ChronoUnit.DAYS.between(scoreDate, examinationDate)
     if (daysBetweenDates > 0) {
-      score.copy(repromptDate = calcPromptDate(
+      score.copy(scoreDate = Some(getScoreDate(score)), repromptDate = calcPromptDate(
         daysBetweenDates,
-        score.scoreDate,
+        scoreDate,
         examinationDate))
-    } else { score.copy(repromptDate = None) }
+    } else { score.copy(scoreDate = Some(getScoreDate(score)), repromptDate = None) }
   }
 
   /**
