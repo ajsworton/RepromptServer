@@ -16,23 +16,14 @@
 
 package models.dao
 
-import com.mohiva.play.silhouette.api.util.PasswordHasher
 import libs.{ AppFactory, UserProfileTestData }
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, BeforeAndAfterAll, Matchers }
-import play.api.db.DBApi
-import play.api.db.evolutions.{ Evolutions, EvolutionsComponents }
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 
 class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with MockitoSugar with AppFactory {
+  with AppFactory {
 
   val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
   val testData = new UserProfileTestData(userDao)
-
-  //  override def beforeAll {
-  //    val dbApi = fakeApplication().injector.instanceOf[DBApi]
-  //    Evolutions.applyEvolutions(dbApi.database("default"))
-  //  }
 
   before {
     testData.before

@@ -22,7 +22,7 @@ import models.dto.ScoreDto
 object RepromptCalculatorFactory {
 
   def getCalculator(scoreDto: ScoreDto): RepromptCalculator = {
-    if (scoreDto.streak > 4) { new RepromptCalculatorExamMode }
+    if (scoreDto.streak > 3) { new RepromptCalculatorExamMode }
     else { new RepromptCalculatorStudyMode }
   }
 

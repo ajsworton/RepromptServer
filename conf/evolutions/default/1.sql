@@ -319,8 +319,18 @@ CREATE TABLE content_scores (
   CONSTRAINT content_scores_ibfk_2 FOREIGN KEY (ContentItemId) REFERENCES content_items (Id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+CREATE TABLE content_disabled (
+  ContentItemId int(11) NOT NULL,
+  UserId int(11) NOT NULL,
+  PRIMARY KEY (ContentItemId,UserId),
+  KEY UserId (UserId),
+  CONSTRAINT content_disabled_ibfk_1 FOREIGN KEY (ContentItemId) REFERENCES content_items (Id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT content_disabled_ibfk_2 FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
 # --- !Downs
 
+DROP TABLE IF EXISTS content_disabled;
 DROP TABLE IF EXISTS content_scores;
 DROP TABLE IF EXISTS content_assessment_answers;
 DROP TABLE IF EXISTS content_assessment_questions;

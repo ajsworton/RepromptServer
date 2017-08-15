@@ -66,6 +66,11 @@ DELETE  /api/published/package/:cId/:aId    controllers.PublishedController.deta
 GET     /api/studies/                       controllers.StudyController.getContentItems
 POST    /api/study/score/                   controllers.StudyController.saveStudyScore
 
+#Manage
+GET     /api/manages/                       controllers.StudyController.getContentItemsStatus
+GET     /api/manage/enable/:itemId          controllers.StudyController.enableContent
+GET     /api/manage/disable/:itemId          controllers.StudyController.disableContent
+
 #assets
 GET     /media/*file                        controllers.AngularController.media(file: String)
 

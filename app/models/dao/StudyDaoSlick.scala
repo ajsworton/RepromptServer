@@ -18,8 +18,10 @@ package models.dao
 import java.time.LocalDate
 import javax.inject.Inject
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
+import models.dto.ContentDisabledDto.ContentDisabledTable
 import models.dto.ScoreDto.ScoreTable
-import models.dto.{ AnswerDto, ContentItemDto, QuestionDto, ScoreDto }
+import models.dto.{ AnswerDto, ContentDisabledDto, ContentItemDto, QuestionDto, ScoreDto }
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.{ GetResult, JdbcProfile }
 import slick.jdbc.MySQLProfile.api._
@@ -32,6 +34,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   extends StudyDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val Scores = TableQuery[ScoreTable]
+  private val ContentDisabled = TableQuery[ContentDisabledTable]
 
   def findContentItemsQuery(userId: Int) =
     sql"""
@@ -67,7 +70,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             ON ci.Id = cs.ContentItemId
             AND cs.UserId = cm.UserId
 
-          WHERE cm.UserId = 4
+          WHERE cm.UserId = $userId
           AND (cs.RepromptDate IS NULL OR cs.RepromptDate <= CURDATE())
           AND NOT EXISTS (
             SELECT 1
@@ -153,5 +156,59 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   override def getExamDateByContentItemId(contentItemId: Int): Future[Option[LocalDate]] = {
     val result = findExamDateQuery(contentItemId)
     db.run(result.headOption)
+  }
+
+  override def getContentItemsStatusByUserId(userId: Int): Future[List[ContentItemDto]] = {
+    db.run(findContentItemsWIthStatusQuery(userId)) flatMap {
+      r => Future(r.toList)
+    }
+  }
+
+  def findContentItemsWIthStatusQuery(userId: Int) =
+    sql"""
+      SELECT  DISTINCT ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, cd.UserId IS NULL AS enabled
+
+      FROM content_assigned AS ca
+
+      JOIN content_assigned_cohorts AS cac
+        ON cac.AssignedId = ca.Id
+
+      JOIN cohorts
+        ON cohorts.Id = cac.CohortId
+
+      JOIN cohort_members AS cm
+        ON cm.CohortId = cohorts.Id
+
+      JOIN content_assigned_packages AS cap
+        ON cap.AssignedId = ca.Id
+
+      JOIN content_items AS ci
+        ON ci.PackageId = cap.PackageId
+
+      JOIN content_assessment_questions AS q
+        ON ci.Id = q.ItemId
+
+      JOIN content_assessment_answers AS a
+        ON q.Id = a.QuestionId
+
+      LEFT JOIN content_disabled AS cd
+        ON cd.ContentItemId = ci.Id
+      AND cd.UserId = cm.UserId
+
+      WHERE cm.UserId = $userId
+
+      ORDER BY ci.Name
+         """.as[ContentItemDto]
+
+  override def disableContentItem(contentItemId: Int, userId: Int): Future[Int] = {
+    db.run((ContentDisabled += ContentDisabledDto(contentItemId, userId)).asTry) map {
+      case Failure(_) => 0
+      case Success(_) => 1
+    }
+  }
+
+  override def enableContentItem(contentItemId: Int, userId: Int): Future[Int] = {
+    db.run(ContentDisabled.filter(disabled => disabled.contentItemId === contentItemId &&
+      disabled.userId === userId).delete)
   }
 }

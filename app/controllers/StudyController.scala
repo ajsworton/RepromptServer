@@ -66,7 +66,31 @@ class StudyController @Inject() (
       )
   }
 
-  def handleDataForPersist(scoreData: ScoreDto): Future[Result] = {
+  def getContentItemsStatus: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      request.identity.id match {
+        case None => Future(Results.Unauthorized)
+        case Some(id: Int) => Future(Ok(Json.toJson(studyDao.getContentItemsStatusByUserId(id))))
+      }
+  }
+
+  def disableContent: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      request.identity.id match {
+        case None => Future(Results.Unauthorized)
+        case Some(id: Int) => returnStudyItems(id)
+      }
+  }
+
+  def enableContent: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      request.identity.id match {
+        case None => Future(Results.Unauthorized)
+        case Some(id: Int) => returnStudyItems(id)
+      }
+  }
+
+  private def handleDataForPersist(scoreData: ScoreDto): Future[Result] = {
     val examDate = studyDao.getExamDateByContentItemId(scoreData.contentItemId)
     examDate flatMap {
       r: Option[LocalDate] =>

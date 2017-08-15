@@ -30,6 +30,7 @@ case class ContentItemDto(
   imageUrl: Option[String],
   name: String,
   content: String,
+  enabled: Boolean = true,
   questions: Option[List[QuestionDto]] = None,
   score: Option[ScoreDto] = None
 ) extends Dto
@@ -41,11 +42,21 @@ object ContentItemDto {
     new ContentItemDto(id = id, packageId = packageId, imageUrl = imageUrl, name = name,
       content = content)
 
-  def deconstruct(dto: ContentItemDto): Option[(Option[Int], Int, Option[String], String, String)] =
-    dto match {
-      case ContentItemDto(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
-        content: String, _, _) => Some(id, packageId, imageUrl, name, content)
-    }
+  def deconstruct(dto: ContentItemDto): Option[(Option[Int], Int, Option[String], String, String)] = dto match {
+    case ContentItemDto(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
+      content: String, _, _, _) => Some(id, packageId, imageUrl, name, content)
+  }
+
+  def formConstruct(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
+    content: String, enabled: Boolean) =
+    new ContentItemDto(id = id, packageId = packageId, imageUrl = imageUrl, name = name,
+      content = content, enabled = enabled)
+
+  def formDeconstruct(dto: ContentItemDto): Option[(Option[Int], Int, Option[String], String, String, Boolean)] = dto match {
+    case ContentItemDto(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
+      content: String, enabled: Boolean, _, _) => Some(id, packageId, imageUrl, name, content,
+      enabled)
+  }
 
   def form: Form[ContentItemDto] = Form(
     mapping(
@@ -53,8 +64,9 @@ object ContentItemDto {
       "packageId" -> number,
       "imageUrl" -> optional(text),
       "name" -> nonEmptyText,
-      "content" -> text
-    )(ContentItemDto.construct)(ContentItemDto.deconstruct)
+      "content" -> text,
+      "enabled" -> boolean
+    )(ContentItemDto.formConstruct)(ContentItemDto.formDeconstruct)
   )
 
   class ContentItemsTable(tag: Tag) extends Table[ContentItemDto](tag, "content_items") {
@@ -77,6 +89,7 @@ object ContentItemDto {
       Some(r.nextString),
       r.nextString,
       r.nextString,
+      r.nextBoolean,
       None,
       None
     )
@@ -89,6 +102,7 @@ object ContentItemDto {
       Some(r.nextString),
       r.nextString,
       r.nextString,
+      r.nextBoolean,
       None,
       None
     ))
