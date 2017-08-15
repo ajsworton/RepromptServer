@@ -38,7 +38,7 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
 
   def findContentItemQuery(itemId: Int) =
     sql"""
-          SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
+          SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, 1,
                   q.Id, q.Question, q.Format, q.ItemId,
                   a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
 

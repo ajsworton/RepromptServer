@@ -17,6 +17,7 @@
 package controllers
 
 import java.io.{ File, FileInputStream, FileNotFoundException }
+import java.nio.file.NoSuchFileException
 import javax.inject._
 
 import org.apache.commons.io.IOUtils
@@ -47,11 +48,12 @@ class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws:
   def media(file: String) = Action {
     try {
       Ok.sendFile(
-        content = new File(s"public/media/$file"),
+        content = new File(s"media/$file"),
         inline = true
       )
     } catch {
       case _: FileNotFoundException => NotFound("Image not found")
+      case _: NoSuchFileException => NotFound("Image not found")
     }
   }
 

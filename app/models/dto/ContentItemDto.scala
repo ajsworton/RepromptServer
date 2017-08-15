@@ -48,14 +48,14 @@ object ContentItemDto {
   }
 
   def formConstruct(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
-    content: String, enabled: Boolean) =
+    content: String, enabled: Option[Boolean]) =
     new ContentItemDto(id = id, packageId = packageId, imageUrl = imageUrl, name = name,
-      content = content, enabled = enabled)
+      content = content, enabled = enabled.getOrElse(true))
 
-  def formDeconstruct(dto: ContentItemDto): Option[(Option[Int], Int, Option[String], String, String, Boolean)] = dto match {
+  def formDeconstruct(dto: ContentItemDto): Option[(Option[Int], Int, Option[String], String, String, Option[Boolean])] = dto match {
     case ContentItemDto(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
       content: String, enabled: Boolean, _, _) => Some(id, packageId, imageUrl, name, content,
-      enabled)
+      Some(enabled))
   }
 
   def form: Form[ContentItemDto] = Form(
@@ -65,7 +65,7 @@ object ContentItemDto {
       "imageUrl" -> optional(text),
       "name" -> nonEmptyText,
       "content" -> text,
-      "enabled" -> boolean
+      "enabled" -> optional(boolean)
     )(ContentItemDto.formConstruct)(ContentItemDto.formDeconstruct)
   )
 

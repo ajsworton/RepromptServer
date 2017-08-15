@@ -40,21 +40,20 @@ object FileHelper {
   }
 
   def getItemPath(userId: Int, packageId: Int, filename: String): Path = {
-    Paths.get(s"public/media/$userId/content/$packageId/items/$filename")
+    Paths.get(s"media/$userId/content/$packageId/items/$filename")
   }
 
   def getItemsDirectoryPath(userId: Int, packageId: Int): Path = {
-    Paths.get(s"public/media/$userId/content/$packageId/items")
+    Paths.get(s"media/$userId/content/$packageId/items")
   }
 
   def getPackageDirectoryPath(userId: Int, packageId: Int): Path = {
-    Paths.get(s"public/media/$userId/content/$packageId")
+    Paths.get(s"media/$userId/content/$packageId")
   }
 
   def pathToUrl(filePath: Path): String = {
     val split = filePath.toString.replace('\\', '/').split('/')
-    val dropHead = split.tail
-    dropHead.mkString("/")
+    split.mkString("/")
   }
 
   private def getFilename(fileName: String, itemId: Int): String = {

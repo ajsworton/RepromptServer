@@ -126,8 +126,8 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
       Future(None)
     } else {
       for {
-        _ <- db.run(ContentPackages.filter(_.id === packageDto.id).map(c => (c.name, c.folderId, c
-          .ownerId))
+        _ <- db.run(ContentPackages.filter(_.id === packageDto.id).map(c => (c.name, c.folderId,
+          c.ownerId))
           .update(packageDto.name, packageDto.folderId, packageDto.ownerId))
         read <- find(packageDto.id.get)
       } yield read

@@ -38,7 +38,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
 
   def findContentItemsQuery(userId: Int) =
     sql"""
-          SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
+          SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, 1,
                            cs.UserId, cs.ContentItemId, cs.Score, cs.ScoreDate, cs.Streak, cs.RepromptDate,
                            q.Id, q.Question, q.Format, q.ItemId,
                            a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
