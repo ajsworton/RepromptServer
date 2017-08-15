@@ -35,7 +35,7 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
   def findContentPackageQuery(packageId: Int) =
     sql"""
           SELECT  cp.Id, cp.FolderId, cp.OwnerId, cp.Name,
-                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content,
+                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, 1,
                   q.Id, q.Question, q.Format, q.ItemId,
                   a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
 
@@ -57,7 +57,7 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
   def findContentPackageQueryByOwner(ownerId: Int) =
     sql"""
           SELECT  cp.Id, cp.FolderId, cp.OwnerId, cp.Name,
-                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content
+                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, 1
 
           FROM content_packages AS cp
 

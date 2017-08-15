@@ -21,13 +21,13 @@ import models.User
 
 import scala.concurrent.duration._
 import models.dto.{ ContentFolderDto, ContentPackageDto }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfterAll, Matchers }
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Await
 
 class ContentPackageDaoSlickSpec extends AsyncFunSpec with Matchers
-  with MockitoSugar with AppFactory with BeforeAndAfterAll {
+  with MockitoSugar with AppFactory with BeforeAndAfter {
 
   var folderDao: ContentFolderDao = fakeApplication().injector
     .instanceOf[ContentFolderDaoSlick]
@@ -49,7 +49,7 @@ class ContentPackageDaoSlickSpec extends AsyncFunSpec with Matchers
   var package5: ContentPackageDto = _
   var packages: List[ContentPackageDto] = Nil
 
-  override def beforeAll {
+  before {
     //create user
     val futureUser = userDao.save(owner)
     owner = Await.result(futureUser, 10 seconds).get
@@ -66,7 +66,7 @@ class ContentPackageDaoSlickSpec extends AsyncFunSpec with Matchers
     packages = List(package1, package2, package3, package4, package5)
   }
 
-  override def afterAll(): Unit = {
+  after {
     userDao.delete(owner.id.get)
   }
 
