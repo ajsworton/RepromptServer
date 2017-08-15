@@ -70,23 +70,29 @@ class StudyController @Inject() (
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)
-        case Some(id: Int) => Future(Ok(Json.toJson(studyDao.getContentItemsStatusByUserId(id))))
+        case Some(id: Int) => studyDao.getContentItemsStatusByUserId(id) flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
       }
   }
 
-  def disableContent: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+  def disableContent(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)
-        case Some(id: Int) => returnStudyItems(id)
+        case Some(id: Int) => studyDao.disableContentItem(itemId, id) flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
       }
   }
 
-  def enableContent: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+  def enableContent(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)
-        case Some(id: Int) => returnStudyItems(id)
+        case Some(id: Int) => studyDao.enableContentItem(itemId, id) flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
       }
   }
 

@@ -108,6 +108,6 @@ object ContentItemDto {
     ))
   )
 
-  implicit val ContentItemDtoFormat = Json.format[ContentItemDto]
+  implicit val serializer = Json.format[ContentItemDto]
 }
 

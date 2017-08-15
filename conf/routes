@@ -68,8 +68,8 @@ POST    /api/study/score/                   controllers.StudyController.saveStud
 
 #Manage
 GET     /api/manages/                       controllers.StudyController.getContentItemsStatus
-GET     /api/manage/enable/:itemId          controllers.StudyController.enableContent
-GET     /api/manage/disable/:itemId          controllers.StudyController.disableContent
+GET     /api/manage/enable/:itemId          controllers.StudyController.enableContent(itemId: Int)
+GET     /api/manage/disable/:itemId         controllers.StudyController.disableContent(itemId: Int)
 
 #assets
 GET     /media/*file                        controllers.AngularController.media(file: String)
