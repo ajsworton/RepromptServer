@@ -34,7 +34,8 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
   def insertStudyContentQueries(teacherId: Int, studentId: Int): DBIO[Unit] = {
     val cohortId:Int = studentId
     val cohortFolderId:Int = studentId
-    val packageId:Int = studentId
+    val packageId:Int = teacherId
+    val package2Id:Int = studentId
     val item1Id = teacherId
     val item2Id = studentId
     val question1Id = teacherId
@@ -52,8 +53,9 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO cohort_members VALUES($cohortId, $studentId)",
       sqlu"INSERT INTO content_folders VALUES($cohortFolderId, $teacherId, 'Folder Name', NULL)",
       sqlu"INSERT INTO content_packages VALUES($packageId, 'Package Name', $cohortFolderId, $teacherId)",
+      sqlu"INSERT INTO content_packages VALUES($package2Id, 'Package Name2', $cohortFolderId, $teacherId)",
       sqlu"INSERT INTO content_items VALUES($item1Id, $packageId, 'imageUrl', 'content', 'name')",
-      sqlu"INSERT INTO content_items VALUES($item2Id, $packageId, 'imageUrl', 'content2', 'name2')",
+      sqlu"INSERT INTO content_items VALUES($item2Id, $package2Id, 'imageUrl', 'content2', 'name2')",
       sqlu"INSERT INTO content_assessment_questions VALUES($question1Id, 'question', 'MCSA', $item1Id)",
       sqlu"INSERT INTO content_assessment_answers VALUES($answer1Id, $question1Id, 'answer', 1, 0)",
       sqlu"INSERT INTO content_assessment_questions VALUES($question2Id, 'question', 'MCSA', $item2Id)",
@@ -69,9 +71,9 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
   }
 
   def getDisabledQuery(itemId: Int, userId: Int) = sql"""
-      SELECT cd.ContentItemId, cd.UserId
+      SELECT cd.ContentAssignedId, cd.UserId
       FROM content_disabled as cd
-      WHERE cd.ContentItemId = $itemId
+      WHERE cd.ContentAssignedId = $itemId
       AND cd.userId = $userId
     """.as[ContentDisabledDto]
 

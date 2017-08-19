@@ -40,7 +40,7 @@ class ContentAssignedDaoSlick @Inject() (protected val dbConfigProvider: Databas
 
   def findContentQuery(assignedId: Int) =
     sql"""
-          SELECT  ca.Id, ca.Name, ca.ExamDate, ca.Active, ca.OwnerId,
+          SELECT  ca.Id, ca.Name, ca.ExamDate, ca.Active, ca.OwnerId, 1,
           cohorts.Id, cohorts.ParentId, cohorts.OwnerId, cohorts.Name,
           cp.Id, cp.FolderId, cp.OwnerId, cp.Name
 
@@ -64,7 +64,7 @@ class ContentAssignedDaoSlick @Inject() (protected val dbConfigProvider: Databas
 
   def findContentQueryByOwner(ownerId: Int) =
     sql"""
-          SELECT  ca.Id, ca.Name, ca.ExamDate, ca.Active, ca.OwnerId,
+          SELECT  ca.Id, ca.Name, ca.ExamDate, ca.Active, ca.OwnerId, 1,
           cohorts.Id, cohorts.ParentId, cohorts.OwnerId, cohorts.Name,
           cp.Id, cp.FolderId, cp.OwnerId, cp.Name
 

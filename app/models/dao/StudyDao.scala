@@ -49,22 +49,22 @@ trait StudyDao {
    * @param userId the supplied userId
    * @return the Future List of ContentItemDto
    */
-  def getContentItemsStatusByUserId(userId: Int): Future[List[ContentItemDto]]
+  def getContentAssignedStatusByUserId(userId: Int): Future[List[ContentAssignedDto]]
 
   /**
    * Write an entry to flag a specified contentItem as disabled
-   * @param contentItemId the supplied content item
+   * @param assignedId the supplied content item
    * @param UserId the supplied userId
    * @return a future int to indicate the number of affected rows
    */
-  def disableContentItem(contentItemId: Int, UserId: Int): Future[Int]
+  def disableContentAssigned(assignedId: Int, UserId: Int): Future[Int]
 
   /**
    * Remove any entry (if exists) that disables the specified contentItem for the user.
-   * @param contentItemId the supplied content item
+   * @param assignedId the supplied content item
    * @param UserId the supplied userId
    * @return a future int to indicate the number of affected rows
    */
-  def enableContentItem(contentItemId: Int, UserId: Int): Future[Int]
+  def enableContentAssigned(assignedId: Int, UserId: Int): Future[Int]
 
 }

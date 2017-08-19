@@ -22,7 +22,7 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class ContentDisabledDto(
-                               ContentItemId: Int,
+                               assignedId: Int,
                                UserId: Int
                              )
 
@@ -30,11 +30,11 @@ object ContentDisabledDto {
 
   class ContentDisabledTable(tag: Tag) extends Table[ContentDisabledDto](tag, "content_disabled") {
 
-    def contentItemId: lifted.Rep[Int] = column[Int]("ContentItemId", O.PrimaryKey)
+    def assignedId: lifted.Rep[Int] = column[Int]("ContentAssignedId", O.PrimaryKey)
     def userId: lifted.Rep[Int] = column[Int]("UserId", O.PrimaryKey)
-    def pk: PrimaryKey = primaryKey("PRIMARY", (contentItemId, userId))
+    def pk: PrimaryKey = primaryKey("PRIMARY", (assignedId, userId))
 
-    def * : ProvenShape[ContentDisabledDto] = (contentItemId, userId) <>
+    def * : ProvenShape[ContentDisabledDto] = (assignedId, userId) <>
       ((ContentDisabledDto.apply _).tupled, ContentDisabledDto.unapply)
   }
 

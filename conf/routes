@@ -67,7 +67,7 @@ GET     /api/studies/                       controllers.StudyController.getConte
 POST    /api/study/score/                   controllers.StudyController.saveStudyScore
 
 #Manage
-GET     /api/manages/                       controllers.StudyController.getContentItemsStatus
+GET     /api/manage/status/                 controllers.StudyController.getContentAssignedStatus
 GET     /api/manage/enable/:itemId          controllers.StudyController.enableContent(itemId: Int)
 GET     /api/manage/disable/:itemId         controllers.StudyController.disableContent(itemId: Int)
 

@@ -66,35 +66,37 @@ class StudyController @Inject() (
       )
   }
 
-  def getContentItemsStatus: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+  def getContentAssignedStatus: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)
-        case Some(id: Int) => studyDao.getContentItemsStatusByUserId(id) flatMap {
+        case Some(id: Int) => studyDao.getContentAssignedStatusByUserId(id) flatMap {
           r => Future(Ok(Json.toJson(r)))
         }
       }
   }
 
-  def disableContent(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
-    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      request.identity.id match {
-        case None => Future(Results.Unauthorized)
-        case Some(id: Int) => studyDao.disableContentItem(itemId, id) flatMap {
-          r => Future(Ok(Json.toJson(r)))
+  def disableContent(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent())
+    .async {
+      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+        request.identity.id match {
+          case None => Future(Results.Unauthorized)
+          case Some(id: Int) => studyDao.disableContentAssigned(assignedId, id) flatMap {
+            r => Future(Ok(Json.toJson(r)))
+          }
         }
-      }
-  }
+    }
 
-  def enableContent(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
-    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      request.identity.id match {
-        case None => Future(Results.Unauthorized)
-        case Some(id: Int) => studyDao.enableContentItem(itemId, id) flatMap {
-          r => Future(Ok(Json.toJson(r)))
+  def enableContent(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent())
+    .async {
+      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+        request.identity.id match {
+          case None => Future(Results.Unauthorized)
+          case Some(id: Int) => studyDao.enableContentAssigned(assignedId, id) flatMap {
+            r => Future(Ok(Json.toJson(r)))
+          }
         }
-      }
-  }
+    }
 
   private def handleDataForPersist(scoreData: ScoreDto): Future[Result] = {
     val examDate = studyDao.getExamDateByContentItemId(scoreData.contentItemId)

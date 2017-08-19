@@ -37,9 +37,9 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
     database.clearStudyContent(teacherId, studentId)
   }
 
-  describe("getContentItemsStatusByUserId") {
+  describe("getContentAssignedStatusByUserId") {
     it("should return all content items with status for both enabled and disabled content") {
-      studyDao.getContentItemsStatusByUserId(studentId) flatMap {
+      studyDao.getContentAssignedStatusByUserId(studentId) flatMap {
         r =>
           {
             r should have size 2
@@ -50,15 +50,15 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
     }
   }
 
-  describe("disableContentItem") {
-    it("should write an entry to disable the content item for a user") {
-      studyDao.disableContentItem(99998, 99998) flatMap {
+  describe("disableContentAssigned") {
+    it("should write an entry to disable the assigned content for a user") {
+      studyDao.disableContentAssigned(99998, 99998) flatMap {
         r => r should be(1)
       }
     }
 
     it("should return 0 if such an item already exists") {
-      studyDao.disableContentItem(99999, 99999) flatMap {
+      studyDao.disableContentAssigned(99999, 99999) flatMap {
         r => r should be(0)
       }
     }
@@ -69,7 +69,7 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
     it("should remove an entry to enable the content item for a user") {
       for {
         initial <- database.getDisabled(99999, 99999)
-        enabled <- studyDao.enableContentItem(99999, 99999)
+        enabled <- studyDao.enableContentAssigned(99999, 99999)
         post <- database.getDisabled(99999, 99999)
         assert = {
           initial.isDefined should be(true)
@@ -81,7 +81,7 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
     it("should return 0 if no such item exists") {
       for {
         checkExists <- database.getDisabled(99998, 99998)
-        enabled <- studyDao.enableContentItem(99998, 99998)
+        enabled <- studyDao.enableContentAssigned(99998, 99998)
         verify <- database.getDisabled(99998, 99998)
         assert = {
           checkExists.isDefined should be(false)
@@ -94,7 +94,7 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
     it("should return 1 if such an item exists") {
       for {
         checkExists <- database.getDisabled(99999, 99999)
-        enabled <- studyDao.enableContentItem(99999, 99999)
+        enabled <- studyDao.enableContentAssigned(99999, 99999)
         post <- database.getDisabled(99999, 99999)
         assert = {
           checkExists.isDefined should be(true)

@@ -138,7 +138,7 @@ CREATE TABLE content_assigned (
   OwnerId int(11) DEFAULT NULL,
   PRIMARY KEY (Id),
   KEY OwnerId (OwnerId),
-  CONSTRAINT content_assigned_ibfk_1 FOREIGN KEY (OwnerId) REFERENCES users (Id) ON DELETE SET NULL ON UPDATE CASCADE
+  CONSTRAINT content_assigned_ibfk_1 FOREIGN KEY (OwnerId) REFERENCES users (Id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 INSERT INTO content_assigned (Id, Name, ExamDate, Active, OwnerId)
@@ -320,11 +320,11 @@ CREATE TABLE content_scores (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE content_disabled (
-  ContentItemId int(11) NOT NULL,
+  ContentAssignedId int(11) NOT NULL,
   UserId int(11) NOT NULL,
-  PRIMARY KEY (ContentItemId,UserId),
+  PRIMARY KEY (ContentAssignedId,UserId),
   KEY UserId (UserId),
-  CONSTRAINT content_disabled_ibfk_1 FOREIGN KEY (ContentItemId) REFERENCES content_items (Id) ON DELETE CASCADE ON UPDATE CASCADE,
+  CONSTRAINT content_disabled_ibfk_1 FOREIGN KEY (ContentAssignedId) REFERENCES content_assigned (Id) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT content_disabled_ibfk_2 FOREIGN KEY (UserId) REFERENCES users (Id) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 

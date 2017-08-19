@@ -33,6 +33,7 @@ case class ContentAssignedDto(
   examDate: LocalDate,
   active: Boolean,
   ownerId: Option[Int],
+  enabled: Boolean = true,
   cohorts: Option[List[CohortDto]] = None,
   packages: Option[List[ContentPackageDto]] = None
 ) extends Dto
@@ -50,12 +51,20 @@ object ContentAssignedDto {
   )
 
   def construct(id: Option[Int], name: String, examDate: LocalDate, active: Boolean, ownerId: Option[Int]) =
-    new ContentAssignedDto(id = id, name = name, examDate = examDate,
-      active = active, ownerId = ownerId)
+    new ContentAssignedDto(id = id, name = name, examDate = examDate, active = active, ownerId = ownerId)
 
-  def deconstruct(dto: ContentAssignedDto): Option[(Option[Int], String, LocalDate, Boolean, Option[Int])] = dto match {
+  def deconstruct(dto: ContentAssignedDto): Some[(Option[Int], String, LocalDate, Boolean, Option[Int])] = dto match {
     case ContentAssignedDto(id: Option[Int], name: String, examDate: LocalDate, active: Boolean,
-      ownerId: Option[Int], _, _) => Some(id, name, examDate, active, ownerId)
+      ownerId: Option[Int], _, _, _) => Some(id, name, examDate, active, ownerId)
+  }
+
+  def formConstruct(id: Option[Int], name: String, examDate: LocalDate, active: Boolean, ownerId: Option[Int], enabled: Option[Boolean], cohorts: Option[List[CohortDto]], packages: Option[List[ContentPackageDto]]) =
+    new ContentAssignedDto(id = id, name = name, examDate = examDate, active = active, ownerId =
+      ownerId, enabled = enabled.getOrElse(true), cohorts, packages)
+
+  def formDeconstruct(dto: ContentAssignedDto) = dto match {
+    case ContentAssignedDto(id: Option[Int], name: String, examDate: LocalDate, active: Boolean,
+      ownerId: Option[Int], enabled: Boolean, cohorts: Option[List[CohortDto]], packages: Option[List[ContentPackageDto]]) => Some(id, name, examDate, active, ownerId, Some(enabled), cohorts, packages)
   }
 
   def form: Form[ContentAssignedDto] = Form(
@@ -65,6 +74,7 @@ object ContentAssignedDto {
       "examDate" -> localDate,
       "active" -> boolean,
       "ownerId" -> optional(number),
+      "enabled" -> optional(boolean),
       "cohorts" -> optional(list(mapping(
         "id" -> optional(number),
         "parentId" -> optional(number),
@@ -77,12 +87,10 @@ object ContentAssignedDto {
         "ownerId" -> number,
         "name" -> nonEmptyText
       )(ContentPackageDto.construct)(ContentPackageDto.deconstruct)))
-    )(ContentAssignedDto.apply)(ContentAssignedDto.unapply)
+    )(ContentAssignedDto.formConstruct)(ContentAssignedDto.formDeconstruct)
   )
 
-  class ContentAssignedTable(tag: Tag) extends Table[ContentAssignedDto](
-    tag,
-    "content_assigned") {
+  class ContentAssignedTable(tag: Tag) extends Table[ContentAssignedDto](tag, "content_assigned") {
 
     def id: lifted.Rep[Option[Int]] = column[Option[Int]]("Id", O.PrimaryKey, O.AutoInc)
     def name: lifted.Rep[String] = column[String]("Name")
@@ -101,7 +109,8 @@ object ContentAssignedDto {
       r.nextString(),
       r.nextDate.toLocalDate,
       r.nextBoolean(),
-      Some(r.nextInt)
+      Some(r.nextInt),
+      r.nextBoolean()
     )
   )
 
@@ -111,7 +120,8 @@ object ContentAssignedDto {
       r.nextString(),
       r.nextDate.toLocalDate,
       r.nextBoolean(),
-      Some(r.nextInt)
+      Some(r.nextInt),
+      r.nextBoolean()
     ))
   )
 
