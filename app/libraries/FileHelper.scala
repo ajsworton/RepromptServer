@@ -20,6 +20,7 @@ import java.io.File
 import java.nio.file.{ Path, Paths }
 
 import models.dto.ContentItemDto
+import org.apache.commons.io.FileUtils
 import play.api.libs.Files
 
 object FileHelper {
@@ -39,15 +40,15 @@ object FileHelper {
     tempFile.moveTo(filePath, replace = true)
   }
 
-  def getItemPath(userId: Int, packageId: Int, filename: String): Path = {
+  private def getItemPath(userId: Int, packageId: Int, filename: String): Path = {
     Paths.get(s"media/$userId/content/$packageId/items/$filename")
   }
 
-  def getItemsDirectoryPath(userId: Int, packageId: Int): Path = {
+  private def getItemsDirectoryPath(userId: Int, packageId: Int): Path = {
     Paths.get(s"media/$userId/content/$packageId/items")
   }
 
-  def getPackageDirectoryPath(userId: Int, packageId: Int): Path = {
+  private def getPackageDirectoryPath(userId: Int, packageId: Int): Path = {
     Paths.get(s"media/$userId/content/$packageId")
   }
 
@@ -72,14 +73,7 @@ object FileHelper {
     }
   }
 
-  def deleteFolder(directory: File): Unit = {
-    if (directory.isDirectory) {
-      val files = directory.listFiles
-      files.foreach(file => {
-        if (file.isDirectory) deleteFolder(file)
-        else file.delete
-      })
-    }
-    directory.delete
+  private def deleteFolder(directory: File): Unit = {
+    FileUtils.forceDelete(directory)
   }
 }
