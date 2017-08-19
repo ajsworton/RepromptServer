@@ -38,6 +38,12 @@ class RepromptCalculatorStudyModeSpec extends FunSpec with Matchers with BeforeA
       response.repromptDate should be(None)
     }
 
+    it("should return a date today for a streak of 0") {
+      score = new ScoreDto(Some(1), 1, 66, Some(LocalDate.of(2017, 6, 1)), 0, None)
+      val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 1))
+      response.repromptDate should be(Some(LocalDate.of(2017, 6, 1)))
+    }
+
     it("should return a date a day later for a streak of 1") {
       score = new ScoreDto(Some(1), 1, 66, Some(LocalDate.of(2017, 6, 1)), 1, None)
       val response = calc.addRepromptDate(score, LocalDate.of(2018, 6, 2))

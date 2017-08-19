@@ -66,6 +66,10 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             JOIN content_assessment_answers AS a
             ON q.Id = a.QuestionId
 
+            LEFT JOIN content_disabled AS cd
+            ON cd.ContentAssignedId = ca.Id
+            AND cd.UserId = cm.UserId
+
             LEFT JOIN content_scores AS cs
             ON ci.Id = cs.ContentItemId
             AND cs.UserId = cm.UserId
@@ -77,6 +81,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             FROM content_scores csx
             WHERE csx.ScoreDate > cs.ScoreDate
           )
+          AND cd.UserId IS NULL
 
             ORDER BY ci.Name, q.Question
          """.as[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]

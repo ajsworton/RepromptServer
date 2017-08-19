@@ -48,6 +48,18 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
           }
       }
     }
+
+    it("should return no content for an unknown student id") {
+      studyDao.getContentAssignedStatusByUserId(102345) flatMap {
+        r => r should have size 0
+      }
+    }
+
+    it("should return no content for a negative student id") {
+      studyDao.getContentAssignedStatusByUserId(-1) flatMap {
+        r => r should have size 0
+      }
+    }
   }
 
   describe("disableContentAssigned") {

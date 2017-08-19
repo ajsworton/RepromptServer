@@ -55,15 +55,16 @@ class StudyController @Inject() (
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ScoreDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
-        formData => {
-          if (formData.score >= 50) {
-            handleDataForPersist(formData.copy(userId = request.identity.id, streak =
-              formData.streak + 1))
-          } else {
-            handleDataForPersist(formData.copy(userId = request.identity.id, streak = 0))
-          }
-        }
+        formData => adjustStreakForPersist(request, formData)
       )
+  }
+
+  private def adjustStreakForPersist(request: SecuredRequest[JWTEnv, AnyContent], formData: ScoreDto) = {
+    if (formData.score >= 50) {
+      handleDataForPersist(formData.copy(userId = request.identity.id, streak = formData.streak + 1))
+    } else {
+      handleDataForPersist(formData.copy(userId = request.identity.id, streak = 0))
+    }
   }
 
   def getContentAssignedStatus: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
@@ -81,22 +82,29 @@ class StudyController @Inject() (
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         request.identity.id match {
           case None => Future(Results.Unauthorized)
-          case Some(id: Int) => studyDao.disableContentAssigned(assignedId, id) flatMap {
-            r => Future(Ok(Json.toJson(r)))
-          }
+          case Some(id: Int) => applyContentDisableAndGetResult(assignedId, id)
         }
     }
 
-  def enableContent(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent())
-    .async {
-      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-        request.identity.id match {
-          case None => Future(Results.Unauthorized)
-          case Some(id: Int) => studyDao.enableContentAssigned(assignedId, id) flatMap {
-            r => Future(Ok(Json.toJson(r)))
-          }
-        }
+  private def applyContentDisableAndGetResult(assignedId: Int, id: Int) = {
+    studyDao.disableContentAssigned(assignedId, id) flatMap {
+      r => Future(Ok(Json.toJson(r)))
     }
+  }
+
+  def enableContent(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      request.identity.id match {
+        case None => Future(Results.Unauthorized)
+        case Some(id: Int) => applyContentEnableAndGetResult(assignedId, id)
+      }
+  }
+
+  private def applyContentEnableAndGetResult(assignedId: Int, id: Int) = {
+    studyDao.enableContentAssigned(assignedId, id) flatMap {
+      r => Future(Ok(Json.toJson(r)))
+    }
+  }
 
   private def handleDataForPersist(scoreData: ScoreDto): Future[Result] = {
     val examDate = studyDao.getExamDateByContentItemId(scoreData.contentItemId)
