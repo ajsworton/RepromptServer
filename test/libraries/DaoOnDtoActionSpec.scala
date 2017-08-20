@@ -16,31 +16,74 @@
 
 package libraries
 
-import models.dao.ContentPackageDao
-import models.dto.ContentPackageDto
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ BeforeAndAfter, FunSpec, Matchers }
-import libs.AppFactory
-import org.mockito.Mockito._
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import libs.{ AppFactory, MockDaoDto, MockDto }
+import play.api.libs.json.Json
+import play.api.mvc.Results
+
 import scala.concurrent.{ ExecutionContext, Future }
 
-class DaoOnDtoActionSpec extends FunSpec with Matchers with MockitoSugar with BeforeAndAfter with AppFactory {
+class DaoOnDtoActionSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with AppFactory {
 
   implicit val ec: ExecutionContext = fakeApplication().injector.instanceOf[ExecutionContext]
-  val dto: ContentPackageDto = new ContentPackageDto(Some(1), 1, 1, "Name Here", None)
-  val service: ContentPackageDao = mock[ContentPackageDao]
+  val dto = MockDto(Some(1))
+  var service: MockDaoDto = _
   val action: DaoOnDtoAction = fakeApplication().injector.instanceOf[DaoOnDtoAction]
-  //val action: DaoOnDtoAction = new DaoOnDtoAction
 
   before {
-    when(service.save(dto)(ec)).thenReturn(Future(Some(dto)))
+    service = fakeApplication().injector.instanceOf[MockDaoDto]
   }
 
   describe("saveDto") {
     it("should call the save action on an injected Dao") {
-      action.saveDto(service, dto) should be(Future(dto))
-      verify(service, times(1)).save(dto)
+      val response = action.saveDto(service, dto)
+      response map (r => {
+        r.header.status should be(200)
+        service.saved should be(1)
+      })
     }
+  }
+
+  describe("updateDto") {
+    it("should call the update action on an injected Dao") {
+      val response = action.updateDto(service, dto)
+      response map (r => {
+        r.header.status should be(200)
+        service.updated should be(1)
+      })
+    }
+  }
+
+  describe("validateAndSaveDto") {
+    it("should call the update action on an injected Dao if find returns a dto") {
+      val response = action.validateAndSaveDto(service, dto)
+      response map (r => {
+        r.header.status should be(200)
+        service.updated should be(1)
+        service.saved should be(0)
+      })
+    }
+
+    it("should call the save action on an injected Dao if find returns no dto") {
+      service.foundReturnsValue = false
+
+      val response = action.validateAndSaveDto(service, dto)
+      response map (r => {
+        r.header.status should be(200)
+        service.saved should be(1)
+        service.updated should be(0)
+      })
+    }
+
+    it("should call the save action if injected dto is None") {
+      val response = action.validateAndSaveDto(service, dto.copy(id = None))
+      response map (r => {
+        r.header.status should be(200)
+        service.saved should be(1)
+        service.updated should be(0)
+      })
+    }
+
   }
 
 }

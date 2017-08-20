@@ -59,7 +59,7 @@ class ContentFolderDaoSlick @Inject() (protected val dbConfigProvider: DatabaseC
           ORDER BY cf.Name, cp.Name
          """.as[(ContentFolderDto, Option[ContentPackageDto])]
 
-  override def find(folderId: Int)(implicit ec: ExecutionContext = ec): Future[Option[ContentFolderDto]] = {
+  override def find(folderId: Int): Future[Option[ContentFolderDto]] = {
     val result = findContentFolderQuery(folderId)
     val run = db.run(result)
 
@@ -92,13 +92,13 @@ class ContentFolderDaoSlick @Inject() (protected val dbConfigProvider: DatabaseC
     )
   }
 
-  override def save(folder: ContentFolderDto)(implicit ec: ExecutionContext = ec): Future[Option[ContentFolderDto]] = {
+  override def save(folder: ContentFolderDto): Future[Option[ContentFolderDto]] = {
     db.run((ContentFolders returning ContentFolders.map(_.id)
       into ((folder, returnedId) => Some(folder.copy(id = returnedId)))
     ) += folder)
   }
 
-  override def update(folder: ContentFolderDto)(implicit ec: ExecutionContext = ec): Future[Option[ContentFolderDto]] = {
+  override def update(folder: ContentFolderDto): Future[Option[ContentFolderDto]] = {
     val parentId = getFolderParentId(folder)
     if (folder.id.isEmpty) {
       Future(None)

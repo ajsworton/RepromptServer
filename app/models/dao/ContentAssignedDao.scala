@@ -26,7 +26,7 @@ trait ContentAssignedDao extends Dao[ContentAssignedDto] {
    * @param assignedContentId the id to match on
    * @return a future assigned content
    */
-  override def find(assignedContentId: Int)(implicit context: ExecutionContext): Future[Option[ContentAssignedDto]]
+  override def find(assignedContentId: Int): Future[Option[ContentAssignedDto]]
 
   /**
    * locate assigned content by owner Id
@@ -40,14 +40,14 @@ trait ContentAssignedDao extends Dao[ContentAssignedDto] {
    * @param content the assigned content to save
    * @return a future assigned content
    */
-  override def save(content: ContentAssignedDto)(implicit context: ExecutionContext): Future[Option[ContentAssignedDto]]
+  override def save(content: ContentAssignedDto): Future[Option[ContentAssignedDto]]
 
   /**
    * Update an existing assigned content
    * @param content the assigned content data to update (match by content Id)
    * @return
    */
-  override def update(content: ContentAssignedDto)(implicit context: ExecutionContext): Future[Option[ContentAssignedDto]]
+  override def update(content: ContentAssignedDto): Future[Option[ContentAssignedDto]]
 
   /**
    * Delete assigned content

@@ -27,19 +27,19 @@ trait Dao[T <: Dto] {
    * @param id the id to match on
    * @return a future dto
    */
-  def find(id: Int)(implicit ec: ExecutionContext): Future[Option[T]]
+  def find(id: Int): Future[Option[T]]
 
   /**
    * Save a dto
    * @param dto the dto to save
    * @return a future dto
    */
-  def save(dto: T)(implicit ec: ExecutionContext): Future[Option[T]]
+  def save(dto: T): Future[Option[T]]
 
   /**
    * Update an existing cohort
    * @param dto the data to update (match by Id)
    * @return
    */
-  def update(dto: T)(implicit ec: ExecutionContext): Future[Option[T]]
+  def update(dto: T): Future[Option[T]]
 }

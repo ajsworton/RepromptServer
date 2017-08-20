@@ -72,7 +72,7 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
           ORDER BY cohorts.Name, users.SurName, users.FirstName
          """.as[(CohortDto, Option[User])]
 
-  override def find(cohortId: Int)(implicit ec: ExecutionContext = ec): Future[Option[CohortDto]] = {
+  override def find(cohortId: Int): Future[Option[CohortDto]] = {
     val result = findCohortQuery(cohortId)
     val run = db.run(result)
 
@@ -105,13 +105,13 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
     )
   }
 
-  override def save(cohort: CohortDto)(implicit ec: ExecutionContext = ec): Future[Option[CohortDto]] = {
+  override def save(cohort: CohortDto): Future[Option[CohortDto]] = {
     db.run((Cohorts returning Cohorts.map(_.id)
       into ((cohort, returnedId) => Some(cohort.copy(id = returnedId)))
     ) += cohort)
   }
 
-  override def update(cohort: CohortDto)(implicit ec: ExecutionContext = ec): Future[Option[CohortDto]] = {
+  override def update(cohort: CohortDto): Future[Option[CohortDto]] = {
     val parentId = getCohortParentId(cohort)
     if (cohort.id.isEmpty) {
       Future(None)

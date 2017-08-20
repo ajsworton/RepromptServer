@@ -26,7 +26,7 @@ trait ContentFolderDao extends Dao[ContentFolderDto] {
    * @param folderId the id to match on
    * @return a future folder
    */
-  def find(folderId: Int)(implicit context: ExecutionContext): Future[Option[ContentFolderDto]]
+  def find(folderId: Int): Future[Option[ContentFolderDto]]
 
   /**
    * locate a set of folders by owner Id
@@ -40,14 +40,14 @@ trait ContentFolderDao extends Dao[ContentFolderDto] {
    * @param folder the folder to save
    * @return a future folder
    */
-  override def save(folder: ContentFolderDto)(implicit context: ExecutionContext): Future[Option[ContentFolderDto]]
+  override def save(folder: ContentFolderDto): Future[Option[ContentFolderDto]]
 
   /**
    * Update an existing folder
    * @param folder the folder data to update (match by folder Id)
    * @return
    */
-  override def update(folder: ContentFolderDto)(implicit context: ExecutionContext): Future[Option[ContentFolderDto]]
+  override def update(folder: ContentFolderDto): Future[Option[ContentFolderDto]]
 
   /**
    * Delete a folder

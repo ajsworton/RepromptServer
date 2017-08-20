@@ -19,23 +19,38 @@ package libs
 import javax.inject.Inject
 
 import models.dao.Dao
-import models.dto.Dto
+import models.dto.{ ContentPackageDto, Dto }
+import play.api.libs.json.Json
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 case class MockDto(id: Option[Int]) extends Dto
 
-class MockDaoDto @Inject() (ec: ExecutionContext) extends Dao[MockDto] {
+class MockDaoDto @Inject() (implicit ec: ExecutionContext) extends Dao[MockDto] {
 
-  override def find(id: Int)(implicit ec: ExecutionContext): Future[Option[MockDto]] = {
+  var foundReturnsValue = true
+
+  var saved = 0
+  var found = 0
+  var updated = 0
+
+  override def find(id: Int): Future[Option[MockDto]] = {
+    found += 1
+    if (foundReturnsValue) { Future(Some(MockDto(Some(1)))) }
+    else { Future(None) }
+  }
+
+  override def save(dto: MockDto): Future[Option[MockDto]] = {
+    saved += 1
     Future(Some(MockDto(Some(1))))
   }
 
-  override def save(dto: MockDto)(implicit ec: ExecutionContext): Future[Option[MockDto]] = {
+  override def update(dto: MockDto): Future[Option[MockDto]] = {
+    updated += 1
     Future(Some(MockDto(Some(1))))
   }
+}
 
-  override def update(dto: MockDto)(implicit ec: ExecutionContext): Future[Option[MockDto]] = {
-    Future(Some(MockDto(Some(1))))
-  }
+object MockDto {
+  implicit val serializer = Json.format[MockDto]
 }

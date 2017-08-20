@@ -37,7 +37,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
 
   def all(): Future[Seq[User]] = db.run(Users.result)
 
-  override def find(id: Int)(implicit ec: ExecutionContext = ec): Future[Option[User]] = {
+  override def find(id: Int): Future[Option[User]] = {
     val returnedUser = db.run(Users.filter(_.id === id).result.headOption)
     returnedUser flatMap {
       case None => Future(None)
@@ -68,7 +68,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
     }
   }
 
-  override def save(user: User)(implicit ec: ExecutionContext = ec): Future[Option[User]] = {
+  override def save(user: User): Future[Option[User]] = {
     for {
       returnedUser <- db.run((Users returning Users.map(_.id)
         into ((user, returnedId) => user.copy(id = returnedId))
@@ -119,7 +119,7 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
     }
   }
 
-  override def update(user: User)(implicit ec: ExecutionContext = ec): Future[Option[User]] = {
+  override def update(user: User): Future[Option[User]] = {
     if (user.id.isEmpty) {
       Future(None)
     } else {
