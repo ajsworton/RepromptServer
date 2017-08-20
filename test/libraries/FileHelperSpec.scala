@@ -27,6 +27,8 @@ import play.api.libs.Files.TemporaryFile
 
 class FileHelperSpec extends FunSpec with Matchers with BeforeAndAfter {
 
+  val fileHelper = new FileHelper
+
   val userId = 989898
   val id: Option[Int] = Some(999999)
   val packageId: Int = 999998
@@ -61,7 +63,7 @@ class FileHelperSpec extends FunSpec with Matchers with BeforeAndAfter {
       val dir = new java.io.File(directory)
       dir.list should have length 2
       //execute method
-      FileHelper.deleteItemImagesIfExist(contentItemDto, userId)
+      fileHelper.deleteItemImagesIfExist(contentItemDto, userId)
       //verify file deleted
       dir.list should have length 0
     }
@@ -71,22 +73,25 @@ class FileHelperSpec extends FunSpec with Matchers with BeforeAndAfter {
     it("should persist a provided temporary file to disk") {
       FileUtils.forceDelete(directoryBase)
       java.nio.file.Files.exists(directoryPath) should be(false)
-      FileHelper.saveImage(fakeTempFile, "fileName", contentItemDto, userId)
+      fileHelper.saveImage(fakeTempFile, "fileName", contentItemDto, userId)
       java.nio.file.Files.exists(directoryPath) should be(true)
     }
   }
 
   describe("pathToUrl") {
     it("should return the correct url for a supplied path") {
-      val url = FileHelper.pathToUrl(Paths.get(fakeImageFile1.toString))
+      val url = fileHelper.pathToUrl(Paths.get(fakeImageFile1.toString))
       val expected: String = s"$directory${id.get}.gif"
       url should be(expected)
     }
   }
 
   describe("deletePackageFolderIfExist") {
-    it("") {
-
+    it("should delete the supplied folder and all descendants") {
+      val dir = new java.io.File(directory)
+      dir.exists should be(true)
+      fileHelper.deletePackageFolderIfExist(packageId, userId)
+      dir.exists should be(false)
     }
   }
 

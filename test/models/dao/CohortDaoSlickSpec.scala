@@ -16,12 +16,10 @@
 
 package models.dao
 
-import libs.{ AppFactory, CohortTestData, UserProfileTestData }
+import libs.{ AppFactory, CohortTestData }
 import models.dto.CohortDto
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import org.scalatest.mockito.MockitoSugar
-
-import scala.concurrent.Future
 
 class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   with MockitoSugar with AppFactory {

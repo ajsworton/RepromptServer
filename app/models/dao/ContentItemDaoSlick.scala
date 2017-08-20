@@ -29,7 +29,7 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
+class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
   extends ContentItemDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val ContentItems = TableQuery[ContentItemsTable]
@@ -70,7 +70,7 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
           ORDER BY q.Question
          """.as[(QuestionDto, Option[AnswerDto])]
 
-  override def find(itemId: Int): Future[Option[ContentItemDto]] = {
+  override def find(itemId: Int)(implicit ec: ExecutionContext = ec): Future[Option[ContentItemDto]] = {
     val result = findContentItemQuery(itemId)
     val run = db.run(result)
 
@@ -117,7 +117,7 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
     db.run(Answers.filter(_.id === answerId).result.headOption)
   }
 
-  override def save(itemDto: ContentItemDto): Future[Option[ContentItemDto]] = {
+  override def save(itemDto: ContentItemDto)(implicit ec: ExecutionContext = ec): Future[Option[ContentItemDto]] = {
     db.run((ContentItems returning ContentItems.map(_.id)
       into ((item, returnedId) => Some(item.copy(id = returnedId)))
     ) += itemDto)
@@ -169,7 +169,7 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
     db.run(Answers.filter(_.id === answerId).delete)
   }
 
-  override def update(itemDto: ContentItemDto): Future[Option[ContentItemDto]] = {
+  override def update(itemDto: ContentItemDto)(implicit ec: ExecutionContext = ec): Future[Option[ContentItemDto]] = {
     if (itemDto.id.isEmpty) {
       Future(None)
     } else {

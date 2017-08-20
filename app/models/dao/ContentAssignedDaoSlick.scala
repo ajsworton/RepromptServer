@@ -31,7 +31,7 @@ import slick.lifted.TableQuery
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
-class ContentAssignedDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
+class ContentAssignedDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
   extends ContentAssignedDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val ContentAssigned = TableQuery[ContentAssignedTable]
@@ -86,7 +86,7 @@ class ContentAssignedDaoSlick @Inject() (protected val dbConfigProvider: Databas
           ORDER BY ca.Name, cohorts.Name, cp.Name
          """.as[(ContentAssignedDto, Option[CohortDto], Option[ContentPackageDto])]
 
-  override def find(assignedContentId: Int): Future[Option[ContentAssignedDto]] = {
+  override def find(assignedContentId: Int)(implicit ec: ExecutionContext = ec): Future[Option[ContentAssignedDto]] = {
     val result = findContentQuery(assignedContentId)
     val run = db.run(result)
 
@@ -121,13 +121,13 @@ class ContentAssignedDaoSlick @Inject() (protected val dbConfigProvider: Databas
     )
   }
 
-  override def save(content: ContentAssignedDto): Future[Option[ContentAssignedDto]] = {
+  override def save(content: ContentAssignedDto)(implicit ec: ExecutionContext = ec): Future[Option[ContentAssignedDto]] = {
     db.run((ContentAssigned returning ContentAssigned.map(_.id)
       into ((folder, returnedId) => Some(folder.copy(id = returnedId)))
     ) += content)
   }
 
-  override def update(assigned: ContentAssignedDto): Future[Option[ContentAssignedDto]] = {
+  override def update(assigned: ContentAssignedDto)(implicit ec: ExecutionContext = ec): Future[Option[ContentAssignedDto]] = {
     if (assigned.id.isEmpty) {
       Future(None)
     } else {

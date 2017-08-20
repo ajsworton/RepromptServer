@@ -43,6 +43,7 @@ class PackageController @Inject() (
   silhouette: Silhouette[JWTEnv],
   packageDao: ContentPackageDao,
   itemDao: ContentItemDao,
+  fileHelper: FileHelper,
   environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
@@ -80,7 +81,7 @@ class PackageController @Inject() (
   def deletePackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       //delete media folder
-      FileHelper.deletePackageFolderIfExist(packageId, request.identity.id.get)
+      fileHelper.deletePackageFolderIfExist(packageId, request.identity.id.get)
 
       //delete package with id
       packageDao.delete(packageId) flatMap {
@@ -116,7 +117,7 @@ class PackageController @Inject() (
         futureItem flatMap {
           item => //delete item images if exist
             if (item.isDefined) {
-              FileHelper.deleteItemImagesIfExist(item.get, request.identity.id.get)
+              fileHelper.deleteItemImagesIfExist(item.get, request.identity.id.get)
             }
             Future(item)
         }
@@ -259,11 +260,11 @@ class PackageController @Inject() (
   private def storeImage(uploadedFiles: MultipartFormData[Files.TemporaryFile], userId: Int,
     item: ContentItemDto): Option[String] = {
     //remove existing images
-    FileHelper.deleteItemImagesIfExist(item, userId)
+    fileHelper.deleteItemImagesIfExist(item, userId)
     val file = uploadedFiles.file("image")
     if (file.isDefined) {
-      val filePath = FileHelper.saveImage(file.get.ref, file.get.filename, item, userId)
-      Some(FileHelper.pathToUrl(filePath))
+      val filePath = fileHelper.saveImage(file.get.ref, file.get.filename, item, userId)
+      Some(fileHelper.pathToUrl(filePath))
     } else {
       None
     }

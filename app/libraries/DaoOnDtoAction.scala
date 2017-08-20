@@ -16,6 +16,8 @@
 
 package libraries
 
+import javax.inject.Inject
+
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import models.dao.Dao
 import models.dto.Dto
@@ -24,10 +26,11 @@ import play.api.mvc.{ Result, Results }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class DaoOnDtoAction(implicit ex: ExecutionContext) {
+class DaoOnDtoAction @Inject() (implicit ex: ExecutionContext) {
 
   def saveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
     val saveResponse = dao.save(dto)
+    println("save response " + saveResponse)
     saveResponse flatMap {
       r => Future(Results.Ok(Json.toJson(r.get)))
     }

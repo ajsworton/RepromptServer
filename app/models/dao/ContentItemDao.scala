@@ -18,7 +18,7 @@ package models.dao
 
 import models.dto.{ AnswerDto, ContentItemDto, QuestionDto }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait ContentItemDao extends Dao[ContentItemDto] {
 
@@ -27,7 +27,7 @@ trait ContentItemDao extends Dao[ContentItemDto] {
    * @param itemId the id to match on
    * @return a future cohort
    */
-  override def find(itemId: Int): Future[Option[ContentItemDto]]
+  override def find(itemId: Int)(implicit context: ExecutionContext): Future[Option[ContentItemDto]]
 
   /**
    * locate a question by Id.
@@ -48,14 +48,14 @@ trait ContentItemDao extends Dao[ContentItemDto] {
    * @param itemDto the item to save
    * @return a future item
    */
-  override def save(itemDto: ContentItemDto): Future[Option[ContentItemDto]]
+  override def save(itemDto: ContentItemDto)(implicit context: ExecutionContext): Future[Option[ContentItemDto]]
 
   /**
    * Update an existing cohort
    * @param itemDto the cohort data to update (match by cohort Id)
    * @return
    */
-  override def update(itemDto: ContentItemDto): Future[Option[ContentItemDto]]
+  override def update(itemDto: ContentItemDto)(implicit context: ExecutionContext): Future[Option[ContentItemDto]]
 
   /**
    * Delete an item.

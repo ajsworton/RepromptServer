@@ -14,32 +14,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package models.dao
+package libs
 
+import javax.inject.Inject
+
+import models.dao.Dao
 import models.dto.Dto
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-trait Dao[T <: Dto] {
+case class MockDto(id: Option[Int]) extends Dto
 
-  /**
-   * locate a dto by Id
-   * @param id the id to match on
-   * @return a future dto
-   */
-  def find(id: Int)(implicit ec: ExecutionContext): Future[Option[T]]
+class MockDaoDto @Inject() (ec: ExecutionContext) extends Dao[MockDto] {
 
-  /**
-   * Save a dto
-   * @param dto the dto to save
-   * @return a future dto
-   */
-  def save(dto: T)(implicit ec: ExecutionContext): Future[Option[T]]
+  override def find(id: Int)(implicit ec: ExecutionContext): Future[Option[MockDto]] = {
+    Future(Some(MockDto(Some(1))))
+  }
 
-  /**
-   * Update an existing cohort
-   * @param dto the data to update (match by Id)
-   * @return
-   */
-  def update(dto: T)(implicit ec: ExecutionContext): Future[Option[T]]
+  override def save(dto: MockDto)(implicit ec: ExecutionContext): Future[Option[MockDto]] = {
+    Future(Some(MockDto(Some(1))))
+  }
+
+  override def update(dto: MockDto)(implicit ec: ExecutionContext): Future[Option[MockDto]] = {
+    Future(Some(MockDto(Some(1))))
+  }
 }

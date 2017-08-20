@@ -23,7 +23,7 @@ import models.dto.ContentItemDto
 import org.apache.commons.io.FileUtils
 import play.api.libs.Files
 
-object FileHelper {
+class FileHelper {
 
   def deleteItemImagesIfExist(item: ContentItemDto, userId: Int): Unit = {
     val directory: File = new File(getItemsDirectoryPath(userId, item.packageId).toString)

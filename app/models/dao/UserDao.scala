@@ -19,23 +19,23 @@ package models.dao
 import com.mohiva.play.silhouette.api.LoginInfo
 import models.{ Profile, User }
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait UserDao extends Dao[User] {
 
   /**
-   *
+   * saves a user
    * @param user
    * @return
    */
-  override def save(user: User): Future[Option[User]]
+  override def save(user: User)(implicit ec: ExecutionContext): Future[Option[User]]
 
   /**
    * Finds and returns an option[User] matching the userId
    * @param userId the user Id to match on
    * @return a future optional user
    */
-  def find(userId: Int): Future[Option[User]]
+  override def find(userId: Int)(implicit ec: ExecutionContext): Future[Option[User]]
 
   /**
    * Finds and returns an option[User] matching the loginInfo
@@ -85,7 +85,7 @@ trait UserDao extends Dao[User] {
    * @param user the user to update
    * @return a future user
    */
-  def update(user: User): Future[Option[User]]
+  override def update(user: User)(implicit ec: ExecutionContext): Future[Option[User]]
 
   /**
    * Check if a duplicate record already exists

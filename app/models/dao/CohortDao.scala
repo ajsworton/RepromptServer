@@ -17,7 +17,8 @@
 package models.dao
 
 import models.dto.CohortDto
-import scala.concurrent.Future
+
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait CohortDao extends Dao[CohortDto] {
 
@@ -26,7 +27,7 @@ trait CohortDao extends Dao[CohortDto] {
    * @param cohortId the id to match on
    * @return a future cohort
    */
-  override def find(cohortId: Int): Future[Option[CohortDto]]
+  override def find(cohortId: Int)(implicit context: ExecutionContext): Future[Option[CohortDto]]
 
   /**
    * locate a set of cohorts by owner Id
@@ -40,14 +41,14 @@ trait CohortDao extends Dao[CohortDto] {
    * @param cohort the cohort to save
    * @return a future cohort
    */
-  override def save(cohort: CohortDto): Future[Option[CohortDto]]
+  override def save(cohort: CohortDto)(implicit context: ExecutionContext): Future[Option[CohortDto]]
 
   /**
    * Update an existing cohort
    * @param cohort the cohort data to update (match by cohort Id)
    * @return
    */
-  override def update(cohort: CohortDto): Future[Option[CohortDto]]
+  override def update(cohort: CohortDto)(implicit context: ExecutionContext): Future[Option[CohortDto]]
 
   /**
    * Delete a cohort

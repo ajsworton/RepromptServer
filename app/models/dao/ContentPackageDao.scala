@@ -18,7 +18,7 @@ package models.dao
 
 import models.dto.ContentPackageDto
 
-import scala.concurrent.Future
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait ContentPackageDao extends Dao[ContentPackageDto] {
   /**
@@ -26,7 +26,7 @@ trait ContentPackageDao extends Dao[ContentPackageDto] {
    * @param packageId the id to match on
    * @return a future cohort
    */
-  def find(packageId: Int): Future[Option[ContentPackageDto]]
+  def find(packageId: Int)(implicit context: ExecutionContext): Future[Option[ContentPackageDto]]
 
   /**
    * locate a set of packages by owner Id
@@ -40,14 +40,14 @@ trait ContentPackageDao extends Dao[ContentPackageDto] {
    * @param packageDto the package to save
    * @return a future package
    */
-  override def save(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]]
+  override def save(packageDto: ContentPackageDto)(implicit context: ExecutionContext): Future[Option[ContentPackageDto]]
 
   /**
    * Update an existing cohort
    * @param packageDto the cohort data to update (match by cohort Id)
    * @return
    */
-  def update(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]]
+  def update(packageDto: ContentPackageDto)(implicit context: ExecutionContext): Future[Option[ContentPackageDto]]
 
   /**
    * Delete a package

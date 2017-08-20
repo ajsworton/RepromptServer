@@ -25,19 +25,5 @@ trait AppFactory extends FakeApplicationFactory {
   def fakeApplication(): Application = {
     new GuiceApplicationBuilder()
       .build()
-
-    //      .configure(Map(
-    //        "slick.dbs.default.db.url" ->
-    //          "jdbc:mysql://127.0.0.1:3306/reprompt?autoReconnect=true&useSSL=false&serverTimezone=UTC",
-    //        "slick.dbs.default.db.properties.url" ->
-    //          "jdbc:mysql://127.0.0.1:3306/reprompt?autoReconnect=true&useSSL=false&serverTimezone=UTC",
-    //        "slick.dbs.default.user" -> "root",
-    //        "slick.dbs.default.password" -> "",
-    //        "evolutionplugin" -> "enabled",
-    //        "play.evolutions.enabled" -> "true",
-    //        "play.evolutions.autoApply" -> "true",
-    //        "play.evolutions.db.default.enabled" -> "true",
-    //        "play.evolutions.db.default.autocommit" -> "true"
-    //      ))
   }
 }

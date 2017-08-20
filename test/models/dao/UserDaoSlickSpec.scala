@@ -81,8 +81,8 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       returnedUser map {
         result =>
           {
-            result should not be None
             result match {
+              case None => result should not be None
               case Some(usr) => {
                 usr.id.isDefined should be(true)
                 usr.id.get should be > 0
@@ -100,6 +100,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
           {
             result should not be None
             result match {
+              case None => result should not be None
               case Some(usr) => {
                 val returnedUser = userDao.update(usr.copy(firstName = "Malethew"))
                 returnedUser map {
@@ -107,6 +108,7 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
                     {
                       secondResult should not be None
                       secondResult match {
+                        case None => secondResult should not be None
                         case Some(uzr) => {
                           uzr.id.isDefined should be(true)
                           uzr.id.get should be(usr.id.get)
@@ -137,16 +139,16 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       returnedUser map {
         result =>
           {
-            result should not be None
             result match {
+              case None => result should not be None
               case Some(usr) => {
                 //now perform link
                 val linkedUser = userDao.link(usr, testData.profile1)
                 linkedUser map {
                   r =>
                     {
-                      r should not be None
                       r match {
+                        case None => r should not be None
                         case Some(u) => {
                           u.profiles.size should be(1)
                           u.profiles.head should be(testData.profile1)
@@ -169,8 +171,8 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       returnedUser map {
         result =>
           {
-            result should not be None
             result match {
+              case None => result should not be None
               case Some(usr) => {
                 val expected = testData.profile2.copy(userId = usr.id)
                 usr.profiles.size should be(1)
@@ -186,8 +188,8 @@ class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       returnedUser map {
         result =>
           {
-            result should not be None
             result match {
+              case None => result should not be None
               case Some(usr) => {
                 val expected = testData.profiles3.map(p => p.copy(userId = usr.id))
 

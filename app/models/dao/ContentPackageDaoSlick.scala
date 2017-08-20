@@ -27,7 +27,7 @@ import slick.lifted.TableQuery
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
+class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
   extends ContentPackageDao with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val ContentPackages = TableQuery[PackageTable]
@@ -68,7 +68,7 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
           ORDER BY cp.Name, ci.Name
          """.as[(ContentPackageDto, Option[ContentItemDto])]
 
-  override def find(packageId: Int): Future[Option[ContentPackageDto]] = {
+  override def find(packageId: Int)(implicit ec: ExecutionContext = ec): Future[Option[ContentPackageDto]] = {
     val result = findContentPackageQuery(packageId)
     val run = db.run(result)
 
@@ -115,13 +115,13 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
     )
   }
 
-  override def save(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]] = {
+  override def save(packageDto: ContentPackageDto)(implicit ec: ExecutionContext = ec): Future[Option[ContentPackageDto]] = {
     db.run((ContentPackages returning ContentPackages.map(_.id)
       into ((pkg, returnedId) => Some(pkg.copy(id = returnedId)))
     ) += packageDto)
   }
 
-  override def update(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]] = {
+  override def update(packageDto: ContentPackageDto)(implicit ec: ExecutionContext = ec): Future[Option[ContentPackageDto]] = {
     if (packageDto.id.isEmpty) {
       Future(None)
     } else {
