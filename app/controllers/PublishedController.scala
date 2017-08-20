@@ -42,7 +42,7 @@ class PublishedController @Inject() (
   environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
-  def get(id: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def get(id: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val result = publishDao.find(id)
       result flatMap {
@@ -50,7 +50,7 @@ class PublishedController @Inject() (
       }
   }
 
-  def getAllPublishedByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
+  def getAllPublishedByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator)
     .async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         val user = request.identity
@@ -64,14 +64,14 @@ class PublishedController @Inject() (
         }
     }
 
-  def deletePublishedExam(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def deletePublishedExam(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       publishDao.delete(assignedId) flatMap {
         r => Future(Ok(Json.toJson(r)))
       }
   }
 
-  def savePublishedExam: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def savePublishedExam: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentAssignedDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
@@ -79,7 +79,7 @@ class PublishedController @Inject() (
       )
   }
 
-  def attachCohort: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def attachCohort: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentAssignedCohortDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
@@ -97,7 +97,7 @@ class PublishedController @Inject() (
   }
 
   def detachCohort(cohortId: Int, assignedId: Int): Action[AnyContent] =
-    silhouette.SecuredAction(AuthEducator()).async {
+    silhouette.SecuredAction(AuthEducator).async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         if (cohortId > 0 && assignedId > 0) {
           handleAttachDetachResult(publishDao.detachCohort(cohortId, assignedId))
@@ -106,7 +106,7 @@ class PublishedController @Inject() (
         }
     }
 
-  def attachPackage: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def attachPackage: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentAssignedPackageDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
@@ -124,7 +124,7 @@ class PublishedController @Inject() (
   }
 
   def detachPackage(packageId: Int, assignedId: Int): Action[AnyContent] =
-    silhouette.SecuredAction(AuthEducator()).async {
+    silhouette.SecuredAction(AuthEducator).async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         if (packageId > 0 && assignedId > 0) {
           handleAttachDetachResult(publishDao.detachPackage(packageId, assignedId))

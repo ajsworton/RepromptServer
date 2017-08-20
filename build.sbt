@@ -17,6 +17,7 @@ resolvers += Resolver.jcenterRepo
 
 libraryDependencies ++= Seq(
   guice,
+  ws,
   "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % Test,
   "com.typesafe.play" %% "play-slick" % "3.0.0",
   "com.typesafe.play" %% "play-slick-evolutions" % "3.0.0",
@@ -29,12 +30,11 @@ libraryDependencies ++= Seq(
   "com.mohiva" %% "play-silhouette" % "5.0.0-RC2",
   "com.mohiva" %% "play-silhouette-password-bcrypt" % "5.0.0-RC2",
   "com.mohiva" %% "play-silhouette-crypto-jca" % "5.0.0-RC2",
-  "com.typesafe.play" %% "play-mailer" % "6.0.0",
-  "com.typesafe.play" %% "play-mailer-guice" % "6.0.0",
+  "com.typesafe.play" %% "play-mailer" % "6.0.1",
+  "com.typesafe.play" %% "play-mailer-guice" % "6.0.1",
   "com.mohiva" %% "play-silhouette-persistence" % "5.0.0-RC2",
   "com.mohiva" %% "play-silhouette-testkit" % "5.0.0-RC2" % "test",
-  "org.mockito" % "mockito-all" % "1.10.19" % "test",
-  ws
+  "org.mockito" % "mockito-all" % "1.10.19" % "test"
 )
 
 enablePlugins(JavaServerAppPackaging)
@@ -56,8 +56,3 @@ ScalariformKeys.preferences := ScalariformKeys.preferences.value
   .setPreference(FormatXml, false)
   .setPreference(DoubleIndentClassDeclaration, false)
   .setPreference(DanglingCloseParenthesis, Preserve)
-
-
-//testOptions in Test += Tests.Argument("-Dconfig.file=conf/application.test.conf")
-
-//javaOptions in Test += "-Dconfig.file=conf/application.test.conf"

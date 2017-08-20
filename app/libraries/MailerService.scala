@@ -14,17 +14,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package guards
+package libraries
 
-import com.mohiva.play.silhouette
-import com.mohiva.play.silhouette.impl.authenticators.JWTAuthenticator
+import play.api.libs.mailer._
+import javax.inject.Inject
 import models.User
-import play.api.mvc.Request
 
-import scala.concurrent.Future
 
-case object AuthEducator extends silhouette.api.Authorization[User, JWTAuthenticator] {
-  override def isAuthorized[B](user: User, authenticator: JWTAuthenticator)(implicit request: Request[B]): Future[Boolean] = {
-    Future.successful(user.isEducator)
+class MailerService @Inject() (mailerClient: MailerClient) {
+
+  private val fromAddress = "Reprompt Notifier <notifier@reprompt.com>"
+
+  def notifyStudy(toAddress: String, user: User): String = {
+    val email = Email(
+      subject = "Reprompt Notification - Time to Study",
+      from = fromAddress,
+      bodyText = Some(createStudyNotificationBody(user)),
+    )
+
+    mailerClient.send(email)
   }
+
+  def createStudyNotificationBody(user: User): String = {
+    s"""${user.firstName},
+       |
+       |It's time to visit Reprompt and complete your pending content.
+       |
+       |See you soon,
+       |
+       |The Reprompt team.
+     """
+  }
+
 }

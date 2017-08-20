@@ -33,8 +33,8 @@ import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.daos.{ DelegableAuthInfoDAO, InMemoryAuthInfoDAO }
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import env.JWTEnv
-import models.dao.{ AuthInfoDaoCredentialsSlick, CohortDao, CohortDaoSlick, ContentAssignedDao, ContentAssignedDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentItemDao, ContentItemDaoSlick, ContentPackageDao, ContentPackageDaoSlick, ProgressDao, ProgressDaoSlick, StudyDao, StudyDaoSlick, UserDao, UserDaoSlick }
-import models.services.{ UserService, UserServiceImpl }
+import models.dao.{ AuthInfoDaoCredentialsSlick, AuthTokenDao, AuthTokenDaoImpl, CohortDao, CohortDaoSlick, ContentAssignedDao, ContentAssignedDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentItemDao, ContentItemDaoSlick, ContentPackageDao, ContentPackageDaoSlick, ProgressDao, ProgressDaoSlick, StudyDao, StudyDaoSlick, UserDao, UserDaoSlick }
+import models.services.{ AuthTokenService, AuthTokenServiceImpl, UserService, UserServiceImpl }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
 import net.codingwell.scalaguice.ScalaModule
@@ -56,23 +56,16 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
   def configure() {
 
     bind[Silhouette[JWTEnv]].to[SilhouetteProvider[JWTEnv]]
+    bind[AuthTokenDao].to[AuthTokenDaoImpl]
+    bind[AuthTokenService].to[AuthTokenServiceImpl]
     //bind[UnsecuredErrorHandler].to[CustomUnsecuredErrorHandler]
     bind[SecuredErrorHandler].to[ApiSecuredErrorHandler]
     bind[UserService].to[UserServiceImpl]
-    bind[UserDao].to[UserDaoSlick]
-    bind[CohortDao].to[CohortDaoSlick]
-    bind[ContentFolderDao].to[ContentFolderDaoSlick]
-    bind[ContentPackageDao].to[ContentPackageDaoSlick]
-    bind[ContentItemDao].to[ContentItemDaoSlick]
-    //bind[CacheLayer].to[PlayCacheLayer]
     bind[IDGenerator].toInstance(new SecureRandomIDGenerator())
     bind[PasswordHasher].toInstance(new BCryptPasswordHasher)
     bind[FingerprintGenerator].toInstance(new DefaultFingerprintGenerator(false))
     bind[EventBus].toInstance(EventBus())
     bind[Clock].toInstance(Clock())
-    bind[ContentAssignedDao].to[ContentAssignedDaoSlick]
-    bind[StudyDao].to[StudyDaoSlick]
-    bind[ProgressDao].to[ProgressDaoSlick]
 
     // Replace this with the bindings to your concrete DAOs
     bind[DelegableAuthInfoDAO[PasswordInfo]].to[AuthInfoDaoCredentialsSlick]

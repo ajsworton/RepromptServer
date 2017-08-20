@@ -45,7 +45,7 @@ class ContentController @Inject() (
 
   val daoHelper = new DaoOnDtoAction
 
-  def getAllFoldersByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def getAllFoldersByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val user = request.identity
       if (user.id.isDefined) {
@@ -58,7 +58,7 @@ class ContentController @Inject() (
       }
   }
 
-  def getFolder(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator())
+  def getFolder(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator)
     .async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         val result = folderDao.find(folderId)
@@ -67,7 +67,7 @@ class ContentController @Inject() (
         }
     }
 
-  def saveFolder: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def saveFolder: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentFolderDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
@@ -75,7 +75,7 @@ class ContentController @Inject() (
       )
   }
 
-  def delete(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def delete(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       //delete cohort with id
       folderDao.delete(folderId) flatMap {

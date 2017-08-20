@@ -43,7 +43,7 @@ class StudyController @Inject() (
   environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
-  def getContentItems: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+  def getContentItems: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)
@@ -51,7 +51,7 @@ class StudyController @Inject() (
       }
   }
 
-  def saveStudyScore: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+  def saveStudyScore: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ScoreDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
@@ -67,7 +67,7 @@ class StudyController @Inject() (
     }
   }
 
-  def getContentAssignedStatus: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+  def getContentAssignedStatus: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)
@@ -77,7 +77,7 @@ class StudyController @Inject() (
       }
   }
 
-  def disableContent(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent())
+  def disableContent(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent)
     .async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         request.identity.id match {
@@ -92,7 +92,7 @@ class StudyController @Inject() (
     }
   }
 
-  def enableContent(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+  def enableContent(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)

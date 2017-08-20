@@ -39,7 +39,7 @@ class DataController @Inject() (
   environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
-  def getUserProgress: Action[AnyContent] = silhouette.SecuredAction(AuthStudent()).async {
+  def getUserProgress: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       request.identity.id match {
         case None => Future(Results.Unauthorized)

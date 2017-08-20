@@ -43,13 +43,13 @@ class UserController @Inject() (
 )(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
-  def getAll: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def getAll: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       //retrieve all users
       userDao.all().map(users => Ok(Json.toJson(users.map(u => UserDto(u)))))
   }
 
-  def get(id: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def get(id: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       userDao.find(id).map(user => Ok(Json.toJson(UserDto(user.get))))
   }

@@ -17,20 +17,42 @@
 package modules
 
 import com.google.inject.AbstractModule
-import models.dao.{ AuthTokenDao, AuthTokenDaoImpl }
-import models.services.{ AuthTokenService, AuthTokenServiceImpl }
+import models.dao.{
+  CohortDao,
+  CohortDaoSlick,
+  ContentAssignedDao,
+  ContentAssignedDaoSlick,
+  ContentFolderDao,
+  ContentFolderDaoSlick,
+  ContentItemDao,
+  ContentItemDaoSlick,
+  ContentPackageDao,
+  ContentPackageDaoSlick,
+  ProgressDao,
+  ProgressDaoSlick,
+  StudyDao,
+  StudyDaoSlick,
+  UserDao,
+  UserDaoSlick
+}
 import net.codingwell.scalaguice.ScalaModule
 
 /**
  * The base Guice module.
  */
-class BaseModule extends AbstractModule with ScalaModule {
+class RepromptModule extends AbstractModule with ScalaModule {
 
   /**
    * Configures the module.
    */
   def configure(): Unit = {
-    bind[AuthTokenDao].to[AuthTokenDaoImpl]
-    bind[AuthTokenService].to[AuthTokenServiceImpl]
+    bind[UserDao].to[UserDaoSlick]
+    bind[CohortDao].to[CohortDaoSlick]
+    bind[ContentFolderDao].to[ContentFolderDaoSlick]
+    bind[ContentPackageDao].to[ContentPackageDaoSlick]
+    bind[ContentItemDao].to[ContentItemDaoSlick]
+    bind[ContentAssignedDao].to[ContentAssignedDaoSlick]
+    bind[StudyDao].to[StudyDaoSlick]
+    bind[ProgressDao].to[ProgressDaoSlick]
   }
 }

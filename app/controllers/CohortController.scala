@@ -48,7 +48,7 @@ class CohortController @Inject() (
    * Using AuthEducator guard
    * @return
    */
-  def getAllByOwner(ownerId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def getAllByOwner(ownerId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val results = cohortDao.findByOwner(ownerId)
       results flatMap {
@@ -56,7 +56,7 @@ class CohortController @Inject() (
       }
   }
 
-  def get(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def get(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val result = cohortDao.find(cohortId)
       result flatMap {
@@ -64,7 +64,7 @@ class CohortController @Inject() (
       }
   }
 
-  def getAllByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def getAllByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val user = request.identity
       if (user.id.isDefined) {
@@ -77,7 +77,7 @@ class CohortController @Inject() (
       }
   }
 
-  def save: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def save: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       CohortDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
@@ -97,7 +97,7 @@ class CohortController @Inject() (
       )
   }
 
-  def attach: Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def attach: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       CohortMemberDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
@@ -112,7 +112,7 @@ class CohortController @Inject() (
   }
 
   def detach(cohortId: Int, userId: Int): Action[AnyContent] =
-    silhouette.SecuredAction(AuthEducator()).async {
+    silhouette.SecuredAction(AuthEducator).async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         if (cohortId > 0 && userId > 0) {
           deleteCohortMember(cohortId, userId)
@@ -143,7 +143,7 @@ class CohortController @Inject() (
     }
   }
 
-  def delete(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator()).async {
+  def delete(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       //delete cohort with id
       cohortDao.delete(cohortId) flatMap {
