@@ -20,7 +20,7 @@ import java.sql.{ Date, Timestamp }
 import java.time.{ LocalDate, LocalDateTime }
 
 import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
-import models.dto.Dto
+import models.dto.{ Dto, ScoreDto }
 import slick.jdbc.GetResult
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted

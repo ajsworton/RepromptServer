@@ -39,6 +39,8 @@ libraryDependencies ++= Seq(
 
 enablePlugins(JavaServerAppPackaging)
 
+enablePlugins(sbtdocker.DockerPlugin)
+
 // Adds additional packages into Twirl
 //TwirlKeys.templateImports += "com.reprompt.controllers._"
 

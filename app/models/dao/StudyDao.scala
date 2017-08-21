@@ -18,6 +18,7 @@ package models.dao
 
 import java.time.LocalDate
 
+import models.User
 import models.dto.{ ContentAssignedDto, ContentItemDto, ExamHistoryDto, ScoreDto }
 
 import scala.concurrent.Future
@@ -73,5 +74,11 @@ trait StudyDao {
    * @return a list of ExamHistoryDto containing all the data
    */
   def getHistoricalPerformanceByExam(userId: Int): Future[List[ExamHistoryDto]]
+
+  /**
+   * Get a list of all students with pending content. Primarily to run the notification service.
+   * @return a list of all students who have pending content
+   */
+  def getStudentsWithPendingContent: Future[Seq[User]]
 
 }

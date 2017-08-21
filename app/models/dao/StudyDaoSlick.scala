@@ -19,6 +19,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
+import models.User
 import models.dto.ContentDisabledDto.ContentDisabledTable
 import models.dto.ScoreDto.ScoreTable
 import models.dto.{ AnswerDto, ContentAssignedDto, ContentDisabledDto, ContentItemDto, ExamHistoricalPoint, ExamHistoryDto, QuestionDto, ScoreDto }
@@ -224,17 +225,19 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
 
   override def getHistoricalPerformanceByExam(userId: Int): Future[List[ExamHistoryDto]] = {
     db.run(findHistoricalPerformanceQuery(userId)) flatMap {
-      r =>
-        {
-          val result = for {
-            groupedByDto <- r.groupBy(_._1)
-            examPoints = groupedByDto._2.map(_._2)
-            averagedExamPoints = examPoints.groupBy(_.name).map(e => ExamHistoricalPoint(name = e._1, value = getAverageValue(e._2)))
-            dto = groupedByDto._1.copy(series = averagedExamPoints.toList)
-          } yield dto
-          Future(result.toList)
-        }
+      sqlResponse => createAggregatedExamPerformanceDto(sqlResponse)
     }
+  }
+
+  private def createAggregatedExamPerformanceDto(r: Vector[(ExamHistoryDto, ExamHistoricalPoint)]) = {
+    val dtos = for {
+      groupedByDto <- r.groupBy(_._1)
+      examPointsGroupedByName = groupedByDto._2.map(_._2).groupBy(_.name)
+      averagedExamPoints = examPointsGroupedByName.map(
+        e => ExamHistoricalPoint(name = e._1, value = getAverageValue(e._2)))
+      dto = groupedByDto._1.copy(series = averagedExamPoints.toList)
+    } yield dto
+    Future(dtos.toList)
   }
 
   private def getAverageValue(xs: Iterable[ExamHistoricalPoint]): Int = {
@@ -242,5 +245,27 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
       case Nil => 0
       case _ => xs.map(_.value).sum / xs.size
     }
+  }
+
+  private def getStudentsWithPendingContentQuery = sql"""
+  SELECT DISTINCT u.Id, u.FirstName, u.Surname, u.email
+
+  FROM users AS u
+
+    JOIN cohort_members AS cm
+    ON u.Id = cm.UserId
+
+    JOIN cohorts AS c
+    ON c.Id = cm.CohortId
+
+    LEFT JOIN content_scores AS cs
+    ON u.Id = cs.UserId
+
+  WHERE cs.RepromptDate <= CURDATE()
+  OR cs.RepromptDate IS NULL
+    """.as[User]
+
+  override def getStudentsWithPendingContent: Future[Seq[User]] = {
+    db.run(getStudentsWithPendingContentQuery)
   }
 }
