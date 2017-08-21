@@ -21,7 +21,7 @@ import javax.inject.Inject
 import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import models.dto.ContentDisabledDto.ContentDisabledTable
 import models.dto.ScoreDto.ScoreTable
-import models.dto.{ AnswerDto, ContentAssignedDto, ContentDisabledDto, ContentItemDto, QuestionDto, ScoreDto }
+import models.dto.{ AnswerDto, ContentAssignedDto, ContentDisabledDto, ContentItemDto, ExamHistoricalPoint, ExamHistoryDto, QuestionDto, ScoreDto }
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.{ GetResult, JdbcProfile }
 import slick.jdbc.MySQLProfile.api._
@@ -36,7 +36,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   private val Scores = TableQuery[ScoreTable]
   private val ContentDisabled = TableQuery[ContentDisabledTable]
 
-  def findContentItemsQuery(userId: Int) =
+  private def findContentItemsQuery(userId: Int) =
     sql"""
           SELECT  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, 1,
                            cs.UserId, cs.ContentItemId, cs.Score, cs.ScoreDate, cs.Streak, cs.RepromptDate,
@@ -80,6 +80,8 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             SELECT 1
             FROM content_scores csx
             WHERE csx.ScoreDate > cs.ScoreDate
+            AND csx.ContentItemId = cs.ContentItemId
+            AND csx.UserId = cs.UserId
           )
           AND cd.UserId IS NULL
 
@@ -94,7 +96,6 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
       r => {
         val questions = extractQuestionsWithAnswersFromResultVector(r)
         val contentItems = extractContentItemsFromResultVector(r, userId)
-
         Future(applyQuestionsToParentContentItems(contentItems, questions))
       }
     )
@@ -135,6 +136,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   }
 
   override def saveScoreData(scoreData: ScoreDto): Future[Option[ScoreDto]] = {
+    println("||| scoreData (insertion): " + scoreData)
     db.run((Scores += scoreData).asTry) map {
       case Failure(ex) => {
         println(s"error : ${ex.getMessage}")
@@ -146,7 +148,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
 
   implicit val getLocalDate: GetResult[LocalDate] = GetResult(r => r.nextDate.toLocalDate)
 
-  def findExamDateQuery(contentItemId: Int) =
+  private def findExamDateQuery(contentItemId: Int) =
     sql"""
           SELECT  ca.ExamDate
           FROM content_items as ci, content_assigned_packages as cap, content_assigned as ca
@@ -169,43 +171,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
     }
   }
 
-  //  def findContentAssignedWIthStatusQuery(userId: Int) =
-  //    sql"""
-  //      SELECT  DISTINCT ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, cd.UserId IS NULL AS enabled
-  //
-  //      FROM content_assigned AS ca
-  //
-  //      JOIN content_assigned_cohorts AS cac
-  //        ON cac.AssignedId = ca.Id
-  //
-  //      JOIN cohorts
-  //        ON cohorts.Id = cac.CohortId
-  //
-  //      JOIN cohort_members AS cm
-  //        ON cm.CohortId = cohorts.Id
-  //
-  //      JOIN content_assigned_packages AS cap
-  //        ON cap.AssignedId = ca.Id
-  //
-  //      JOIN content_items AS ci
-  //        ON ci.PackageId = cap.PackageId
-  //
-  //      JOIN content_assessment_questions AS q
-  //        ON ci.Id = q.ItemId
-  //
-  //      JOIN content_assessment_answers AS a
-  //        ON q.Id = a.QuestionId
-  //
-  //      LEFT JOIN content_disabled AS cd
-  //        ON cd.ContentItemId = ci.Id
-  //      AND cd.UserId = cm.UserId
-  //
-  //      WHERE cm.UserId = $userId
-  //
-  //      ORDER BY ci.Name
-  //         """.as[ContentItemDto]
-
-  def findContentAssignedWIthStatusQuery(userId: Int) =
+  private def findContentAssignedWIthStatusQuery(userId: Int) =
     sql"""
 
       SELECT  DISTINCT ca.Id, ca.Name, ca.ExamDate, ca.active, ca.ownerId, cd.UserId IS NULL AS enabled
@@ -240,5 +206,41 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   override def enableContentAssigned(assignedId: Int, userId: Int): Future[Int] = {
     db.run(ContentDisabled.filter(disabled => disabled.assignedId === assignedId &&
       disabled.userId === userId).delete)
+  }
+
+  private def findHistoricalPerformanceQuery(userId: Int) = sql"""
+    SELECT  ca.Name, cs.ScoreDate AS PointName, cs.Score AS PointValue
+
+    FROM content_scores AS cs, content_items AS ci, content_assigned_packages AS cap, content_assigned AS ca
+
+    WHERE ca.Id = cap.AssignedId
+    AND cap.PackageId = ci.PackageId
+    AND ci.Id = cs.ContentItemId
+    AND cs.UserId = $userId
+
+    ORDER BY ca.Name ASC, cs.ScoreDate ASC
+
+    """.as[(ExamHistoryDto, ExamHistoricalPoint)]
+
+  override def getHistoricalPerformanceByExam(userId: Int): Future[List[ExamHistoryDto]] = {
+    db.run(findHistoricalPerformanceQuery(userId)) flatMap {
+      r =>
+        {
+          val result = for {
+            groupedByDto <- r.groupBy(_._1)
+            examPoints = groupedByDto._2.map(_._2)
+            averagedExamPoints = examPoints.groupBy(_.name).map(e => ExamHistoricalPoint(name = e._1, value = getAverageValue(e._2)))
+            dto = groupedByDto._1.copy(series = averagedExamPoints.toList)
+          } yield dto
+          Future(result.toList)
+        }
+    }
+  }
+
+  private def getAverageValue(xs: Iterable[ExamHistoricalPoint]): Int = {
+    xs match {
+      case Nil => 0
+      case _ => xs.map(_.value).sum / xs.size
+    }
   }
 }

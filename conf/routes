@@ -65,6 +65,7 @@ DELETE  /api/published/package/:cId/:aId    controllers.PublishedController.deta
 #Study
 GET     /api/studies/                       controllers.StudyController.getContentItems
 POST    /api/study/score/                   controllers.StudyController.saveStudyScore
+GET     /api/study/progress/                controllers.StudyController.getHistoricalPerformanceByExam
 
 #Manage
 GET     /api/manage/status/                 controllers.StudyController.getContentAssignedStatus

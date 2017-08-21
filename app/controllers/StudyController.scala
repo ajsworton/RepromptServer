@@ -25,12 +25,12 @@ import env.JWTEnv
 import factories.RepromptCalculatorFactory
 import guards.AuthStudent
 import models.dao.StudyDao
-import models.dto.{ ContentAssignedDto, ScoreDto }
+import models.dto.ScoreDto
 import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Result, Results }
-import responses.JsonErrorResponse
+//import com.mohiva.play.silhouette.test._
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -100,6 +100,20 @@ class StudyController @Inject() (
       }
   }
 
+  def getHistoricalPerformanceByExam: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      request.identity.id match {
+        case None => Future(Results.Unauthorized)
+        case Some(id: Int) => fetchAndReturnHistoricalData(id)
+      }
+  }
+
+  private def fetchAndReturnHistoricalData(id: Int): Future[Result] = {
+    studyDao.getHistoricalPerformanceByExam(id) flatMap {
+      r => Future(Ok(Json.toJson(r)))
+    }
+  }
+
   private def applyContentEnableAndGetResult(assignedId: Int, id: Int) = {
     studyDao.enableContentAssigned(assignedId, id) flatMap {
       r => Future(Ok(Json.toJson(r)))
@@ -119,6 +133,7 @@ class StudyController @Inject() (
   }
 
   private def persistStudyData(scoreData: ScoreDto): Future[Result] = {
+    println("||| scoreData (received): " + scoreData)
     studyDao.saveScoreData(scoreData) flatMap {
       r =>
         if (r.isDefined) { Future(Ok(Json.toJson(r))) }

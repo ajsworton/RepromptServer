@@ -18,7 +18,7 @@ package models.dao
 
 import java.time.LocalDate
 
-import models.dto.{ ContentAssignedDto, ContentItemDto, ScoreDto }
+import models.dto.{ ContentAssignedDto, ContentItemDto, ExamHistoryDto, ScoreDto }
 
 import scala.concurrent.Future
 
@@ -66,5 +66,12 @@ trait StudyDao {
    * @return a future int to indicate the number of affected rows
    */
   def enableContentAssigned(assignedId: Int, UserId: Int): Future[Int]
+
+  /**
+   * Get a users historical assessment performance data
+   * @param userId the user's assessment history
+   * @return a list of ExamHistoryDto containing all the data
+   */
+  def getHistoricalPerformanceByExam(userId: Int): Future[List[ExamHistoryDto]]
 
 }

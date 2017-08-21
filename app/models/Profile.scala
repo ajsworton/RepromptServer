@@ -89,8 +89,9 @@ object Profile {
     def deconstructProfile(profile: Profile) = profile match {
       case Profile(userId: Option[Int], LoginInfo(providerId: String, providerKey: String),
         confirmed: Boolean, email: Option[String], firstName: Option[String],
-        lastName: Option[String], fullName: Option[String], passwordInfo: Option[String],
-        oauth1Info: Option[String], oauth2Info: Option[String], avatarUrl: Option[String]) => {
+        lastName: Option[String], fullName: Option[String], passwordInfo: Option[PasswordInfo],
+        oauth1Info: Option[OAuth1Info], oauth2Info: Option[OAuth2Info], avatarUrl:
+          Option[String]) => {
         Option(userId, providerId, providerKey, confirmed, email, firstName, lastName, fullName,
           Some(Json.toJson(passwordInfo).toString()), Some(Json.toJson(oauth1Info).toString()),
           Some(Json.toJson(oauth2Info).toString()), avatarUrl)
