@@ -35,7 +35,6 @@ class AuthTokenServiceImplSpec extends AsyncFunSpec with Matchers with AppFactor
         created <- service.create(1, 5 seconds)
         validated <- {
           created.userId should be(1)
-          created.expiry should be(dateTime.plusSeconds(5))
         }
       } yield validated
 
