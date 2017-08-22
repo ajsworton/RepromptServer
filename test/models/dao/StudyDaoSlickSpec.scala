@@ -23,18 +23,19 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
 
   val teacherId = 99998
   val studentId = 99999
+  val unassignedStudentId = 99997
 
   val studyDao: StudyDao = fakeApplication().injector.instanceOf[StudyDaoSlick]
   val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
 
   before {
     //insert data
-    database.insertStudyContent(teacherId, studentId)
+    database.insertStudyContent(teacherId, studentId, unassignedStudentId)
   }
 
   after {
     //clear data
-    database.clearStudyContent(teacherId, studentId)
+    database.clearStudyContent(teacherId, studentId, unassignedStudentId)
   }
 
   describe("getContentAssignedStatusByUserId") {
@@ -116,6 +117,28 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
       } yield assert
     }
 
+  }
+
+  describe("getStudentsWithPendingContent") {
+    it("should return a list of all students with pending content") {
+      for {
+        pending <- studyDao.getStudentsWithPendingContent
+        assertion = {
+          pending.size should be > 0
+          pending.map(student => student.id).contains(Some(studentId)) should be(true)
+        }
+      } yield assertion
+    }
+
+    it("should not return students without pending content") {
+      for {
+        pending <- studyDao.getStudentsWithPendingContent
+        assertion = {
+          pending.size should be > 0
+          pending.map(student => student.id).contains(Some(unassignedStudentId)) should be(false)
+        }
+      } yield assertion
+    }
   }
 
 }

@@ -19,7 +19,7 @@ package libs
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordInfo }
 import com.mohiva.play.silhouette.impl.providers.CredentialsProvider
-import models.dao.UserDaoSlick
+import models.dao.UserDao
 import models.{ Profile, User }
 
 import scala.util.Random
@@ -40,7 +40,7 @@ object UserProfileTestData {
   }
 }
 
-class UserProfileTestData(userDao: UserDaoSlick) extends AppFactory {
+class UserProfileTestData(userDao: UserDao) extends AppFactory {
 
   val passwordHasher: PasswordHasher = fakeApplication().injector.instanceOf[PasswordHasher]
 

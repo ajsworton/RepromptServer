@@ -248,7 +248,8 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   }
 
   private def getStudentsWithPendingContentQuery = sql"""
-  SELECT DISTINCT u.Id, u.FirstName, u.Surname, u.email
+  SELECT DISTINCT u.Id, u.FirstName, u.Surname, u.email, u.isEmailVerified, u.isEducator,
+  u.isAdministrator, u.avatarUrl
 
   FROM users AS u
 

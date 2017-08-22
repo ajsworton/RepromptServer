@@ -22,7 +22,7 @@ import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   with AppFactory {
 
-  val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
+  val userDao: UserDao = fakeApplication().injector.instanceOf[UserDaoSlick]
   val testData = new UserProfileTestData(userDao)
 
   before {

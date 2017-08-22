@@ -18,11 +18,12 @@ package models
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.PasswordInfo
-import com.mohiva.play.silhouette.impl.providers.{ OAuth1Info, OAuth2Info, SocialProfile }
-import play.api.libs.json.{ JsSuccess, Json, OFormat }
+import com.mohiva.play.silhouette.impl.providers.{OAuth1Info, OAuth2Info, SocialProfile}
+import play.api.libs.json.{JsSuccess, Json, OFormat}
+import slick.jdbc.GetResult
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import slick.lifted.{PrimaryKey, ProvenShape}
 
 case class Profile(
   userId: Option[Int] = None,
@@ -39,6 +40,31 @@ case class Profile(
 ) extends SocialProfile
 
 object Profile {
+
+  implicit val getResult = GetResult(r =>
+    Profile(
+      Some(r.nextInt),
+      LoginInfo(r.nextString, r.nextString),
+      r.nextBoolean,
+      Some(r.nextString),
+      Some(r.nextString),
+      Some(r.nextString),
+      Some(r.nextString),
+    )
+  )
+
+  implicit val getOptionResult = GetResult(r =>
+    Some(Profile(
+      Some(r.nextInt),
+      LoginInfo(r.nextString, r.nextString),
+      r.nextBoolean,
+      Some(r.nextString),
+      Some(r.nextString),
+      Some(r.nextString),
+      Some(r.nextString),
+    ))
+  )
+
   class ProfilesTable(tag: Tag) extends Table[Profile](tag, "profiles") {
 
     implicit val oAuth1JsonFormat: OFormat[OAuth1Info] = Json.format[OAuth1Info]

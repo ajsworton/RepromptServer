@@ -18,6 +18,8 @@ package libs
 
 import javax.inject.Inject
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
+import models.{Profile, User}
 import models.dto.ContentDisabledDto
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.dbio.DBIO
@@ -31,7 +33,7 @@ import slick.jdbc.MySQLProfile.api._
 class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends HasDatabaseConfigProvider[JdbcProfile] {
 
-  def insertStudyContentQueries(teacherId: Int, studentId: Int): DBIO[Unit] = {
+  private def insertStudyContentQueries(teacherId: Int, studentId: Int, otherStudentId: Int): DBIO[Unit] = {
     val cohortId:Int = studentId
     val cohortFolderId:Int = studentId
     val packageId:Int = teacherId
@@ -49,6 +51,7 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       // Insert some suppliers
       sqlu"INSERT INTO users VALUES($teacherId, 'Testy', 'Teachy', 't@teachy', 1, 1, 0, NULL)",
       sqlu"INSERT INTO users VALUES($studentId, 'Test', 'User', 't@usey', 1, 0, 0, NULL)",
+      sqlu"INSERT INTO users VALUES($otherStudentId, 'Test', 'User2', 't@usey2', 1, 0, 0, NULL)",
       sqlu"INSERT INTO cohorts VALUES($cohortId, $teacherId, 'Test Cohort', NULL)",
       sqlu"INSERT INTO cohort_members VALUES($cohortId, $studentId)",
       sqlu"INSERT INTO content_folders VALUES($cohortFolderId, $teacherId, 'Folder Name', NULL)",
@@ -70,30 +73,50 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
     )
   }
 
-  def getDisabledQuery(itemId: Int, userId: Int) = sql"""
+  private def getDisabledQuery(itemId: Int, userId: Int) = sql"""
       SELECT cd.ContentAssignedId, cd.UserId
       FROM content_disabled as cd
       WHERE cd.ContentAssignedId = $itemId
       AND cd.userId = $userId
     """.as[ContentDisabledDto]
 
-  def removeStudyContentQueries(teacherId: Int, studentId: Int): DBIO[Unit] = DBIO.seq(
+  private def removeStudyContentQueries(teacherId: Int, studentId: Int, otherStudentId: Int):
+    DBIO[Unit] = DBIO.seq(
     sqlu"DELETE FROM users WHERE id = $teacherId",
     sqlu"DELETE FROM users WHERE id = $studentId",
+    sqlu"DELETE FROM users WHERE id = $otherStudentId",
   )
 
-  def insertStudyContent(teacherId: Int, studentId: Int) = {
-    val response = db.run(insertStudyContentQueries(teacherId, studentId))
+  def insertStudyContent(teacherId: Int, studentId: Int, otherStudentId: Int) = {
+    val response = db.run(insertStudyContentQueries(teacherId, studentId, otherStudentId))
     Await.result(response, 10 seconds)
   }
 
-  def clearStudyContent(teacherId: Int, studentId: Int) = {
-    val response = db.run(removeStudyContentQueries(teacherId, studentId))
+  def clearStudyContent(teacherId: Int, studentId: Int, otherStudentId: Int) = {
+    val response = db.run(removeStudyContentQueries(teacherId, studentId, otherStudentId))
     Await.result(response, 10 seconds)
   }
 
   def getDisabled(itemId: Int, userId: Int): Future[Option[ContentDisabledDto]] = {
     db.run(getDisabledQuery(itemId, userId).headOption)
   }
+
+  def getUser(userId: Int): Future[Option[User]] = {
+    db.run(getUserQuery(userId).headOption)
+  }
+
+  private def getUserQuery(userId: Int) = sql"""
+  SELECT DISTINCT u.Id, u.FirstName, u.Surname, u.email, u.isEmailVerified, u.isEducator,
+  u.isAdministrator, u.avatarUrl
+
+  FROM users AS u
+
+    LEFT JOIN profiles AS p
+    ON p.UserId = u.Id
+
+  WHERE u.Id = $userId
+
+  LIMIT 1
+    """.as[(User, Profile)]
 
 }
