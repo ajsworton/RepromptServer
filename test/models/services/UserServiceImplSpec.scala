@@ -57,8 +57,8 @@ class UserServiceImplSpec extends AsyncFunSpec with Matchers with MockitoSugar w
         inserted <- database.getUser(studentId)
         retrieved <- service.retrieve(inserted.get.profiles.head.loginInfo)
         assertion = {
-          inserted.isDefined should be (true)
-          retrieved should be (inserted)
+          inserted.isDefined should be(true)
+          retrieved should be(inserted)
         }
       } yield assertion
     }

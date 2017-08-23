@@ -51,6 +51,7 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       // Insert some suppliers
       sqlu"INSERT INTO users VALUES($teacherId, 'Testy', 'Teachy', 't@teachy', 1, 1, 0, NULL)",
       sqlu"INSERT INTO users VALUES($studentId, 'Test', 'User', 't@usey', 1, 0, 0, NULL)",
+      sqlu"INSERT INTO profiles VALUES($studentId, 'credentials', 't@usey', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)",
       sqlu"INSERT INTO users VALUES($otherStudentId, 'Test', 'User2', 't@usey2', 1, 0, 0, NULL)",
       sqlu"INSERT INTO cohorts VALUES($cohortId, $teacherId, 'Test Cohort', NULL)",
       sqlu"INSERT INTO cohort_members VALUES($cohortId, $studentId)",
@@ -102,12 +103,17 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
   }
 
   def getUser(userId: Int): Future[Option[User]] = {
-    db.run(getUserQuery(userId).headOption)
+    db.run(getUserQuery(userId).headOption) flatMap {
+      case None => Future(None)
+      case Some((user, userProfile)) => Future(Some(user.copy(profiles = List(userProfile))))
+    }
   }
 
   private def getUserQuery(userId: Int) = sql"""
   SELECT DISTINCT u.Id, u.FirstName, u.Surname, u.email, u.isEmailVerified, u.isEducator,
-  u.isAdministrator, u.avatarUrl
+  u.isAdministrator, u.avatarUrl,
+  p.UserId, p.ProviderId, p.ProviderKey, p.Confirmed, p.Email, p.FirstName, p.LastName, p.FullName,
+  p.PasswordInfo, p.OAuth1Info, p.OAuth2Info, p.AvatarUrl
 
   FROM users AS u
 

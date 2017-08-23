@@ -61,7 +61,7 @@ object User {
       r.nextBoolean,
       r.nextBoolean,
       r.nextBoolean,
-      Some(r.nextString),
+      r.nextString match { case null => None; case str => Some(str) },
       Nil
     )
   )
@@ -75,7 +75,7 @@ object User {
       r.nextBoolean,
       r.nextBoolean,
       r.nextBoolean,
-      Some(r.nextString),
+      r.nextString match { case null => None; case str => Some(str) },
       Nil
     ))
   )
