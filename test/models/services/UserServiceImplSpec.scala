@@ -16,12 +16,12 @@
 
 package models.services
 
+import com.mohiva.play.silhouette.api.LoginInfo
 import libs.{ AppFactory, TestingDbQueries }
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ BeforeAndAfterAll, AsyncFunSpec, Matchers }
-import org.mockito.mock
+import models.Profile
+import org.scalatest.{ AsyncFunSpec, BeforeAndAfterAll, Matchers }
 
-class UserServiceImplSpec extends AsyncFunSpec with Matchers with MockitoSugar with BeforeAndAfterAll
+class UserServiceImplSpec extends AsyncFunSpec with Matchers with BeforeAndAfterAll
   with AppFactory {
 
   val service: UserServiceImpl = fakeApplication().injector.instanceOf[UserServiceImpl]
@@ -29,7 +29,7 @@ class UserServiceImplSpec extends AsyncFunSpec with Matchers with MockitoSugar w
 
   val educatorId = 999997
   val studentId = 999998
-  val otherStudentId = 999999
+  var otherStudentId = 999999
 
   override def beforeAll() = {
     database.insertStudyContent(educatorId, studentId, otherStudentId)
@@ -61,6 +61,125 @@ class UserServiceImplSpec extends AsyncFunSpec with Matchers with MockitoSugar w
           retrieved should be(inserted)
         }
       } yield assertion
+    }
+  }
+
+  describe("save(user: User)") {
+    it("should save a user if none exists") {
+      for {
+        user <- database.getUser(otherStudentId)
+        _ <- database.deleteUser(otherStudentId)
+        saved <- service.save(user.get)
+        assertion = {
+          if (saved.isDefined) {
+            otherStudentId = saved.get.id.get
+          }
+          saved should be(Some(user.get.copy(id = saved.get.id, profiles = saved.get.profiles.map(p => p.copy(userId = saved.get.id)))))
+        }
+      } yield assertion
+    }
+
+    it("should update a user if one exists") {
+      for {
+        user <- database.getUser(otherStudentId)
+        _ <- service.save(user.get.copy(firstName = "Badger"))
+        altered <- database.getUser(otherStudentId)
+        assertion = {
+          altered should be(Some(user.get.copy(firstName = "Badger")))
+        }
+      } yield assertion
+    }
+
+  }
+
+  describe("save(profile: Profile)") {
+    it("should save a user if none exists") {
+      for {
+        user <- database.getUser(otherStudentId)
+        _ <- database.deleteUser(otherStudentId)
+        saved <- service.save(user.get.profiles.head)
+        _ <- database.deleteUser(saved.get.id.get)
+        assertion = {
+          if (saved.isDefined) {
+            otherStudentId = saved.get.id.get
+          }
+          saved.isDefined should be(true)
+          user.get.profiles.head.firstName should be(user.get.profiles.head.firstName)
+        }
+      } yield assertion
+    }
+
+    it("should update a profile if one exists") {
+      for {
+        user <- database.getUser(studentId)
+        _ <- service.save(user.get.profiles.head.copy(firstName = Some("Bloom")))
+        altered <- database.getUser(studentId)
+        assertion = {
+          altered.isDefined should be(true)
+          altered.get.firstName should be("Bloom")
+          altered.get.profiles should have size 1
+          altered.get.profiles.head.firstName should be(Some("Bloom"))
+        }
+      } yield assertion
+    }
+  }
+
+  describe("createUserAndProfile(profile: Profile)") {
+    it("should create a user from the supplied profile") {
+      val profile = Profile(userId = None, firstName = Some("Samwise"), lastName = Some("Gamgee"),
+        loginInfo = LoginInfo("credentials", "me@newfake1112"), email = Some("me@newfake1112"))
+
+      for {
+        created <- service.createUserAndProfile(profile)
+        _ <- database.deleteUser(created.get.id.get)
+        assertion = {
+          created.isDefined should be(true)
+          created.get.firstName should be("Samwise")
+          created.get.surName should be("Gamgee")
+          created.get.email should be("me@newfake1112")
+          created.get.profiles.head.loginInfo should be(LoginInfo("credentials", "me@newfake1112"))
+        }
+      } yield assertion
+    }
+  }
+
+  describe("getFirstName(firstName: Option[String], fullName: Option[String])") {
+    it("should obtain the firstname from the fullname if no firstName is defined") {
+      val firstname = None
+      val fullname = Some("Great Name")
+      service.getFirstName(firstname, fullname) should be("Great")
+    }
+
+    it("should obtain the firstname from the firstname if defined") {
+      val firstname = Some("Wall-e")
+      val fullname = Some("Great Name")
+      service.getFirstName(firstname, fullname) should be("Wall-e")
+    }
+
+    it("should return empty string if defined neither input defined") {
+      val firstname = None
+      val fullname = None
+      service.getFirstName(firstname, fullname) should be("")
+    }
+  }
+
+  describe("getSurName(surName: Option[String], fullName: Option[String])") {
+    it("should obtain the surname from the fullname if surname undefined") {
+      val surname = None
+      val fullname = Some("Great Name")
+      service.getSurName(surname, fullname) should be("Name")
+    }
+
+    it("should obtain the surname from the surname if defined") {
+      val surname = Some("Naples")
+      val fullname = Some("Great Name")
+      service.getSurName(surname, fullname) should be("Naples")
+    }
+
+    it("should return empty string if defined neither input defined") {
+      val surname = None
+      val fullname = None
+      service.getSurName(surname, fullname) should be("")
     }
   }
 

@@ -19,8 +19,11 @@ package models.services
 import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
+import com.mohiva.play.silhouette.api.util.PasswordInfo
+import com.mohiva.play.silhouette.impl.providers.{ OAuth1Info, OAuth2Info }
 import models.dao.UserDao
 import models.{ Profile, User }
+import slick.profile
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -78,8 +81,10 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
   override def save(profile: Profile): Future[Option[User]] = {
     userDao.find(profile.loginInfo).flatMap {
       // user and profile exist, update the profile
-      case Some(user) => userDao.update(profile.copy(userId = user.id))
-      //no profile exists. Find or Save the user and then save the linked profile.
+      case Some(user) => {
+        userDao.update(createUpdatedUserFromProfile(user, profile))
+      }
+      //no profile exists. Find and update or Save the user and then save the linked profile.
       case None => {
         if (profile.userId.isEmpty) {
           //write the user
@@ -95,6 +100,41 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
         }
       }
     }
+  }
+
+  private def createUpdatedUserFromProfile(user: User, profile: Profile): User = {
+
+    val validProfile: Profile = convertEmptyProfileValuesToNone(profile)
+
+    val firstName = if (user.firstName == "" && validProfile.firstName.isDefined) { validProfile.firstName.get }
+    else { user.firstName }
+
+    val surName = if (user.surName == "" && validProfile.lastName.isDefined) { validProfile.lastName.get }
+    else { user.surName }
+
+    val profiles: List[Profile] = user.profiles.map(p => if (p.loginInfo == validProfile.loginInfo)
+      validProfile else p)
+
+    val avatarUrl = if (user.avatarUrl.isEmpty && validProfile.avatarUrl.isDefined) { validProfile.avatarUrl }
+    else { user.avatarUrl }
+
+    user.copy(firstName = firstName, surName = surName, profiles = profiles, avatarUrl = avatarUrl)
+  }
+
+  private def convertEmptyProfileValuesToNone(profile: Profile): Profile = {
+    val email = if (profile.email.isDefined && profile.email.get == "") { None }
+    else { profile.email }
+    val firstName = if (profile.firstName.isDefined && profile.firstName.get == "") { None }
+    else { profile.firstName }
+    val lastName = if (profile.lastName.isDefined && profile.lastName.get == "") { None }
+    else { profile.lastName }
+    val fullName = if (profile.fullName.isDefined && profile.fullName.get == "") { None }
+    else { profile.fullName }
+    val avatarUrl = if (profile.avatarUrl.isDefined && profile.avatarUrl.get == "") { None }
+    else { profile.avatarUrl }
+
+    profile.copy(email = email, firstName = firstName, lastName = lastName, fullName = fullName,
+      avatarUrl = avatarUrl)
   }
 
   def createUserAndProfile(profile: Profile): Future[Option[User]] = {
@@ -119,11 +159,9 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
 
   def getSurName(surName: Option[String], fullName: Option[String]): String = surName match {
     case Some(value) => value
-    case None => {
-      fullName match {
-        case None => ""
-        case Some(value) => value.split(" ").reverse.head
-      }
+    case None => fullName match {
+      case None => ""
+      case Some(value) => value.split(" ").reverse.head
     }
   }
 }

@@ -53,6 +53,7 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO users VALUES($studentId, 'Test', 'User', 't@usey', 1, 0, 0, NULL)",
       sqlu"INSERT INTO profiles VALUES($studentId, 'credentials', 't@usey', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)",
       sqlu"INSERT INTO users VALUES($otherStudentId, 'Test', 'User2', 't@usey2', 1, 0, 0, NULL)",
+      sqlu"INSERT INTO profiles VALUES($otherStudentId, 'credentials', 't@usey2', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)",
       sqlu"INSERT INTO cohorts VALUES($cohortId, $teacherId, 'Test Cohort', NULL)",
       sqlu"INSERT INTO cohort_members VALUES($cohortId, $studentId)",
       sqlu"INSERT INTO content_folders VALUES($cohortFolderId, $teacherId, 'Folder Name', NULL)",
@@ -100,6 +101,10 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
 
   def getDisabled(itemId: Int, userId: Int): Future[Option[ContentDisabledDto]] = {
     db.run(getDisabledQuery(itemId, userId).headOption)
+  }
+
+  def deleteUser(userId: Int): Future[Int] = {
+    db.run(sqlu"DELETE FROM users WHERE id = $userId")
   }
 
   def getUser(userId: Int): Future[Option[User]] = {

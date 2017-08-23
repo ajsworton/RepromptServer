@@ -46,10 +46,10 @@ object Profile {
       Some(r.nextInt),
       LoginInfo(r.nextString, r.nextString),
       r.nextBoolean,
-      r.nextString match {case null => None; case str => Some(str)},
-      r.nextString match {case null => None; case str => Some(str)},
-      r.nextString match {case null => None; case str => Some(str)},
-      r.nextString match {case null => None; case str => Some(str)},
+      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+      r.nextString match {case null => None; case "" => None; case str => Some(str)},
     )
   )
 
@@ -58,10 +58,10 @@ object Profile {
       Some(r.nextInt),
       LoginInfo(r.nextString, r.nextString),
       r.nextBoolean,
-      r.nextString match {case null => None; case str => Some(str)},
-      r.nextString match {case null => None; case str => Some(str)},
-      r.nextString match {case null => None; case str => Some(str)},
-      r.nextString match {case null => None; case str => Some(str)},
+      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+      r.nextString match {case null => None; case "" => None; case str => Some(str)},
     ))
   )
 
