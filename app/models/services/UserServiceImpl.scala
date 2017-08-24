@@ -106,10 +106,10 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
 
     val validProfile: Profile = convertEmptyProfileValuesToNone(profile)
 
-    val firstName = if (user.firstName == "" && validProfile.firstName.isDefined) { validProfile.firstName.get }
+    val firstName = if (validProfile.firstName.isDefined) { validProfile.firstName.get }
     else { user.firstName }
 
-    val surName = if (user.surName == "" && validProfile.lastName.isDefined) { validProfile.lastName.get }
+    val surName = if (validProfile.lastName.isDefined) { validProfile.lastName.get }
     else { user.surName }
 
     val profiles: List[Profile] = user.profiles.map(p => if (p.loginInfo == validProfile.loginInfo)
