@@ -25,7 +25,18 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   with MockitoSugar with AppFactory {
 
   val cohortDao: CohortDaoSlick = fakeApplication().injector.instanceOf[CohortDaoSlick]
-  val testData = new CohortTestData()
+  val testData: CohortTestData = fakeApplication().injector.instanceOf[CohortTestData]
+
+  val teacherId = 88888
+  val studentId = 88889
+
+  before {
+    testData.insertCohortContent(teacherId, studentId)
+  }
+
+  after {
+    testData.clearCohortContent(teacherId, studentId)
+  }
 
   describe("CohortDaoSlick") {
 
@@ -72,19 +83,35 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       }
     }
 
-    /*
+  }
 
-        /**
-          * Delete a cohort
-          * @param cohortId the cohort id to delete
-          * @return a future number of affected rows
-          */
-        def delete(cohortId: Int): Future[Int]
-        it("should correctly find an existing user by id") {
+  describe("attach(cohortId: Int, userId: Int)") {
+    it("should correctly attach a user to a cohort") {
+      for {
+        _ <- cohortDao.attach(teacherId, studentId)
+        check <- testData.getCohortMember(teacherId, studentId)
+        assertion = {
+          check.isDefined should be(true)
+          check.get.cohortId should be(Some(teacherId))
+          check.get.userId should be(Some(studentId))
+        }
+      } yield assertion
+    }
+  }
 
-          }
-           */
-
+  describe("detach(cohortId: Int, userId: Int)") {
+    it("should correctly detach a user from a cohort") {
+      for {
+        _ <- cohortDao.attach(teacherId, studentId)
+        written <- testData.getCohortMember(teacherId, studentId)
+        _ <- cohortDao.detach(teacherId, studentId)
+        check <- testData.getCohortMember(teacherId, studentId)
+        assertion = {
+          written.isDefined should be(true)
+          check.isDefined should be(false)
+        }
+      } yield assertion
+    }
   }
 
 }

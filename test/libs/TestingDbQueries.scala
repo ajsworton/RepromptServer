@@ -18,7 +18,6 @@ package libs
 
 import javax.inject.Inject
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo.Id
 import models.{Profile, User}
 import models.dto.ContentDisabledDto
 import play.api.db.slick.HasDatabaseConfigProvider

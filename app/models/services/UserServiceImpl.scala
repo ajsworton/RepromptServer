@@ -19,11 +19,8 @@ package models.services
 import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import com.mohiva.play.silhouette.api.util.PasswordInfo
-import com.mohiva.play.silhouette.impl.providers.{ OAuth1Info, OAuth2Info }
 import models.dao.UserDao
 import models.{ Profile, User }
-import slick.profile
 
 import scala.concurrent.{ ExecutionContext, Future }
 

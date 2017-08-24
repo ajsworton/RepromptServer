@@ -21,7 +21,7 @@ import javax.inject.Inject
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
-import models.Profile
+import models.{ Profile, User }
 import models.services.UserService
 
 import scala.concurrent.{ ExecutionContext, Future }
@@ -39,13 +39,7 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: 
   override def find(loginInfo: LoginInfo): Future[Option[PasswordInfo]] = {
     userService.retrieve(loginInfo).flatMap {
       case None => Future(None)
-      case Some(user) => {
-        if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
-          Future(user.profiles.find(p => p.loginInfo == loginInfo).get.passwordInfo)
-        } else {
-          Future(None)
-        }
-      }
+      case Some(user) => Future(user.profiles.find(p => p.loginInfo == loginInfo).get.passwordInfo)
     }
   }
 
@@ -58,34 +52,56 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: 
   override def add(loginInfo: LoginInfo, authInfo: PasswordInfo): Future[PasswordInfo] =
     userService.retrieve(loginInfo).flatMap {
       case None => Future(emptyPassInfo)
-      case Some(user) => {
-        if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
-          val profile = user.profiles.find(p => p.loginInfo == loginInfo)
-          if (profile.isDefined) {
-            // update profile data, write user back to store.
-            val updatedProfiles = user.profiles.map(p => if (p != profile.get) { p }
-            else { p.copy(passwordInfo = Some(authInfo)) })
-            val updatedUser = user.copy(profiles = updatedProfiles)
-            //persist user changes to backing store
-            userDao.update(updatedUser).flatMap {
-              case None => Future(emptyPassInfo)
-              case Some(u) => Future(u.profileFor(loginInfo).get.passwordInfo.get)
-            }
-          } else {
-            Future(emptyPassInfo)
-          }
-        } else {
-          Future(emptyPassInfo)
-        }
-      }
+      case Some(user) => checkAndUpdateUserProfileData(loginInfo, authInfo, user)
     }
 
-  def getMatchingProfile(profiles: List[Profile], predicate: Profile => Boolean): Option[Profile] = {
-    profiles.find(predicate)
+  /**
+   * Check that the profile exists and has been returned and persist if defined
+   * @param loginInfo the supplied loginInfo
+   * @param authInfo the supplied authInfo
+   * @param user the retrieved user form the loginInfo
+   * @return
+   */
+  private def checkAndUpdateUserProfileData(loginInfo: LoginInfo, authInfo: PasswordInfo, user: User) = {
+    user.profileFor(loginInfo) match {
+      case None => Future(emptyPassInfo)
+      case Some(profile) =>
+        val updatedUser = getUpdatedUserFromUpdatedProfile(profile, authInfo, user)
+        persistUpdatedUser(updatedUser, loginInfo)
+    }
+  }
+
+  /**
+   * Write updated user to backing store and return the new passwordInfo
+   * @param updatedUser the updated user
+   * @param loginInfo the loginInfo for for the user
+   * @return a future passwordInfo
+   */
+  private def persistUpdatedUser(updatedUser: User, loginInfo: LoginInfo): Future[PasswordInfo] = {
+    userDao.update(updatedUser).flatMap {
+      case None => Future(emptyPassInfo)
+      case Some(user) => Future(user.profileFor(loginInfo).get.passwordInfo.get)
+    }
+  }
+
+  /**
+   * Create a user for update from supplied profile data and updated passwordInfo
+   * @param newProfile the updated profile
+   * @param authInfo the new passwordInfo
+   * @param user the retrieved user
+   * @return
+   */
+  private def getUpdatedUserFromUpdatedProfile(newProfile: Profile, authInfo: PasswordInfo, user: User) = {
+    val updatedProfiles: List[Profile] = user.profiles map {
+      case profile: Profile if profile == newProfile => profile.copy(passwordInfo = Some(authInfo))
+      case profile: Profile => profile
+    }
+    user.copy(profiles = updatedProfiles)
   }
 
   /**
    * Updates the password info for the given login info.
+   *
    * @param loginInfo the supplied loginInfo
    * @param authInfo the supplied authInfo
    * @return a future option PasswordInfo
@@ -113,24 +129,9 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: 
    * @return a future option PasswordInfo
    */
   override def remove(loginInfo: LoginInfo): Future[Unit] = {
-
-    for {
-      user <- userService.retrieve(loginInfo)
-
-    } yield Future(Unit)
-
-    //    userService.retrieve(loginInfo).flatMap {
-    //      case None => Future(Unit)
-    //      case Some(user) => {
-    //        if (user.profiles.count(p => p.loginInfo == loginInfo) > 0) {
-    //          val profile: Option[Profile] = user.profiles.find(p => p.loginInfo == loginInfo)
-    //          if (profile.isDefined) {
-    //            val updatedProfile: Profile = profile.get.copy(passwordInfo = None)
-    //            userService.save(updatedProfile)
-    //          }
-    //        }
-    //        Future(Unit)
-    //      }
-    //    }
+    userService.retrieve(loginInfo) flatMap {
+      case Some(usr) => userService.save(usr.profileFor(loginInfo).get)
+    }
+    Future()
   }
 }

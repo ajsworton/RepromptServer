@@ -31,12 +31,8 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
   val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
   val passwordHasher: PasswordHasher = fakeApplication().injector.instanceOf[PasswordHasher]
   val testData = new UserProfileTestData(userDao)
-  val newPasswordInfo: PasswordInfo = passwordHasher.hash("password12345") // <- amazingly secure password!
-
-  //  override def beforeAll {
-  //    val dbApi = fakeApplication().injector.instanceOf[DBApi]
-  //    Evolutions.applyEvolutions(dbApi.database("default"))
-  //  }
+  val newPasswordInfo: PasswordInfo = passwordHasher.hash("12345") // <- That's the exact same
+  // code I have on my luggage!
 
   before {
     testData.before
@@ -59,7 +55,7 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
 
     it("should add/update/save PasswordInfo to backing store") {
       //add
-      val user1 = testData.getUserSingleProfile
+      val user1 = testData.getUserDoubleProfile
       for {
         user <- userDao.save(user1)
         passInfo <- authInfoDao.add(user1.profiles.head.loginInfo, newPasswordInfo)
@@ -93,22 +89,21 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
       } yield valid
     }
 
-    //disabled for travis build
-    //    it("should remove PasswordInfo from supplied loginInfo") {
-    //      //remove
-    //      val user = userDao.save(testData.user1Linked)
-    //      val add = authInfoDao.add(testData.profile1.loginInfo, newPasswordInfo)
-    //
-    //      for {
-    //        user <- user
-    //        add <- add
-    //        remove <- authInfoDao.remove(testData.profile1.loginInfo)
-    //        returned <- authInfoDao.find(testData.profile1.loginInfo)
-    //        valid <- returned should be(None)
-    //        _ <- userDao.delete(user.get.id.get)
-    //        _ <- userDao.delete(user.get.id.get)
-    //      } yield valid
-    //    }
+    it("should remove PasswordInfo from supplied loginInfo") {
+      //remove
+      val user = userDao.save(testData.user1Linked)
+      val add = authInfoDao.add(testData.profile1.loginInfo, newPasswordInfo)
+
+      for {
+        user <- user
+        add <- add
+        remove <- authInfoDao.remove(testData.profile1.loginInfo)
+        returned <- authInfoDao.find(testData.profile1.loginInfo)
+        valid <- returned should be(None)
+        _ <- userDao.delete(user.get.id.get)
+        _ <- userDao.delete(user.get.id.get)
+      } yield valid
+    }
 
   }
 }

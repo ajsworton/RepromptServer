@@ -21,12 +21,13 @@ import models.dto.CohortDto.CohortsTable
 import play.api.data.Form
 import play.api.data.Forms.{ mapping, number, optional }
 import play.api.libs.json.Json
+import slick.jdbc.GetResult
 import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 import slick.model.ForeignKeyAction
 
-case class CohortMemberDto(CohortId: Option[Int], UserId: Option[Int])
+case class CohortMemberDto(cohortId: Option[Int], userId: Option[Int])
 
 object CohortMemberDto {
   class CohortsMembersTable(tag: Tag) extends Table[CohortMemberDto](tag, "cohort_members") {
@@ -49,6 +50,17 @@ object CohortMemberDto {
       onDelete = ForeignKeyAction.Cascade)
 
   }
+
+  implicit val getResult = GetResult(r =>
+    CohortMemberDto(Some(r.nextInt), Some(r.nextInt))
+  )
+
+  implicit val getSomeResult = GetResult(r =>
+    (r.nextInt, r.nextInt) match {
+      case (0, 0) => None
+      case (cohortId: Int, userId: Int) => CohortMemberDto(Some(cohortId), Some(userId))
+    }
+  )
 
   def form: Form[CohortMemberDto] = Form(
     mapping(

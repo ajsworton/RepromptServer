@@ -16,9 +16,21 @@
 
 package libs
 
-import models.dto.CohortDto
+import javax.inject.Inject
 
-class CohortTestData {
+import models.dto.{CohortDto, CohortMemberDto}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
+import scala.concurrent.duration._
+import slick.dbio.DBIO
+import slick.jdbc.JdbcProfile
+import slick.jdbc.MySQLProfile.api._
+
+
+import scala.concurrent.{Await, ExecutionContext, Future}
+
+class CohortTestData @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit
+                                                                                        executionContext: ExecutionContext)
+  extends HasDatabaseConfigProvider[JdbcProfile] {
 
   val ownerId = 1
 
@@ -30,12 +42,41 @@ class CohortTestData {
 
   val cohortsNoIds = List(cohortNoId1, cohortNoId2, cohortNoId3, cohortNoId4, cohortNoId5)
 
-  //  val cohortWithId1 = new CohortDto(Some(1), 1, "cohortNoId1")
-  //  val cohortWithId2 = new CohortDto(Some(1), 1, "cohortNoId2")
-  //  val cohortWithId3 = new CohortDto(Some(1), 1, "cohortNoId3")
-  //  val cohortWithId4 = new CohortDto(Some(1), 1, "cohortNoId4")
-  //  val cohortWithId5 = new CohortDto(Some(1), 1, "cohortNoId5")
-  //
-  //  val cohortsWithIds = List(cohortWithId1, cohortWithId2, cohortWithId3, cohortWithId4,
-  //    cohortWithId5)
+  private def insertCohortDataQueries(teacherId: Int, studentId: Int): DBIO[Unit] = {
+    val cohortId: Int = teacherId
+
+    DBIO.seq(
+      // Insert some suppliers
+      sqlu"INSERT INTO users VALUES($teacherId, 'Testy', 'Teachy', 't@teachyer', 1, 1, 0, NULL)",
+      sqlu"INSERT INTO users VALUES($studentId, 'Testy', 'Usery', 't@useyer', 1, 0, 0, NULL)",
+      sqlu"INSERT INTO cohorts VALUES($cohortId, $teacherId, 'Test Cohort 1', NULL)",
+    )
+  }
+
+  private def removeCohortDataQueries(teacherId: Int, studentId: Int):
+  DBIO[Unit] = DBIO.seq(
+    sqlu"DELETE FROM users WHERE id = $teacherId",
+    sqlu"DELETE FROM users WHERE id = $studentId",
+  )
+
+  def insertCohortContent(teacherId: Int, studentId: Int) = {
+    val response = db.run(insertCohortDataQueries(teacherId, studentId))
+    Await.result(response, 10 seconds)
+  }
+
+  def clearCohortContent(teacherId: Int, studentId: Int) = {
+    val response = db.run(removeCohortDataQueries(teacherId, studentId))
+    Await.result(response, 10 seconds)
+  }
+
+  private def getCohortMemberQuery(cohortId: Int, userId: Int) = sql"""
+      SELECT cm.CohortId, cm.UserId
+      FROM cohort_members AS cm
+      WHERE cm.CohortId = $cohortId
+      AND cm.userId = $userId
+    """.as[CohortMemberDto]
+
+  def getCohortMember(cohortId: Int, userId: Int): Future[Option[CohortMemberDto]] = {
+    db.run(getCohortMemberQuery(cohortId, userId).headOption)
+  }
 }

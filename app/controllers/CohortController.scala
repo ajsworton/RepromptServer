@@ -102,8 +102,8 @@ class CohortController @Inject() (
       CohortMemberDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
-          if (formData.CohortId.isDefined && formData.UserId.isDefined) {
-            saveCohortMember(formData.CohortId.get, formData.UserId.get)
+          if (formData.cohortId.isDefined && formData.userId.isDefined) {
+            saveCohortMember(formData.cohortId.get, formData.userId.get)
           } else {
             Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
           }
