@@ -81,11 +81,10 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
   override def save(profile: Profile): Future[Option[User]] = {
     userDao.find(profile.loginInfo).flatMap {
       // user and profile exist, update the profile
-      case Some(user) => {
+      case Some(user) =>
         userDao.update(createUpdatedUserFromProfile(user, profile))
-      }
       //no profile exists. Find and update or Save the user and then save the linked profile.
-      case None => {
+      case None =>
         if (profile.userId.isEmpty) {
           //write the user
           createUserAndProfile(profile)
@@ -98,7 +97,6 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
             case None => createUserAndProfile(profile)
           }
         }
-      }
     }
   }
 
