@@ -38,6 +38,23 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
     database.clearStudyContent(teacherId, studentId, unassignedStudentId)
   }
 
+  describe("getContentItems(userId: Int)") {
+    it("should retrieve content items for a supplied userId based on cohort membership") {
+      for {
+        items <- studyDao.getContentItems(studentId)
+        assertions = {
+          items.size should be > 0
+        }
+      } yield assertions
+    }
+  }
+
+  describe("saveScoreData(scoreData: ScoreDto)") {
+    it("should ") {
+
+    }
+  }
+
   describe("getContentAssignedStatusByUserId") {
     it("should return all content items with status for both enabled and disabled content") {
       studyDao.getContentAssignedStatusByUserId(studentId) flatMap {
