@@ -19,7 +19,7 @@ package libs
 import javax.inject.Inject
 
 import models.{Profile, User}
-import models.dto.ContentDisabledDto
+import models.dto.{ContentDisabledDto, ContentItemDto}
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.dbio.DBIO
 import play.api.db.slick.DatabaseConfigProvider
@@ -32,8 +32,10 @@ import slick.jdbc.MySQLProfile.api._
 class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
   extends HasDatabaseConfigProvider[JdbcProfile] {
 
+
   private def insertStudyContentQueries(teacherId: Int, studentId: Int, otherStudentId: Int): DBIO[Unit] = {
     val cohortId:Int = studentId
+    val cohortId2:Int = teacherId
     val cohortFolderId:Int = studentId
     val packageId:Int = teacherId
     val package2Id:Int = studentId
@@ -54,6 +56,7 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO users VALUES($otherStudentId, 'Test', 'User2', 't@usey2', 1, 0, 0, NULL)",
       sqlu"INSERT INTO profiles VALUES($otherStudentId, 'credentials', 't@usey2', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)",
       sqlu"INSERT INTO cohorts VALUES($cohortId, $teacherId, 'Test Cohort', NULL)",
+      sqlu"INSERT INTO cohorts VALUES($cohortId2, $teacherId, 'Test Cohort2', NULL)",
       sqlu"INSERT INTO cohort_members VALUES($cohortId, $studentId)",
       sqlu"INSERT INTO content_folders VALUES($cohortFolderId, $teacherId, 'Folder Name', NULL)",
       sqlu"INSERT INTO content_packages VALUES($packageId, 'Package Name', $cohortFolderId, $teacherId)",
@@ -67,9 +70,9 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO content_assigned VALUES($assigned1Id, 'Test Exam', '2017-10-01', 1, $teacherId)",
       sqlu"INSERT INTO content_assigned VALUES($assigned2Id, 'Test Exam 2', '2017-10-01', 1, $teacherId)",
       sqlu"INSERT INTO content_assigned_cohorts VALUES($assigned1Id, $cohortId)",
-      sqlu"INSERT INTO content_assigned_packages VALUES($assigned1Id, $packageId)",
+      sqlu"INSERT INTO content_assigned_packages VALUES($assigned1Id, $package2Id)",
       sqlu"INSERT INTO content_assigned_cohorts VALUES($assigned2Id, $cohortId)",
-      sqlu"INSERT INTO content_assigned_packages VALUES($assigned2Id, $packageId)",
+      sqlu"INSERT INTO content_assigned_packages VALUES($assigned2Id, $package2Id)",
       sqlu"INSERT INTO content_disabled VALUES($item2Id, $studentId)",
     )
   }
@@ -78,7 +81,7 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       SELECT cd.ContentAssignedId, cd.UserId
       FROM content_disabled as cd
       WHERE cd.ContentAssignedId = $itemId
-      AND cd.userId = $userId
+      AND cd.UserId = $userId
     """.as[ContentDisabledDto]
 
   private def removeStudyContentQueries(teacherId: Int, studentId: Int, otherStudentId: Int):
@@ -128,5 +131,29 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
 
   LIMIT 1
     """.as[(User, Profile)]
+
+  private def getAssignedCohortQuery(assignedId: Int, cohortId: Int) = sql"""
+      SELECT cac.AssignedId, cac.CohortId
+      FROM content_assigned_cohorts as cac
+      WHERE cac.AssignedId = $assignedId
+      AND cac.CohortId = $cohortId
+      LIMIT 1
+    """.as[(Int, Int)]
+
+  def getAssignedCohort(assignedId: Int, cohortId: Int): Future[Option[(Int, Int)]] = {
+    db.run(getAssignedCohortQuery(assignedId, cohortId).headOption)
+  }
+
+  private def getAssignedPackageQuery(assignedId: Int, packageId: Int) = sql"""
+      SELECT cap.AssignedId, cap.PackageId
+      FROM content_assigned_packages as cap
+      WHERE cap.AssignedId = $assignedId
+      AND cap.PackageId = $packageId
+      LIMIT 1
+    """.as[(Int, Int)]
+
+  def getAssignedPackage(assignedId: Int, packageId: Int): Future[Option[(Int, Int)]] = {
+    db.run(getAssignedPackageQuery(assignedId, packageId).headOption)
+  }
 
 }

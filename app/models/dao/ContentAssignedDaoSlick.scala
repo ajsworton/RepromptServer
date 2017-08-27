@@ -15,14 +15,13 @@
 // limitations under the License.
 
 package models.dao
-import java.sql.SQLIntegrityConstraintViolationException
+
 import javax.inject.Inject
 
 import models.dto.ContentAssignedCohortDto.ContentAssignedCohortTable
 import models.dto.ContentAssignedDto.ContentAssignedTable
 import models.dto.ContentAssignedPackageDto.ContentAssignedPackageTable
-import models.dto.{ CohortDto, CohortMemberDto, ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto, ContentFolderDto, ContentPackageDto, QuestionDto }
-import models.dto.ContentFolderDto.ContentFoldersTable
+import models.dto.{ CohortDto, ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto, ContentPackageDto }
 import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
 import slick.jdbc.JdbcProfile
 import slick.jdbc.MySQLProfile.api._
@@ -146,52 +145,49 @@ class ContentAssignedDaoSlick @Inject() (protected val dbConfigProvider: Databas
     db.run(ContentAssigned.filter(_.ownerId === ownerId).delete)
   }
 
-  override def attachCohort(cohortId: Int, assignedId: Int): Future[Int] = {
+  override def attachCohort(assignedId: Int, cohortId: Int): Future[Either[String, Int]] = {
     if (cohortId < 1 || assignedId < 1) {
-      Future(0)
+      Future(Left("Invalid id"))
     } else {
-      val insert = new ContentAssignedCohortDto(Some(cohortId), Some(assignedId))
+      val insert = new ContentAssignedCohortDto(Some(assignedId), Some(cohortId))
       db.run((ContentAssignedCohort += insert).asTry) map {
-        case Failure(ex) => {
-          println(s"error : ${ex.getMessage}")
-          0
-        }
-        case Success(x) => x
+        case Failure(ex) => Left(ex.getMessage)
+        case Success(x) => Right(x)
       }
-
     }
   }
 
-  override def detachCohort(cohortId: Int, assignedId: Int): Future[Int] = {
+  override def detachCohort(assignedId: Int, cohortId: Int): Future[Either[String, Int]] = {
     if (cohortId < 1 || assignedId < 1) {
-      Future(0)
+      Future(Left("Invalid id"))
     } else {
       db.run(ContentAssignedCohort.filter(cac => cac.cohortId === cohortId && cac.assignedId === assignedId)
-        .delete)
-    }
-  }
-
-  override def attachPackage(packageId: Int, assignedId: Int): Future[Int] = {
-    if (packageId < 1 || assignedId < 1) {
-      Future(0)
-    } else {
-      val insert = new ContentAssignedPackageDto(Some(packageId), Some(assignedId))
-      db.run((ContentAssignedPackage += insert).asTry) map {
-        case Failure(ex) => {
-          println(s"error : ${ex.getMessage}")
-          0
-        }
-        case Success(x) => x
+        .delete) flatMap {
+        r => Future(Right(r))
       }
     }
   }
 
-  override def detachPackage(packageId: Int, assignedId: Int): Future[Int] = {
+  override def attachPackage(assignedId: Int, packageId: Int): Future[Either[String, Int]] = {
     if (packageId < 1 || assignedId < 1) {
-      Future(0)
+      Future(Left("Invalid id"))
     } else {
-      db.run(ContentAssignedCohort.filter(cac => cac.cohortId === packageId && cac.assignedId === assignedId)
-        .delete)
+      val insert = new ContentAssignedPackageDto(Some(assignedId), Some(packageId))
+      db.run((ContentAssignedPackage += insert).asTry) map {
+        case Failure(ex) => Left(ex.getMessage)
+        case Success(x) => Right(x)
+      }
+    }
+  }
+
+  override def detachPackage(assignedId: Int, packageId: Int): Future[Either[String, Int]] = {
+    if (packageId < 1 || assignedId < 1) {
+      Future(Left("Invalid id"))
+    } else {
+      db.run(ContentAssignedPackage.filter(cap => cap.packageId === packageId && cap.assignedId === assignedId)
+        .delete) flatMap {
+        r => Future(Right(r))
+      }
     }
   }
 }

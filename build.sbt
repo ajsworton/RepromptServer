@@ -1,3 +1,5 @@
+import java.util.TimeZone
+
 import com.typesafe.sbt.SbtScalariform._
 
 import scalariform.formatter.preferences.{DanglingCloseParenthesis, DoubleIndentClassDeclaration, FormatXml, Preserve}

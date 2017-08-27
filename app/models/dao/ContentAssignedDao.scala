@@ -65,33 +65,33 @@ trait ContentAssignedDao extends Dao[ContentAssignedDto] {
 
   /**
    * Attach a cohort to assigned content
+   * @param assignedId
    * @param cohortId
-   * @param contentId
    * @return
    */
-  def attachCohort(cohortId: Int, contentId: Int): Future[Int]
+  def attachCohort(assignedId: Int, cohortId: Int): Future[Either[String, Int]]
 
   /**
    * Detach a cohort from assigned content
+   * @param assignedId
    * @param cohortId
-   * @param contentId
    * @return
    */
-  def detachCohort(cohortId: Int, contentId: Int): Future[Int]
+  def detachCohort(assignedId: Int, cohortId: Int): Future[Either[String, Int]]
 
   /**
    * Attach a package to assigned content
-   * @param contentId
+   * @param assignedId
    * @param packageId
    * @return
    */
-  def attachPackage(packageId: Int, contentId: Int): Future[Int]
+  def attachPackage(assignedId: Int, packageId: Int): Future[Either[String, Int]]
 
   /**
    * Detach a package from assigned content
+   * @param assignedId
    * @param packageId
-   * @param contentId
    * @return
    */
-  def detachPackage(packageId: Int, contentId: Int): Future[Int]
+  def detachPackage(assignedId: Int, packageId: Int): Future[Either[String, Int]]
 }

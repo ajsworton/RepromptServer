@@ -56,7 +56,7 @@ object ContentAssignedCohortDto {
     mapping(
       "assignedId" -> optional(number),
       "cohortId" -> optional(number)
-    )(ContentAssignedCohortDto.apply _)(ContentAssignedCohortDto.unapply)
+    )(ContentAssignedCohortDto.apply)(ContentAssignedCohortDto.unapply)
   )
   implicit val serializer = Json.format[ContentAssignedCohortDto]
 }

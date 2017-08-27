@@ -76,22 +76,26 @@ class ContentItemDaoSlick @Inject() (protected val dbConfigProvider: DatabaseCon
 
     run.flatMap(
       r => {
-        val groupedByQuestion = r.groupBy(_._2)
-        val item = r.head._1
-        val questions = for {
-          questions <- groupedByQuestion
-          questionData = questions._2
-          answers = questionData.map(p => p._3.get).toList.filter(m => m.id.get > 0)
-          questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
-        } yield questionsProc
+        if (r.nonEmpty) {
+          val groupedByQuestion = r.groupBy(_._2)
+          val item = r.head._1
+          val questions = for {
+            questions <- groupedByQuestion
+            questionData = questions._2
+            answers = questionData.map(p => p._3.get).toList.filter(m => m.id.get > 0)
+            questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
+          } yield questionsProc
 
-        val culled: Iterable[QuestionDto] = questions.filter(q => q.isDefined && q.get.id.get > 0)
-          .map(q => q.get)
+          val culled: Iterable[QuestionDto] = questions.filter(q => q.isDefined && q.get.id.get > 0)
+            .map(q => q.get)
 
-        if (culled == Nil) {
-          Future(Some(item.copy(questions = None)))
+          if (culled == Nil) {
+            Future(Some(item.copy(questions = None)))
+          } else {
+            Future(Some(item.copy(questions = Some(culled.toList))))
+          }
         } else {
-          Future(Some(item.copy(questions = Some(culled.toList))))
+          Future(None)
         }
 
       }

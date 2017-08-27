@@ -41,19 +41,14 @@ case class ContentAssignedDto(
 object ContentAssignedDto {
 
   implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
-    l => Date.valueOf(l),
+    l => Date.valueOf(l.toString),
     d => d.toLocalDate
-  )
-
-  implicit val localDateTimeToDateTime = MappedColumnType.base[LocalDateTime, Timestamp](
-    l => Timestamp.valueOf(l),
-    d => d.toLocalDateTime
   )
 
   def construct(id: Option[Int], name: String, examDate: LocalDate, active: Boolean, ownerId: Option[Int]) =
     new ContentAssignedDto(id = id, name = name, examDate = examDate, active = active, ownerId = ownerId)
 
-  def deconstruct(dto: ContentAssignedDto): Some[(Option[Int], String, LocalDate, Boolean, Option[Int])] = dto match {
+  def deconstruct(dto: ContentAssignedDto) = dto match {
     case ContentAssignedDto(id: Option[Int], name: String, examDate: LocalDate, active: Boolean,
       ownerId: Option[Int], _, _, _) => Some(id, name, examDate, active, ownerId)
   }
@@ -100,7 +95,7 @@ object ContentAssignedDto {
     def pk: PrimaryKey = primaryKey("PRIMARY", id)
 
     def * : ProvenShape[ContentAssignedDto] = (id, name, examDate, active, ownerId) <>
-      ((ContentAssignedDto.construct _).tupled, ContentAssignedDto.deconstruct)
+      ((ContentAssignedDto.construct _).tupled, ContentAssignedDto.deconstruct _)
   }
 
   implicit val getCAResult = GetResult(r =>

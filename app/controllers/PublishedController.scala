@@ -87,8 +87,8 @@ class PublishedController @Inject() (
           if (formData.cohortId.isDefined && formData.cohortId.get > 0
             && formData.assignedId.isDefined && formData.assignedId.get > 0) {
             handleAttachDetachResult(publishDao.attachCohort(
-              formData.cohortId.get,
-              formData.assignedId.get))
+              formData.assignedId.get,
+              formData.cohortId.get))
           } else {
             Future(Results.BadRequest(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
           }
@@ -100,7 +100,7 @@ class PublishedController @Inject() (
     silhouette.SecuredAction(AuthEducator).async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         if (cohortId > 0 && assignedId > 0) {
-          handleAttachDetachResult(publishDao.detachCohort(cohortId, assignedId))
+          handleAttachDetachResult(publishDao.detachCohort(assignedId, cohortId))
         } else {
           Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
         }
@@ -114,8 +114,8 @@ class PublishedController @Inject() (
           if (formData.packageId.isDefined && formData.packageId.get > 0
             && formData.assignedId.isDefined && formData.assignedId.get > 0) {
             handleAttachDetachResult(publishDao.attachCohort(
-              formData.packageId.get,
-              formData.assignedId.get))
+              formData.assignedId.get,
+              formData.packageId.get))
           } else {
             Future(Results.BadRequest(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
           }
@@ -127,19 +127,17 @@ class PublishedController @Inject() (
     silhouette.SecuredAction(AuthEducator).async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         if (packageId > 0 && assignedId > 0) {
-          handleAttachDetachResult(publishDao.detachPackage(packageId, assignedId))
+          handleAttachDetachResult(publishDao.detachPackage(assignedId, packageId))
         } else {
           Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
         }
     }
 
-  private def handleAttachDetachResult(eventualInt: Future[Int]): Future[Result] = eventualInt flatMap {
-    r =>
-      {
-        if (r > 0) Future(Ok(Json.toJson(r)))
-        else Future(Results.InternalServerError(Json.toJson(r)))
-      }
-  }
+  private def handleAttachDetachResult(eventualInt: Future[Either[String, Int]]): Future[Result] =
+    eventualInt flatMap {
+      case Left(msg) => Future(Results.InternalServerError(msg))
+      case Right(number: Int) => Future(Ok(Json.toJson(number)))
+    }
 
   private def saveOrUpdateExam(assigned: ContentAssignedDto): Future[Result] = {
     assigned.id match {
@@ -186,40 +184,36 @@ class PublishedController @Inject() (
   private def attachAssignedCohorts(cohorts: Option[List[CohortDto]], assignedId: Int): Future[Boolean] = {
     cohorts match {
       case None => Future(false)
-      case Some(cohortList) => {
+      case Some(cohortList) =>
         val responses = cohortList.map(c => c.id match {
           case None => Future(false)
-          case Some(id: Int) => {
-            val attached = publishDao.attachCohort(assignedId, id)
+          case Some(cohortid: Int) =>
+            val attached = publishDao.attachCohort(assignedId, cohortid)
             attached flatMap {
               _ => Future(true)
             }
-          }
         })
         Future.sequence(responses) flatMap {
           _ => Future(true)
         }
-      }
     }
   }
 
   private def attachAssignedPackages(packages: Option[List[ContentPackageDto]], assignedId: Int): Future[Boolean] = {
     packages match {
       case None => Future(false)
-      case Some(pkgList) => {
+      case Some(pkgList) =>
         val responses = pkgList.map(c => c.id match {
           case None => Future(false)
-          case Some(id: Int) => {
-            val attached = publishDao.attachPackage(assignedId, id)
+          case Some(packageId: Int) =>
+            val attached = publishDao.attachPackage(assignedId, packageId)
             attached flatMap {
               _ => Future(true)
             }
-          }
         })
         Future.sequence(responses) flatMap {
           _ => Future(true)
         }
-      }
     }
   }
 
