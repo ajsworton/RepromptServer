@@ -95,7 +95,7 @@ object ContentAssignedDto {
     def pk: PrimaryKey = primaryKey("PRIMARY", id)
 
     def * : ProvenShape[ContentAssignedDto] = (id, name, examDate, active, ownerId) <>
-      ((ContentAssignedDto.construct _).tupled, ContentAssignedDto.deconstruct _)
+      ((ContentAssignedDto.construct _).tupled, ContentAssignedDto.deconstruct)
   }
 
   implicit val getCAResult = GetResult(r =>

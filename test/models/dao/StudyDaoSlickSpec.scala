@@ -16,17 +16,22 @@
 
 package models.dao
 
+import java.time.LocalDate
+
 import libs.{ AppFactory, TestingDbQueries }
+import models.dto.ScoreDto
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 
 class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with AppFactory {
 
-  val teacherId = 99998
-  val studentId = 99999
+  val teacherId, item1Id = 99998
+  val studentId, item2Id, package2Id = 99999
   val unassignedStudentId = 99997
 
   val studyDao: StudyDao = fakeApplication().injector.instanceOf[StudyDaoSlick]
   val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val fakeScoreData = ScoreDto(Some(studentId), item2Id, 60, Some(LocalDate.now().minusMonths(1)), package2Id, Some(LocalDate.now()))
+  val fakeScoreData2 = ScoreDto(Some(studentId), item2Id, 60, Some(LocalDate.now().minusMonths(2)), package2Id, Some(LocalDate.now()))
 
   before {
     //insert data
@@ -52,10 +57,44 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
   describe("saveScoreData(scoreData: ScoreDto)") {
     it("should save the provided score data for a content item") {
       for {
-        saved <- studyDao.
-        items <- studyDao.getContentItems(studentId)
+        saved <- studyDao.saveScoreData(fakeScoreData)
+        retrieved <- database.getScoreData(fakeScoreData)
+        _ <- database.deleteScoreData(fakeScoreData)
         assertions = {
-          items.size should be > 0
+          println(saved)
+          saved.toOption.isDefined should be(true)
+          retrieved.isDefined should be(true)
+          retrieved.get.scoreDate should be(fakeScoreData.scoreDate)
+          retrieved.get.score should be(fakeScoreData.score)
+          retrieved.get.userId should be(fakeScoreData.userId)
+          retrieved.get.streak should be(fakeScoreData.streak)
+        }
+      } yield assertions
+    }
+  }
+
+  describe("getExamDateByContentItemId(contentItemId: Int)") {
+    it("should retrieve an existing exam date from a supplied contentItemId") {
+      for {
+        retrieved <- studyDao.getExamDateByContentItemId(item2Id)
+        assertions = {
+          retrieved.isDefined should be(true)
+          retrieved.get should be(LocalDate.of(2017, 10, 1))
+        }
+      } yield assertions
+    }
+  }
+
+  describe("getHistoricalPerformanceByExam(userId: Int)") {
+    it("should retrieve all scores for a provided user") {
+      for {
+        before <- studyDao.getHistoricalPerformanceByExam(studentId)
+        _ <- studyDao.saveScoreData(fakeScoreData)
+        _ <- studyDao.saveScoreData(fakeScoreData2)
+        after <- studyDao.getHistoricalPerformanceByExam(studentId)
+        assertions = {
+          before.size should be(0)
+          after.size should be(2)
         }
       } yield assertions
     }

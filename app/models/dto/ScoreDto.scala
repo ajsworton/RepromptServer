@@ -16,15 +16,16 @@
 
 package models.dto
 
-import java.sql.{ Date, Timestamp }
+import java.sql.{ Date, Timestamp, Types }
 import java.time.{ LocalDate, LocalDateTime, ZoneId }
+import java.util.UUID
 
 import play.api.data.Form
 import play.api.data.Forms._
 import play.api.libs.json.{ Json, OFormat }
-import slick.jdbc.GetResult
+import slick.jdbc.{ GetResult, PositionedParameters, SetParameter }
 import slick.jdbc.MySQLProfile.api._
-import slick.lifted
+import slick.{ driver, lifted }
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
 case class ScoreDto(
@@ -38,32 +39,26 @@ case class ScoreDto(
 
 object ScoreDto {
 
-  //  implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
-  //    l => Date.valueOf(l),
-  //    d => d.toLocalDate
-  //  )
+  implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
+    l => Date.valueOf(l.toString),
+    d => d.toLocalDate
+  )
 
-  //  implicit val localDateTimeToDateTime = MappedColumnType.base[LocalDateTime, Timestamp](
-  //    l => Timestamp.valueOf(l),
-  //    d => d.toLocalDateTime
-  //  )
-
-  def construct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[Date], streak: Int,
-    repromptDate: Option[Date]) =
+  def construct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: LocalDate,
+    streak: Int, repromptDate: LocalDate) =
     new ScoreDto(userId = userId, contentItemId = contentItemId, score = score,
-      scoreDate = Some(scoreDate.get.toLocalDate), streak = streak, repromptDate = Some(repromptDate.get.toLocalDate))
+      scoreDate = Some(scoreDate), streak = streak, repromptDate = Some(repromptDate))
+
+  def deconstruct(dto: ScoreDto) = dto match {
+    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate],
+      streak: Int, repromptDate: Option[LocalDate]) =>
+      Some((userId, contentItemId, score, scoreDate.orNull, streak, repromptDate.orNull))
+  }
 
   def formConstruct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate],
     streak: Int, repromptDate: Option[LocalDate]) =
     new ScoreDto(userId = userId, contentItemId = contentItemId, score = score,
       scoreDate = scoreDate, streak = streak, repromptDate = repromptDate)
-
-  def deconstruct(dto: ScoreDto) = dto match {
-    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate],
-      streak: Int, repromptDate: Option[LocalDate]) => Some(userId, contentItemId, score,
-      Some(Date.valueOf(scoreDate.get.toString)),
-      streak, Some(Date.valueOf(repromptDate.get.toString)))
-  }
 
   def formDeconstruct(dto: ScoreDto): Option[(Option[Int], Int, Int, Option[LocalDate], Int, Option[LocalDate])] = dto match {
     case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate],
@@ -84,12 +79,12 @@ object ScoreDto {
 
   class ScoreTable(tag: Tag) extends Table[ScoreDto](tag, "content_scores") {
 
-    def userId: lifted.Rep[Option[Int]] = column[Int]("UserId", O.PrimaryKey)
+    def userId: lifted.Rep[Option[Int]] = column[Int]("UserId", O.PrimaryKey).?
     def contentItemId: lifted.Rep[Int] = column[Int]("ContentItemId", O.PrimaryKey)
     def score: lifted.Rep[Int] = column[Int]("Score")
-    def scoreDate: lifted.Rep[Option[Date]] = column[Date]("ScoreDate")
+    def scoreDate: lifted.Rep[LocalDate] = column[LocalDate]("ScoreDate", O.PrimaryKey)
     def streak: lifted.Rep[Int] = column[Int]("Streak")
-    def repromptDate: lifted.Rep[Option[Date]] = column[Date]("RepromptDate")
+    def repromptDate: lifted.Rep[LocalDate] = column[LocalDate]("RepromptDate")
     def pk: PrimaryKey = primaryKey("PRIMARY", (userId, contentItemId, scoreDate))
 
     def * : ProvenShape[ScoreDto] = (userId, contentItemId, score, scoreDate, streak, repromptDate) <>

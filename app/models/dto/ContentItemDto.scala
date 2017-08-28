@@ -71,9 +71,9 @@ object ContentItemDto {
 
   class ContentItemsTable(tag: Tag) extends Table[ContentItemDto](tag, "content_items") {
 
-    def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
+    def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc).?
     def packageId: lifted.Rep[Int] = column[Int]("PackageId")
-    def imageUrl: lifted.Rep[Option[String]] = column[String]("ImageUrl")
+    def imageUrl: lifted.Rep[Option[String]] = column[String]("ImageUrl").?
     def name: lifted.Rep[String] = column[String]("Name")
     def content: lifted.Rep[String] = column[String]("Content")
     def pk: PrimaryKey = primaryKey("PRIMARY", id)

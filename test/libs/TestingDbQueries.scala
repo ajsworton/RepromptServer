@@ -16,17 +16,19 @@
 
 package libs
 
+import java.sql.{Date, Types}
+import java.time.LocalDate
 import javax.inject.Inject
 
 import models.{Profile, User}
-import models.dto.{ContentDisabledDto, ContentItemDto}
+import models.dto.{ContentDisabledDto, ContentItemDto, ScoreDto}
 import play.api.db.slick.HasDatabaseConfigProvider
 import slick.dbio.DBIO
 import play.api.db.slick.DatabaseConfigProvider
 
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
-import slick.jdbc.JdbcProfile
+import slick.jdbc.{JdbcProfile, SetParameter}
 import slick.jdbc.MySQLProfile.api._
 
 class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit executionContext: ExecutionContext)
@@ -67,8 +69,8 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO content_assessment_answers VALUES($answer1Id, $question1Id, 'answer', 1, 0)",
       sqlu"INSERT INTO content_assessment_questions VALUES($question2Id, 'question', 'MCSA', $item2Id)",
       sqlu"INSERT INTO content_assessment_answers VALUES($answer2Id, $question2Id, 'answer', 1, 0)",
-      sqlu"INSERT INTO content_assigned VALUES($assigned1Id, 'Test Exam', '2017-10-01', 1, $teacherId)",
-      sqlu"INSERT INTO content_assigned VALUES($assigned2Id, 'Test Exam 2', '2017-10-01', 1, $teacherId)",
+      sqlu"INSERT INTO content_assigned VALUES($assigned1Id, 'Test Exam', '2017-10-01', 1, $item1Id)",
+      sqlu"INSERT INTO content_assigned VALUES($assigned2Id, 'Test Exam 2', '2017-10-01', 1, $item1Id)",
       sqlu"INSERT INTO content_assigned_cohorts VALUES($assigned1Id, $cohortId)",
       sqlu"INSERT INTO content_assigned_packages VALUES($assigned1Id, $package2Id)",
       sqlu"INSERT INTO content_assigned_cohorts VALUES($assigned2Id, $cohortId)",
@@ -154,6 +156,32 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
 
   def getAssignedPackage(assignedId: Int, packageId: Int): Future[Option[(Int, Int)]] = {
     db.run(getAssignedPackageQuery(assignedId, packageId).headOption)
+  }
+
+  implicit val optionalLocalDateSetter = SetParameter[Option[LocalDate]] {
+    case (Some(l), params) => params.setDate(Date.valueOf(l.toString))
+    case (None, params) => params.setNull(Types.DATE)
+  }
+
+  private def getScoreDataQuery(score: ScoreDto) = sql"""
+      SELECT cs.UserId, cs.ContentItemId, cs.Score, cs.ScoreDate, cs.Streak, cs.RepromptDate
+      FROM content_scores as cs
+      WHERE cs.UserId = ${score.userId}
+      AND cs.ContentItemId = ${score.contentItemId}
+      AND cs.ScoreDate = ${score.scoreDate}
+      LIMIT 1
+    """.as[ScoreDto]
+
+  def getScoreData(score: ScoreDto): Future[Option[ScoreDto]] = {
+    db.run(getScoreDataQuery(score).headOption)
+  }
+
+  def deleteScoreData(score: ScoreDto): Future[Int] = {
+    db.run(sqlu"""DELETE FROM content_scores
+      WHERE UserId = ${score.userId}
+      AND ContentItemId = ${score.contentItemId}
+      AND ScoreDate = ${score.scoreDate}
+      """)
   }
 
 }
