@@ -61,7 +61,6 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
         retrieved <- database.getScoreData(fakeScoreData)
         _ <- database.deleteScoreData(fakeScoreData)
         assertions = {
-          println(saved)
           saved.toOption.isDefined should be(true)
           retrieved.isDefined should be(true)
           retrieved.get.scoreDate should be(fakeScoreData.scoreDate)

@@ -92,7 +92,6 @@ object User {
     )
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc).?
-    def userName: lifted.Rep[String] = column[String]("UserName")
     def firstName: lifted.Rep[String] = column[String]("FirstName")
     def surName: lifted.Rep[String] = column[String]("surName")
     def email: lifted.Rep[String] = column[String]("Email")

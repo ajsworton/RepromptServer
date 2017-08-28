@@ -28,8 +28,6 @@ import models.dao.{
   ContentItemDaoSlick,
   ContentPackageDao,
   ContentPackageDaoSlick,
-  ProgressDao,
-  ProgressDaoSlick,
   StudyDao,
   StudyDaoSlick,
   UserDao,
@@ -53,6 +51,5 @@ class RepromptModule extends AbstractModule with ScalaModule {
     bind[ContentItemDao].to[ContentItemDaoSlick]
     bind[ContentAssignedDao].to[ContentAssignedDaoSlick]
     bind[StudyDao].to[StudyDaoSlick]
-    bind[ProgressDao].to[ProgressDaoSlick]
   }
 }

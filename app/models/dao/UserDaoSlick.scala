@@ -89,15 +89,15 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
     affected
   }
 
-  def checkDuplicate(user: User): Future[Boolean] = db.run(Users.filter(
-    u => matchUserOnDuplicate(u, user)
-  ).result.headOption) flatMap {
-    case None => Future(false)
-    case Some(_) => Future(true)
+  override def checkDuplicate(user: User): Future[Boolean] = {
+    db.run(Users.filter(u => matchUserOnDuplicate(u, user)).result.headOption) flatMap {
+      case None => Future(false)
+      case Some(_) => Future(true)
+    }
   }
 
-  def matchUserOnDuplicate(u: User.UsersTable, user: User): Rep[Option[Boolean]] = {
-    u.id === user.id
+  private def matchUserOnDuplicate(u: User.UsersTable, user: User): Rep[Option[Boolean]] = {
+    u.id === user.id.getOrElse(-1)
   }
 
   override def confirm(loginInfo: LoginInfo): Future[Int] = {
@@ -140,13 +140,14 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
       Future(None)
     } else {
       for {
-        _ <- db.run(Profiles.update(profile))
+        _ <- db.run(Profiles.filter(p => p.userId === profile.userId).update(profile))
         read <- find(profile.userId.get)
       } yield read
     }
   }
 
   def matchOnLoginInfo(p: Profile.ProfilesTable, loginInfo: LoginInfo): Rep[Boolean] = {
-    p.providerId === loginInfo.providerID && p.providerKey === loginInfo.providerKey
+    p.providerId === loginInfo.providerID && p.providerKey === loginInfo.providerKey &&
+      p.confirmed === false
   }
 }

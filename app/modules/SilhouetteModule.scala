@@ -33,7 +33,7 @@ import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.daos.{ DelegableAuthInfoDAO, InMemoryAuthInfoDAO }
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import env.JWTEnv
-import models.dao.{ AuthInfoDaoCredentialsSlick, AuthTokenDao, AuthTokenDaoImpl, CohortDao, CohortDaoSlick, ContentAssignedDao, ContentAssignedDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentItemDao, ContentItemDaoSlick, ContentPackageDao, ContentPackageDaoSlick, ProgressDao, ProgressDaoSlick, StudyDao, StudyDaoSlick, UserDao, UserDaoSlick }
+import models.dao.{ AuthInfoDaoCredentialsSlick, AuthTokenDao, AuthTokenDaoImpl, CohortDao, CohortDaoSlick, ContentAssignedDao, ContentAssignedDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentItemDao, ContentItemDaoSlick, ContentPackageDao, ContentPackageDaoSlick, StudyDao, StudyDaoSlick, UserDao, UserDaoSlick }
 import models.services.{ AuthTokenService, AuthTokenServiceImpl, UserService, UserServiceImpl }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
