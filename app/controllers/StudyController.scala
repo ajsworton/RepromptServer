@@ -135,9 +135,8 @@ class StudyController @Inject() (
   private def persistStudyData(scoreData: ScoreDto): Future[Result] = {
     println("||| scoreData (received): " + scoreData)
     studyDao.saveScoreData(scoreData) flatMap {
-      r =>
-        if (r.isDefined) { Future(Ok(Json.toJson(r))) }
-        else { Future(Results.InternalServerError("Failed to write to database")) }
+      case Right(data) => Future(Ok(Json.toJson(data)))
+      case Left(msg) => Future(Results.InternalServerError(msg))
     }
   }
 

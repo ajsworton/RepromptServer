@@ -50,8 +50,14 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
   }
 
   describe("saveScoreData(scoreData: ScoreDto)") {
-    it("should ") {
-
+    it("should save the provided score data for a content item") {
+      for {
+        saved <- studyDao.
+        items <- studyDao.getContentItems(studentId)
+        assertions = {
+          items.size should be > 0
+        }
+      } yield assertions
     }
   }
 

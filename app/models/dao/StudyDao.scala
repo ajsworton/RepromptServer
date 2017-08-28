@@ -36,7 +36,7 @@ trait StudyDao {
    * Save the provided score data for a content item
    * @return a future optional scoreDto
    */
-  def saveScoreData(scoreData: ScoreDto): Future[Option[ScoreDto]]
+  def saveScoreData(scoreData: ScoreDto): Future[Either[String, ScoreDto]]
 
   /**
    * Retrieve the examination date for a specific content item.

@@ -136,14 +136,13 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
       Some(questions.toSet.toList.filter(q => q.itemId == item.id.get)))).toList
   }
 
-  override def saveScoreData(scoreData: ScoreDto): Future[Option[ScoreDto]] = {
-    println("||| scoreData (insertion): " + scoreData)
+  override def saveScoreData(scoreData: ScoreDto): Future[Either[String, ScoreDto]] = {
     db.run((Scores += scoreData).asTry) map {
-      case Failure(ex) => {
-        println(s"error : ${ex.getMessage}")
-        Some(scoreData)
+      case Failure(ex) => Left(ex.getMessage)
+      case Success(response) => response match {
+        case 1 => Right(scoreData)
+        case _ => Left("Failed to write")
       }
-      case Success(x) => Some(scoreData)
     }
   }
 
