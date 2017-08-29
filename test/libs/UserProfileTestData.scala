@@ -44,7 +44,8 @@ class UserProfileTestData(userDao: UserDao) extends AppFactory {
 
   val passwordHasher: PasswordHasher = fakeApplication().injector.instanceOf[PasswordHasher]
 
-  val user1Unlinked = User(id = None, firstName = "Bart", surName = "Illiyan", email = "String")
+  val user1Unlinked = User(id = None, firstName = "Bart", surName = "Illiyan", email = "String",
+    isEducator = true)
   val user2Unlinked = User(id = None, firstName = "Micvhael", surName = "Grunthy",
     email = "somewhere@over.the.rainbow")
   val user3Unlinked = User(id = None, firstName = "Nate", surName = "Hanak",

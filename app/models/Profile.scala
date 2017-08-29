@@ -53,17 +53,17 @@ object Profile {
     )
   )
 
-  implicit val getOptionResult = GetResult(r =>
-    Some(Profile(
-      Some(r.nextInt),
-      LoginInfo(r.nextString, r.nextString),
-      r.nextBoolean,
-      r.nextString match {case null => None; case "" => None; case str => Some(str)},
-      r.nextString match {case null => None; case "" => None; case str => Some(str)},
-      r.nextString match {case null => None; case "" => None; case str => Some(str)},
-      r.nextString match {case null => None; case "" => None; case str => Some(str)},
-    ))
-  )
+//  implicit val getOptionResult = GetResult(r =>
+//    Some(Profile(
+//      Some(r.nextInt),
+//      LoginInfo(r.nextString, r.nextString),
+//      r.nextBoolean,
+//      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+//      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+//      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+//      r.nextString match {case null => None; case "" => None; case str => Some(str)},
+//    ))
+//  )
 
   class ProfilesTable(tag: Tag) extends Table[Profile](tag, "profiles") {
 

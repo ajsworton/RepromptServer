@@ -25,6 +25,6 @@ case class JWTAuthenticatorSettings(
   requestParts: Option[Seq[RequestPart.Value]] = Some(Seq(RequestPart.Headers)),
   issuerClaim: String = "reprompt-sps",
   authenticatorIdleTimeout: Option[FiniteDuration] = None,
-  authenticatorExpiry: FiniteDuration = 12 hours,
+  authenticatorExpiry: FiniteDuration = 1 hours,
   sharedSecret: String
 )

@@ -1,15 +1,10 @@
 package controllers
 
-import libs.AppFactory
-import models.dao.CohortDaoSlick
+import libs.{ AppFactory, AuthHelper }
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
-import org.scalatest.mockito.MockitoSugar
-import org.scalatestplus.play.PlaySpec
 import play.api.test.FakeRequest
 import play.api.mvc._
-import play.api.test._
 import play.api.test.Helpers._
-import org.scalatestplus.play._
 
 import scala.concurrent.Future
 
@@ -17,34 +12,66 @@ import scala.concurrent.Future
  * @author Alexander Worton.
  */
 class UserControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with MockitoSugar with AppFactory {
+  with AppFactory {
 
-  val userController: UserController = fakeApplication().injector.instanceOf[UserController]
-  //.apply(FakeRequest())
+  val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
+  val controller: UserController = fakeApplication().injector.instanceOf[UserController]
 
-  describe("UserController") {
+  val studentFakeRequest = helper.studentFakeRequest
+  val educatorFakeRequest = helper.educatorFakeRequest
+
+  describe("getAll") {
     it("should return code 401 If not authenticated") {
-      val response: Future[Result] = userController.getAll()(FakeRequest())
+      val response: Future[Result] = controller.getAll()(FakeRequest())
       status(response) should be(UNAUTHORIZED)
     }
 
-    //    it("should return json") {
-    //      val response: Future[Result] = userController.getAll()(FakeRequest())
-    //
-    //      contentType(response) should be ("application/json")
-    //    }
-    //
-    //    it("should return utf-8") {
-    //      val response: Future[Result] = userController.getAll()(FakeRequest())
-    //
-    //      charset(response) should be ("utf-8")
-    //    }
-    //
-    //    it("should return content") {
-    //      val response: Future[Result] = userController.getAll()(FakeRequest())
-    //
-    //      contentAsString(response) should contain ("Hello Bob")
-    //    }
+    it("should return 403 unauthorised if not an educator") {
+      val response: Future[Result] = controller.getAll()(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.getAll()(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.getAll()(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return content") {
+      val response: Future[Result] = controller.getAll()(educatorFakeRequest)
+      contentAsString(response).length should be > 0
+    }
+  }
+
+  describe("get(id: Int)") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.get(1)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not an educator") {
+      val response: Future[Result] = controller.get(1)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.get(1)(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.get(1)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return content") {
+      val response: Future[Result] = controller.get(1)(educatorFakeRequest)
+      contentAsString(response).length should be > 0
+    }
   }
 
 }

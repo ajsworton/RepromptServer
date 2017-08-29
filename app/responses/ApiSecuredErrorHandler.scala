@@ -34,7 +34,7 @@ class ApiSecuredErrorHandler @Inject() ()(implicit ec: ExecutionContext)
    * @return The result to send to the client.
    */
   override def onNotAuthenticated(implicit request: RequestHeader): Future[Result] = {
-    Future(Unauthorized(Json.toJson(JsonErrorResponse("Authentication required"))))
+    Future(Unauthorized("Authentication required"))
   }
 
   /**
@@ -46,6 +46,6 @@ class ApiSecuredErrorHandler @Inject() ()(implicit ec: ExecutionContext)
    * @return The result to send to the client.
    */
   override def onNotAuthorized(implicit request: RequestHeader): Future[Result] = {
-    Future(Forbidden(Json.toJson(JsonErrorResponse("Authorization required"))))
+    Future(Forbidden("Authorization required"))
   }
 }

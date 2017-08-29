@@ -18,6 +18,7 @@ package controllers
 
 import javax.inject.{ Inject, Singleton }
 
+import akka.http.scaladsl.model.HttpHeader.ParsingResult.Ok
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
@@ -127,5 +128,13 @@ class AuthController @Inject() (
       }
     }
   }
+
+  //  private def embedToken(loginInfo: LoginInfo, request: Request[AnyContent], user: User): Future[Result] =
+  //    for {
+  //      authenticator <- silhouette.env.authenticatorService.create(loginInfo)(request)
+  //      _ <- silhouette.env.eventBus.publish(LoginEvent(user, request))
+  //      token <- silhouette.env.authenticatorService.init(authenticator)(request)
+  //      embed <- silhouette.env.authenticatorService.embed(token, Ok(Json.toJson(UserDto(user))))(request)
+  //    } yield embed
 
 }
