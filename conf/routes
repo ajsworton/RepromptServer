@@ -15,7 +15,7 @@ GET     /api/user/:id                       controllers.UserController.get(id: I
 
 #Cohorts
 #GET     /api/cohort                        controllers.CohortController.getAll
-GET     /api/cohorts/testing                controllers.CohortController.getWithUsers
+#GET     /api/cohorts/testing                controllers.CohortController.getWithUsers
 GET     /api/cohort/:id                     controllers.CohortController.get(id: Int)
 GET     /api/cohorts/owned                  controllers.CohortController.getAllByCurrentUser
 GET     /api/cohorts/owned/:id              controllers.CohortController.getAllByOwner(id: Int)

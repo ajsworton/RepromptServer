@@ -45,8 +45,9 @@ class CohortController @Inject() (
   val daoHelper = new DaoOnDtoAction
 
   /**
-   * Using AuthEducator guard
-   * @return
+   * Get all cohortDtos by supplied ownerId
+   * @param ownerId the supplied id
+   * @return the matching CohortDto
    */
   def getAllByOwner(ownerId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
@@ -56,6 +57,11 @@ class CohortController @Inject() (
       }
   }
 
+  /**
+   * Get a specific CohortDto by id
+   * @param cohortId the supplied id
+   * @return the matching CohortDto
+   */
   def get(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val result = cohortDao.find(cohortId)
@@ -64,19 +70,23 @@ class CohortController @Inject() (
       }
   }
 
+  /**
+   * Get all cohorts owned byh current user
+   * @return List[CohortDto]
+   */
   def getAllByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val user = request.identity
-      if (user.id.isDefined) {
-        val results = cohortDao.findByOwner(user.id.get)
-        results flatMap {
-          r => Future(Ok(Json.toJson(r)))
-        }
-      } else {
-        Future(Ok(Json.toJson(JsonErrorResponse("Authentication error"))))
+      val results = cohortDao.findByOwner(user.id.get)
+      results flatMap {
+        r => Future(Ok(Json.toJson(r)))
       }
   }
 
+  /**
+   * Save a cohortDto supplied by POST
+   * @return saved CohortDto
+   */
   def save: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       CohortDto.form.bindFromRequest.fold(
@@ -97,38 +107,60 @@ class CohortController @Inject() (
       )
   }
 
+  /**
+   *
+   * @param cohortId
+   * @return
+   */
+  def delete(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      //delete cohort with id
+      cohortDao.delete(cohortId) flatMap {
+        r => Future(Ok(Json.toJson(r)))
+      }
+  }
+
+  /**
+   * attach a user and cohort
+   * @return an integer representing the number of affected rows
+   */
   def attach: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       CohortMemberDto.form.bindFromRequest.fold(
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
-          if (formData.cohortId.isDefined && formData.userId.isDefined) {
+          if (formData.cohortId.isDefined && formData.userId.isDefined &&
+            formData.cohortId.get > 0 && formData.userId.get > 0) {
             saveCohortMember(formData.cohortId.get, formData.userId.get)
           } else {
-            Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+            Future(BadRequest(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
           }
         }
       )
   }
 
+  /**
+   * detach a user from a cohort
+   * @param cohortId the cohort identifier
+   * @param userId the user identifier
+   * @return an integer representing the number of affected rows
+   */
   def detach(cohortId: Int, userId: Int): Action[AnyContent] =
     silhouette.SecuredAction(AuthEducator).async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         if (cohortId > 0 && userId > 0) {
           deleteCohortMember(cohortId, userId)
         } else {
-          Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+          Future(BadRequest(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
         }
     }
 
-  def getWithUsers: Action[AnyContent] = Action async {
-    val cohortId = 16
-    val results = cohortDao.findByOwner(cohortId)
-    results flatMap {
-      r => Future(Ok(Json.toJson(r)))
-    }
-  }
-
+  /**
+   * Helper function to persist a cohort member
+   * @param cohortId the cohort identifier
+   * @param userId the user identifier
+   * @return a future result
+   */
   private def saveCohortMember(cohortId: Int, userId: Int): Future[Result] = {
     val saveResponse = cohortDao.attach(cohortId, userId)
     saveResponse flatMap {
@@ -136,19 +168,17 @@ class CohortController @Inject() (
     }
   }
 
+  /**
+   * Helper function to remove a cohort member
+   * @param cohortId the cohort identifier
+   * @param userId the cohort identifier
+   * @return a future result
+   */
   private def deleteCohortMember(cohortId: Int, userId: Int): Future[Result] = {
     val deleteResponse = cohortDao.detach(cohortId, userId)
     deleteResponse flatMap {
       r => Future(Ok(Json.toJson(r)))
     }
-  }
-
-  def delete(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
-    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      //delete cohort with id
-      cohortDao.delete(cohortId) flatMap {
-        r => Future(Ok(Json.toJson(r)))
-      }
   }
 
 }

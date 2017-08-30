@@ -34,8 +34,11 @@ class AuthHelper @Inject() (
   silhouette: Silhouette[JWTEnv],
   userDao: UserDao)(implicit ec: ExecutionContext) {
 
-  val eduSave = userDao.find(2)
-  val studSave = userDao.find(4)
+  val educatorId = 2
+  val studentId = 4
+
+  val eduSave = userDao.find(educatorId)
+  val studSave = userDao.find(studentId)
 
   val educator: User = Await.result(eduSave, 10 seconds).get
   val student: User = Await.result(studSave, 10 seconds).get
