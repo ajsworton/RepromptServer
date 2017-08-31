@@ -72,7 +72,7 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO content_assigned VALUES($assigned1Id, 'Test Exam', '2017-10-01', 1, $item1Id)",
       sqlu"INSERT INTO content_assigned VALUES($assigned2Id, 'Test Exam 2', '2017-10-01', 1, $item1Id)",
       sqlu"INSERT INTO content_assigned_cohorts VALUES($assigned1Id, $cohortId)",
-      sqlu"INSERT INTO content_assigned_packages VALUES($assigned1Id, $package2Id)",
+      sqlu"INSERT INTO content_assigned_packages VALUES($assigned1Id, $packageId)",
       sqlu"INSERT INTO content_assigned_cohorts VALUES($assigned2Id, $cohortId)",
       sqlu"INSERT INTO content_assigned_packages VALUES($assigned2Id, $package2Id)",
       sqlu"INSERT INTO content_disabled VALUES($item2Id, $studentId)",

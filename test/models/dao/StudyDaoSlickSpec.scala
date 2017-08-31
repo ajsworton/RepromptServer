@@ -93,7 +93,7 @@ class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter w
         after <- studyDao.getHistoricalPerformanceByExam(studentId)
         assertions = {
           before.size should be(0)
-          after.size should be(2)
+          after.size should be(1)
         }
       } yield assertions
     }
