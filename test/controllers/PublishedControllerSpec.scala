@@ -21,7 +21,7 @@ import java.time.LocalDate
 import com.mohiva.play.silhouette.test.FakeEnvironment
 import env.JWTEnv
 import libs.{ AppFactory, AuthHelper, TestingDbQueries }
-import models.dao.{ CohortDao, ContentPackageDao }
+import models.dao.{ CohortDao, ContentAssignedDao, ContentPackageDao }
 import models.dto.{ CohortDto, ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto, ContentItemDto, ContentPackageDto, ScoreDto }
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import play.api.libs.json.Json
@@ -40,6 +40,7 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
   val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
   val cohortDao: CohortDao = fakeApplication().injector.instanceOf[CohortDao]
   val packageDao: ContentPackageDao = fakeApplication().injector.instanceOf[ContentPackageDao]
+  val assignedDao: ContentAssignedDao = fakeApplication().injector.instanceOf[ContentAssignedDao]
 
   implicit var env: FakeEnvironment[JWTEnv] = _
 
@@ -60,6 +61,7 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
   val assignedPackageDtoNew = ContentAssignedPackageDto(assignedId = Some(assigned1Id), packageId = Some(packageId3))
 
   var contentAssignedDtoNew: ContentAssignedDto = _
+  var contentAssignedDtoExist: ContentAssignedDto = _
 
   before {
     database.insertStudyContent(teacherId, studentId, studentId + 1)
@@ -70,19 +72,21 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
     educatorFakeRequest = helper.educatorFakeRequest
 
     val cohort1Request = cohortDao.find(cohortId)
-    val cohort2Request = cohortDao.find(cohortId)
+    val cohort2Request = cohortDao.find(cohortId3)
 
     val package1Request = packageDao.find(packageId)
     val package2Request = packageDao.find(packageId2)
 
     val cohort1 = Await.result(cohort1Request, 10 seconds)
-    val cohort2 = Await.result(cohort1Request, 10 seconds)
+    val cohort2 = Await.result(cohort2Request, 10 seconds)
 
     val package1 = Await.result(package1Request, 10 seconds)
     val package2 = Await.result(package2Request, 10 seconds)
     contentAssignedDtoNew = ContentAssignedDto(id = None, name = "ggtfdahdrtfh",
       examDate = LocalDate.of(2018, 9, 5), active = true, ownerId = Some(teacherId),
       cohorts = Some(List(cohort1.get, cohort2.get)), packages = Some(List(package1.get, package2.get)))
+    val contentAssignedDtoExistRequest = assignedDao.find(assigned1Id)
+    contentAssignedDtoExist = Await.result(contentAssignedDtoExistRequest, 10 seconds).get
   }
 
   after {
@@ -206,6 +210,18 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
       saved.get.cohorts.get should have size 2
       saved.get.packages.isDefined should be(true)
       saved.get.packages.get should have size 2
+    }
+
+    it("should correctly update an existing exam") {
+      val response: Future[Result] = controller.savePublishedExam()(educatorFakeRequest.withJsonBody(Json.toJson(contentAssignedDtoExist.copy(name = "lkjkhgfdsa"))))
+      contentAsString(response).length should be > 0
+      val updated = contentAsJson(response).validate[ContentAssignedDto]
+      updated.asOpt.isDefined should be(true)
+      updated.get.id.isDefined should be(true)
+      updated.get.examDate should be(contentAssignedDtoExist.examDate)
+      updated.get.name should be("lkjkhgfdsa")
+      updated.get.enabled should be(contentAssignedDtoExist.enabled)
+      updated.get.ownerId should be(contentAssignedDtoExist.ownerId)
     }
   }
 
