@@ -20,7 +20,7 @@ import libs.{ AppFactory, AuthHelper, CohortTestData }
 import models.dto.{ CohortDto, CohortMemberDto, ContentItemDto, QuestionDto, ScoreDto }
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import play.api.libs.json.{ JsError, JsPath, JsSuccess, Json, Reads }
-import play.api.mvc.{ Action, AnyContent, Result }
+import play.api.mvc.{ Action, AnyContent, AnyContentAsEmpty, Result }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import play.api.libs.functional.syntax._
@@ -34,16 +34,21 @@ class CohortControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfte
   val controller: CohortController = fakeApplication().injector.instanceOf[CohortController]
   val testData: CohortTestData = fakeApplication().injector.instanceOf[CohortTestData]
 
-  val studentFakeRequest = helper.studentFakeRequest
-  val educatorFakeRequest = helper.educatorFakeRequest
+  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+  var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
 
   val teacherId, cohortId = 989898
   val studentId = 989899
 
-  val cohortDto = new CohortDto(None, None, helper.educatorId, "TestFishX")
+  val cohortDto = new CohortDto(None, None, teacherId, "TestFishX")
 
   before {
     testData.insertCohortContent(teacherId, studentId)
+    helper.educatorId = teacherId
+    helper.studentId = studentId
+    helper.setup()
+    studentFakeRequest = helper.studentFakeRequest
+    educatorFakeRequest = helper.educatorFakeRequest
   }
 
   after {

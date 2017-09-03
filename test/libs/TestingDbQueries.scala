@@ -36,8 +36,9 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
 
 
   private def insertStudyContentQueries(teacherId: Int, studentId: Int, otherStudentId: Int): DBIO[Unit] = {
-    val cohortId:Int = studentId
-    val cohortId2:Int = teacherId
+    val cohortId:Int = teacherId
+    val cohortId2:Int = studentId
+    val cohortId3:Int = teacherId - 1
     val cohortFolderId:Int = studentId
     val packageId:Int = teacherId
     val package2Id:Int = studentId
@@ -54,11 +55,13 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       // Insert some suppliers
       sqlu"INSERT INTO users VALUES($teacherId, 'Testy', 'Teachy', 't@teachy', 1, 1, 0, NULL)",
       sqlu"INSERT INTO users VALUES($studentId, 'Test', 'User', 't@usey', 1, 0, 0, NULL)",
-      sqlu"INSERT INTO profiles VALUES($studentId, 'credentials', 't@usey', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)",
+      sqlu"""INSERT INTO profiles VALUES($teacherId, 'credentials', 't@teachy', 1, NULL, NULL, NULL, NULL, '{"hasher": "bcrypt", "password": "$$2a$$10$$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}', NULL, NULL, NULL)""",
+      sqlu"""INSERT INTO profiles VALUES($studentId, 'credentials', 't@usey', 1, NULL, NULL, NULL, NULL, '{"hasher": "bcrypt", "password": "$$2a$$10$$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}', NULL, NULL, NULL)""",
       sqlu"INSERT INTO users VALUES($otherStudentId, 'Test', 'User2', 't@usey2', 1, 0, 0, NULL)",
       sqlu"INSERT INTO profiles VALUES($otherStudentId, 'credentials', 't@usey2', 1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL)",
       sqlu"INSERT INTO cohorts VALUES($cohortId, $teacherId, 'Test Cohort', NULL)",
       sqlu"INSERT INTO cohorts VALUES($cohortId2, $teacherId, 'Test Cohort2', NULL)",
+      sqlu"INSERT INTO cohorts VALUES($cohortId3, $teacherId, 'Test Cohort3', NULL)",
       sqlu"INSERT INTO cohort_members VALUES($cohortId, $studentId)",
       sqlu"INSERT INTO content_folders VALUES($cohortFolderId, $teacherId, 'Folder Name', NULL)",
       sqlu"INSERT INTO content_packages VALUES($packageId, 'Package Name', $cohortFolderId, $teacherId)",

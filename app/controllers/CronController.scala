@@ -16,36 +16,40 @@
 
 package controllers
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api.Silhouette
 import env.JWTEnv
-import models.dao.{ContentFolderDao, ContentPackageDao}
-import play.api.{Configuration, Environment}
+import models.dao.{ ContentFolderDao, ContentPackageDao }
+import play.api.{ Configuration, Environment }
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.mvc.{AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Request}
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Request, Result }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class CronController @Inject() (
-                                    messagesAction: MessagesActionBuilder,
-                                    cc: ControllerComponents,
-                                    silhouette: Silhouette[JWTEnv],
-                                    folderDao: ContentFolderDao,
-                                    packageDao: ContentPackageDao,
-                                    configuration: Configuration,
-                                    environment: Environment)(implicit ec: ExecutionContext)
+  messagesAction: MessagesActionBuilder,
+  cc: ControllerComponents,
+  silhouette: Silhouette[JWTEnv],
+  folderDao: ContentFolderDao,
+  packageDao: ContentPackageDao,
+  configuration: Configuration,
+  environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
-//  def executeRepromptNotification(keyphrase: String): Action[AnyContent] = silhouette.UnsecuredAction.async = {
-//    implicit request: Request[AnyContent] =>
-//      val phrase = configuration.underlying.getString("cron.sharedPhrase")
-//
-//      keyphrase match {
-//        case p if p == phrase => Future(Ok(Json.toJson("Correct")))
-//        case _ => Future(InternalServerError)
-//      }
-//  }
+  def executeRepromptNotification(keyphrase: String): Action[AnyContent] = silhouette.UnsecuredAction.async {
+    implicit request: Request[AnyContent] =>
+      val phrase = configuration.underlying.getString("cron.sharedPhrase")
+      keyphrase match {
+        case p if p == phrase => runNotifications()
+        case _ => Future(Unauthorized("Leave"))
+      }
+  }
+
+  private def runNotifications(): Future[Result] = {
+
+    Future(Ok(Json.toJson("Hey!")))
+  }
 }

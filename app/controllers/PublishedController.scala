@@ -54,22 +54,11 @@ class PublishedController @Inject() (
     .async {
       implicit request: SecuredRequest[JWTEnv, AnyContent] =>
         val user = request.identity
-        if (user.id.isDefined) {
-          val results = publishDao.findByOwner(user.id.get)
-          results flatMap {
-            r => Future(Ok(Json.toJson(r)))
-          }
-        } else {
-          Future(Results.Unauthorized(Json.toJson(JsonErrorResponse("Authentication error"))))
+        val results = publishDao.findByOwner(user.id.get)
+        results flatMap {
+          r => Future(Ok(Json.toJson(r)))
         }
     }
-
-  def deletePublishedExam(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
-    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      publishDao.delete(assignedId) flatMap {
-        r => Future(Ok(Json.toJson(r)))
-      }
-  }
 
   def savePublishedExam: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
@@ -77,6 +66,13 @@ class PublishedController @Inject() (
         formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => saveOrUpdateExam(formData.copy(ownerId = request.identity.id))
       )
+  }
+
+  def deletePublishedExam(assignedId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      publishDao.delete(assignedId) flatMap {
+        r => Future(Ok(Json.toJson(r)))
+      }
   }
 
   def attachCohort: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {

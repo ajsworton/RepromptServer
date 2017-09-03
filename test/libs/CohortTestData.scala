@@ -49,6 +49,8 @@ class CohortTestData @Inject() (protected val dbConfigProvider: DatabaseConfigPr
       // Insert some suppliers
       sqlu"INSERT INTO users VALUES($teacherId, 'Testy', 'Teachy', 't@teachyer', 1, 1, 0, NULL)",
       sqlu"INSERT INTO users VALUES($studentId, 'Testy', 'Usery', 't@useyer', 1, 0, 0, NULL)",
+      sqlu"""INSERT INTO profiles VALUES($teacherId, 'credentials', 't@teachyer', 1, NULL, NULL, NULL, NULL, '{"hasher": "bcrypt", "password": "$$2a$$10$$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}', NULL, NULL, NULL)""",
+      sqlu"""INSERT INTO profiles VALUES($studentId, 'credentials', 't@useyer', 1, NULL, NULL, NULL, NULL, '{"hasher": "bcrypt", "password": "$$2a$$10$$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}', NULL, NULL, NULL)""",
       sqlu"INSERT INTO cohorts VALUES($cohortId, $teacherId, 'Test Cohort 1', NULL)",
     )
   }

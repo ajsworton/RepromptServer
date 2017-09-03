@@ -26,7 +26,7 @@ import models.dto.{ CohortDto, ScoreDto }
 import models.{ Profile, User }
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import play.api.libs.json.Json
-import play.api.mvc.Result
+import play.api.mvc.{ AnyContentAsEmpty, Result }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
@@ -39,8 +39,8 @@ class StudyControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   val controller: StudyController = fakeApplication().injector.instanceOf[StudyController]
   val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
 
-  val studentFakeRequest = helper.studentFakeRequest
-  val educatorFakeRequest = helper.educatorFakeRequest
+  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+  var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
 
   val teacherId, contentItem1Id, assigned1Id = 989898
   val studentId = 989899
@@ -50,6 +50,11 @@ class StudyControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
   before {
     database.insertStudyContent(teacherId, studentId, studentId + 1)
+    helper.educatorId = teacherId
+    helper.studentId = studentId
+    helper.setup()
+    studentFakeRequest = helper.studentFakeRequest
+    educatorFakeRequest = helper.educatorFakeRequest
   }
 
   after {

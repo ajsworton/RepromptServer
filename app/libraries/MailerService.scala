@@ -23,15 +23,16 @@ import models.User
 
 class MailerService @Inject() (mailerClient: MailerClient) {
 
-  private val fromAddress = "Reprompt Notifier <notifier@reprompt.com>"
+  val fromAddress = "Reprompt Notifier <notifier@reprompt.com>"
 
-  def notifyStudy(toAddress: String, user: User): String = {
+  def notifyStudy(user: User): String = {
     val email = Email(
       subject = "Reprompt Notification - Time to Study",
       from = fromAddress,
+      to = Seq(getUserAddress(user)),
       bodyText = Some(createStudyNotificationBody(user)),
     )
-
+    //println(email)
     mailerClient.send(email)
   }
 
@@ -46,4 +47,7 @@ class MailerService @Inject() (mailerClient: MailerClient) {
      """
   }
 
+  def getUserAddress(user: User): String = {
+    s"${user.firstName} ${user.surName} <${user.email}>"
+  }
 }

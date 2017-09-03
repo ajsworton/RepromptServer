@@ -1,6 +1,6 @@
 package controllers
 
-import libs.{ AppFactory, AuthHelper }
+import libs.{ AppFactory, AuthHelper, TestingDbQueries }
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import play.api.test.FakeRequest
 import play.api.mvc._
@@ -16,9 +16,27 @@ class UserControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
 
   val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
   val controller: UserController = fakeApplication().injector.instanceOf[UserController]
+  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
 
-  val studentFakeRequest = helper.studentFakeRequest
-  val educatorFakeRequest = helper.educatorFakeRequest
+  val teacherId = 9859855
+  val studentId = 9859856
+  helper.setup()
+
+  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+  var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+
+  before {
+    database.insertStudyContent(teacherId, studentId, studentId + 1)
+    helper.educatorId = teacherId
+    helper.studentId = studentId
+    helper.setup()
+    studentFakeRequest = helper.studentFakeRequest
+    educatorFakeRequest = helper.educatorFakeRequest
+  }
+
+  after {
+    database.clearStudyContent(teacherId, studentId, studentId + 1)
+  }
 
   describe("getAll") {
     it("should return code 401 If not authenticated") {

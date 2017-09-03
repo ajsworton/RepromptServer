@@ -83,6 +83,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             WHERE csx.ScoreDate > cs.ScoreDate
             AND csx.ContentItemId = cs.ContentItemId
             AND csx.UserId = cs.UserId
+            AND csx.ScoreDate = cs.ScoreDate
           )
           AND cd.UserId IS NULL
 

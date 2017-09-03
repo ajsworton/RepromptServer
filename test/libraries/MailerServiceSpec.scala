@@ -18,9 +18,12 @@ package libraries
 
 import libs.AppFactory
 import models.User
+import org.mockito.AdditionalAnswers
 import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers.any
+import org.mockito.invocation.InvocationOnMock
+import org.mockito.stubbing.Answer
 import org.scalatest.{FunSpec, Matchers}
 import play.api.libs.mailer.{Email, MailerClient}
 
@@ -28,27 +31,27 @@ import play.api.libs.mailer.{Email, MailerClient}
 
 class MailerServiceSpec extends FunSpec with Matchers with MockitoSugar with AppFactory {
 
-  //val mailerService: MailerService = fakeApplication().injector.instanceOf[MailerService]
-  val mockMailerClient = mock[MailerClient]
-  when(mockMailerClient.send(any[Email])).thenReturn("msgId")
+  val mockMailerClient: MailerClient = mock[MailerClient]
+
   val mailerService = new MailerService(mockMailerClient)
   val user = User(firstName= "Andy", surName = "Baloo", email = "a.baloo@reprompt.com")
   var data = Email(
     subject = "Reprompt Notification - Time to Study",
-    from = getUserAddress(user),
+    from = mailerService.fromAddress,
+    to = Seq(mailerService.getUserAddress(user)),
     bodyText = Some(mailerService.createStudyNotificationBody(user)),
+  )
+
+  when(mockMailerClient.send(any[Email])).thenAnswer( (invocation: InvocationOnMock) =>
+    invocation.getArguments.head.toString
   )
 
   describe("notifyStudy") {
     it("should create a notification to the provided user and return the message id") {
-
-      val response = mailerService.notifyStudy(getUserAddress(user), user)
-      response should be ("msgId")
+      val response = mailerService.notifyStudy(user)
+      response should be (data.toString)
     }
   }
 
-  private def getUserAddress(user: User): String = {
-    s"${user.firstName} ${user.surName} <${user.email}>"
-  }
 
 }

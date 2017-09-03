@@ -14,8 +14,6 @@ GET     /api/users/                         controllers.UserController.getAll
 GET     /api/user/:id                       controllers.UserController.get(id: Int)
 
 #Cohorts
-#GET     /api/cohort                        controllers.CohortController.getAll
-#GET     /api/cohorts/testing                controllers.CohortController.getWithUsers
 GET     /api/cohort/:id                     controllers.CohortController.get(id: Int)
 GET     /api/cohorts/owned                  controllers.CohortController.getAllByCurrentUser
 GET     /api/cohorts/owned/:id              controllers.CohortController.getAllByOwner(id: Int)
@@ -47,8 +45,6 @@ POST    /api/content/question/              controllers.PackageController.saveQu
 DELETE  /api/content/question/:id           controllers.PackageController.deleteQuestion(id: Int)
 
 #Content Answers
-#GET     /api/content/answer/:id            controllers.PackageController.getAnswer(id: Int)
-#POST    /api/content/answer/               controllers.PackageController.saveAnswer
 DELETE  /api/content/answer/:id             controllers.PackageController.deleteAnswer(id: Int)
 
 #Publish
@@ -72,14 +68,17 @@ GET     /api/manage/status/                 controllers.StudyController.getConte
 GET     /api/manage/enable/:itemId          controllers.StudyController.enableContent(itemId: Int)
 GET     /api/manage/disable/:itemId         controllers.StudyController.disableContent(itemId: Int)
 
-#assets
+#Assets
 GET     /media/*file                        controllers.AngularController.media(file: String)
+
+#Cron
+GET     /api/cron/notifications/:keyphrase  controllers.CronController.executeRepromptNotification(keyphrase: String)
 
 # Angular routes
 GET     /                                   controllers.AngularController.index
 GET     /auth                               controllers.AngularController.index
-GET     /register                           controllers.AngularController.index
-GET     /home                               controllers.AngularController.index
+#GET     /register                           controllers.AngularController.index
+#GET     /home                               controllers.AngularController.index
 GET     /cohorts                            controllers.AngularController.index
 GET     /content                            controllers.AngularController.index
 GET     /content/package/:id                controllers.AngularController.indexParam(id: Int)

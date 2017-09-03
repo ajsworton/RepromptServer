@@ -201,9 +201,7 @@ class StudyController @Inject() (
    */
   private def returnStudyItems(id: Int): Future[Result] = {
     val result = studyDao.getContentItems(id)
-    result flatMap {
-      r => Future(Ok(Json.toJson(r)))
-    }
+    result flatMap { r => Future(Ok(Json.toJson(r))) }
   }
 
 }

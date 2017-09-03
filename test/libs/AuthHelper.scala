@@ -20,42 +20,61 @@ import javax.inject.Inject
 
 import com.mohiva.play.silhouette.api.{ LoginInfo, Silhouette }
 import models.User
-import play.api.mvc.AnyContent
-import _root_.play.api.mvc.Request
-import controllers.UserController
+import _root_.play.api.mvc.{ AnyContent, AnyContentAsEmpty, Request }
 import env.JWTEnv
 import models.dao.UserDao
 import play.api.test.FakeRequest
-import scala.concurrent.duration._
 
+import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
 class AuthHelper @Inject() (
   silhouette: Silhouette[JWTEnv],
   userDao: UserDao)(implicit ec: ExecutionContext) {
 
-  val educatorId = 2
-  val studentId = 4
+  var educatorId = 2
+  var studentId = 4
 
-  val eduSave = userDao.find(educatorId)
-  val studSave = userDao.find(studentId)
+  var eduSave: Future[Option[User]] = _
+  var studSave: Future[Option[User]] = _
 
-  val educator: User = Await.result(eduSave, 10 seconds).get
-  val student: User = Await.result(studSave, 10 seconds).get
+  var educator: User = _
+  var student: User = _
 
-  val educatorLoginInfo: LoginInfo = educator.profiles.head.loginInfo
-  val studentLoginInfo: LoginInfo = student.profiles.head.loginInfo
+  var educatorLoginInfo: LoginInfo = _
+  var studentLoginInfo: LoginInfo = _
 
   val testData = new UserProfileTestData(userDao)
 
-  val educatortokenRequest = setAndGetJWToken(educatorLoginInfo, educator, FakeRequest())
-  val educatorJWT = Await.result(educatortokenRequest, 10 seconds)
+  var educatorTokenRequest: Future[String] = _
+  var educatorJWT: String = _
 
-  val studenttokenRequest = setAndGetJWToken(studentLoginInfo, student, FakeRequest())
-  val studentJWT = Await.result(studenttokenRequest, 10 seconds)
+  var studentTokenRequest: Future[String] = _
+  var studentJWT: String = _
 
-  val educatorFakeRequest = FakeRequest().withHeaders(("X-Auth-Token", educatorJWT))
-  val studentFakeRequest = FakeRequest().withHeaders(("X-Auth-Token", studentJWT))
+  var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+
+  def setup(): Unit = {
+    eduSave = userDao.find(educatorId)
+    studSave = userDao.find(studentId)
+
+    educator = Await.result(eduSave, 10 seconds).get
+    student = Await.result(studSave, 10 seconds).get
+
+    educatorLoginInfo = educator.profiles.head.loginInfo
+    studentLoginInfo = student.profiles.head.loginInfo
+
+    educatorTokenRequest = setAndGetJWToken(educatorLoginInfo, educator, FakeRequest())
+    educatorJWT = Await.result(educatorTokenRequest, 10 seconds)
+
+    studentTokenRequest = setAndGetJWToken(studentLoginInfo, student, FakeRequest())
+    studentJWT = Await.result(studentTokenRequest, 10 seconds)
+
+    educatorFakeRequest = FakeRequest().withHeaders(("X-Auth-Token", educatorJWT))
+    studentFakeRequest = FakeRequest().withHeaders(("X-Auth-Token", studentJWT))
+
+  }
 
   private def setAndGetJWToken(loginInfo: LoginInfo, user: User, request: Request[AnyContent]): Future[String] =
     for {

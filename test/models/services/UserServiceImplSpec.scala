@@ -58,7 +58,9 @@ class UserServiceImplSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
         retrieved <- service.retrieve(inserted.get.profiles.head.loginInfo)
         assertion = {
           inserted.isDefined should be(true)
-          retrieved should be(inserted)
+          retrieved.get.email should be(inserted.get.email)
+          retrieved.get.firstName should be(inserted.get.firstName)
+          retrieved.get.surName should be(inserted.get.surName)
         }
       } yield assertion
     }
