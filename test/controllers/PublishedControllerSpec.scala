@@ -21,14 +21,16 @@ import java.time.LocalDate
 import com.mohiva.play.silhouette.test.FakeEnvironment
 import env.JWTEnv
 import libs.{ AppFactory, AuthHelper, TestingDbQueries }
-import models.dto.{ CohortDto, ContentAssignedCohortDto, ContentAssignedDto, ContentPackageDto, ScoreDto }
+import models.dao.{ CohortDao, ContentPackageDao }
+import models.dto.{ CohortDto, ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto, ContentItemDto, ContentPackageDto, ScoreDto }
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import play.api.libs.json.Json
 import play.api.mvc.{ AnyContentAsEmpty, Result }
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
-import scala.concurrent.Future
+import scala.concurrent.duration._
+import scala.concurrent.{ Await, Future }
 
 class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   with AppFactory {
@@ -36,21 +38,28 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
   val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
   val controller: PublishedController = fakeApplication().injector.instanceOf[PublishedController]
   val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val cohortDao: CohortDao = fakeApplication().injector.instanceOf[CohortDao]
+  val packageDao: ContentPackageDao = fakeApplication().injector.instanceOf[ContentPackageDao]
 
   implicit var env: FakeEnvironment[JWTEnv] = _
 
   var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = helper.studentFakeRequest
   var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = helper.educatorFakeRequest
 
-  val teacherId, contentItem1Id, assigned1Id = 989898
-  val studentId, cohortId = 989899
-  val cohortId3 = teacherId - 1
+  val teacherId, contentItem1Id, assigned1Id, packageId = 989898
+  val studentId, cohortId, packageId2 = 989899
+  val cohortId3, packageId3 = teacherId - 1
 
   val assignedDto = ContentAssignedDto(id = None, name = "hnbgarayjtjqa",
     examDate = LocalDate.of(2018, 5, 4), active = true, ownerId = Some(teacherId))
 
   val assignedCohortDtoExist = ContentAssignedCohortDto(assignedId = Some(assigned1Id), cohortId = Some(cohortId))
   val assignedCohortDtoNew = ContentAssignedCohortDto(assignedId = Some(assigned1Id), cohortId = Some(cohortId3))
+
+  val assignedPackageDtoExist = ContentAssignedPackageDto(assignedId = Some(assigned1Id), packageId = Some(packageId))
+  val assignedPackageDtoNew = ContentAssignedPackageDto(assignedId = Some(assigned1Id), packageId = Some(packageId3))
+
+  var contentAssignedDtoNew: ContentAssignedDto = _
 
   before {
     database.insertStudyContent(teacherId, studentId, studentId + 1)
@@ -59,6 +68,21 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
     helper.setup()
     studentFakeRequest = helper.studentFakeRequest
     educatorFakeRequest = helper.educatorFakeRequest
+
+    val cohort1Request = cohortDao.find(cohortId)
+    val cohort2Request = cohortDao.find(cohortId)
+
+    val package1Request = packageDao.find(packageId)
+    val package2Request = packageDao.find(packageId2)
+
+    val cohort1 = Await.result(cohort1Request, 10 seconds)
+    val cohort2 = Await.result(cohort1Request, 10 seconds)
+
+    val package1 = Await.result(package1Request, 10 seconds)
+    val package2 = Await.result(package2Request, 10 seconds)
+    contentAssignedDtoNew = ContentAssignedDto(id = None, name = "ggtfdahdrtfh",
+      examDate = LocalDate.of(2018, 9, 5), active = true, ownerId = Some(teacherId),
+      cohorts = Some(List(cohort1.get, cohort2.get)), packages = Some(List(package1.get, package2.get)))
   }
 
   after {
@@ -166,6 +190,23 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
       saved.get.enabled should be(assignedDto.enabled)
       saved.get.ownerId should be(assignedDto.ownerId)
     }
+
+    it("should correctly save a new exam with assigned cohorts and packages") {
+      val response: Future[Result] = controller.savePublishedExam()(educatorFakeRequest.withJsonBody(Json.toJson(contentAssignedDtoNew)))
+      contentAsString(response).length should be > 0
+      val saved = contentAsJson(response).validate[ContentAssignedDto]
+      saved.asOpt.isDefined should be(true)
+      saved.get.id.isDefined should be(true)
+      controller.deletePublishedExam(saved.get.id.get)
+      saved.get.examDate should be(contentAssignedDtoNew.examDate)
+      saved.get.name should be(contentAssignedDtoNew.name)
+      saved.get.enabled should be(contentAssignedDtoNew.enabled)
+      saved.get.ownerId should be(contentAssignedDtoNew.ownerId)
+      saved.get.cohorts.isDefined should be(true)
+      saved.get.cohorts.get should have size 2
+      saved.get.packages.isDefined should be(true)
+      saved.get.packages.get should have size 2
+    }
   }
 
   describe("deletePublishedExam") {
@@ -230,14 +271,127 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
       contentType(response) should be(Some("application/json"))
     }
 
-    //    it("should return the correct content") {
-    //      val detached = controller.detachCohort(assignedCohortDto.assignedId.get, assignedCohortDto.cohortId.get)(educatorFakeRequest)
-    //      status(detached) should be(OK)
-    //      val response: Future[Result] = controller.attachCohort()(educatorFakeRequest.withJsonBody(Json.toJson(assignedCohortDto)))
-    //      contentAsString(response).length should be > 0
-    //      val attached = contentAsJson(response).validate[Int]
-    //      attached.isSuccess should be(true)
-    //      attached.get should be(1)
-    //    }
+    it("should return the correct content") {
+      val response: Future[Result] = controller.attachCohort()(educatorFakeRequest.withJsonBody(Json.toJson(assignedCohortDtoNew)))
+      contentAsString(response).length should be > 0
+      val attached = contentAsJson(response).validate[Int]
+      attached.isSuccess should be(true)
+      attached.get should be(1)
+    }
+  }
+
+  describe("detachCohort") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.detachCohort(0, 0)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.detachCohort(0, 0)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 bad request if an educator with invalid data") {
+      val response: Future[Result] = controller.detachCohort(0, 0)(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator with valid data") {
+      val response: Future[Result] = controller.detachCohort(assignedCohortDtoExist.assignedId.get, assignedCohortDtoExist.cohortId.get)(educatorFakeRequest)
+      val msg = contentAsString(response)
+      msg should be("1")
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.detachCohort(assignedCohortDtoExist.assignedId.get, assignedCohortDtoExist.cohortId.get)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.detachCohort(assignedCohortDtoExist.assignedId.get, assignedCohortDtoExist.cohortId.get)(educatorFakeRequest.withJsonBody(Json.toJson(assignedCohortDtoNew)))
+      contentAsString(response).length should be > 0
+      val detached = contentAsJson(response).validate[Int]
+      detached.isSuccess should be(true)
+      detached.get should be(1)
+    }
+  }
+
+  describe("attachPackage") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.attachPackage()(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.attachPackage()(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 bad request if an educator with invalid post data") {
+      val response: Future[Result] = controller.attachPackage()(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator with valid post data") {
+      val response: Future[Result] = controller.attachPackage()(educatorFakeRequest.withJsonBody(Json.toJson(assignedPackageDtoNew)))
+      val msg = contentAsString(response)
+      msg should be("1")
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.attachPackage()(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.attachPackage()(educatorFakeRequest.withJsonBody(Json.toJson(assignedPackageDtoNew)))
+      contentAsString(response).length should be > 0
+      val attached = contentAsJson(response).validate[Int]
+      attached.isSuccess should be(true)
+      attached.get should be(1)
+    }
+  }
+
+  describe("detachPackage") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.detachPackage(0, 0)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.detachPackage(0, 0)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 bad request if an educator with invalid data") {
+      val response: Future[Result] = controller.detachPackage(0, 0)(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator with valid data") {
+      val response: Future[Result] = controller.detachPackage(assignedPackageDtoExist.assignedId.get, assignedPackageDtoExist.packageId.get)(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.detachPackage(assignedPackageDtoExist.assignedId.get, assignedPackageDtoExist.packageId.get)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return 1 if an educator with existing valid data is supplied") {
+      val response: Future[Result] = controller.detachPackage(assignedPackageDtoExist.assignedId.get, assignedPackageDtoExist.packageId.get)(educatorFakeRequest)
+      val msg = contentAsString(response)
+      msg should be("1")
+      status(response) should be(OK)
+    }
+
+    it("should return 0 if an educator with new valid data is supplied") {
+      val response: Future[Result] = controller.detachPackage(assignedPackageDtoNew.assignedId.get, assignedPackageDtoNew.packageId.get)(educatorFakeRequest)
+      val msg = contentAsString(response)
+      msg should be("0")
+      status(response) should be(OK)
+    }
   }
 }

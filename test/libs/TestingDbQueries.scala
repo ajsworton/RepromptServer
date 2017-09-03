@@ -41,7 +41,8 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
     val cohortId3:Int = teacherId - 1
     val cohortFolderId:Int = studentId
     val packageId:Int = teacherId
-    val package2Id:Int = studentId
+    val packageId2:Int = studentId
+    val packageId3:Int = teacherId - 1
     val item1Id = teacherId
     val item2Id = studentId
     val question1Id = teacherId
@@ -65,9 +66,10 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO cohort_members VALUES($cohortId, $studentId)",
       sqlu"INSERT INTO content_folders VALUES($cohortFolderId, $teacherId, 'Folder Name', NULL)",
       sqlu"INSERT INTO content_packages VALUES($packageId, 'Package Name', $cohortFolderId, $teacherId)",
-      sqlu"INSERT INTO content_packages VALUES($package2Id, 'Package Name2', $cohortFolderId, $teacherId)",
+      sqlu"INSERT INTO content_packages VALUES($packageId2, 'Package Name2', $cohortFolderId, $teacherId)",
+      sqlu"INSERT INTO content_packages VALUES($packageId3, 'Package Name3', $cohortFolderId, $teacherId)",
       sqlu"INSERT INTO content_items VALUES($item1Id, $packageId, 'imageUrl', 'content', 'name')",
-      sqlu"INSERT INTO content_items VALUES($item2Id, $package2Id, 'imageUrl', 'content2', 'name2')",
+      sqlu"INSERT INTO content_items VALUES($item2Id, $packageId2, 'imageUrl', 'content2', 'name2')",
       sqlu"INSERT INTO content_assessment_questions VALUES($question1Id, 'question', 'MCSA', $item1Id)",
       sqlu"INSERT INTO content_assessment_answers VALUES($answer1Id, $question1Id, 'answer', 1, 0)",
       sqlu"INSERT INTO content_assessment_questions VALUES($question2Id, 'question', 'MCSA', $item2Id)",
@@ -77,7 +79,7 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO content_assigned_cohorts VALUES($assigned1Id, $cohortId)",
       sqlu"INSERT INTO content_assigned_packages VALUES($assigned1Id, $packageId)",
       sqlu"INSERT INTO content_assigned_cohorts VALUES($assigned2Id, $cohortId)",
-      sqlu"INSERT INTO content_assigned_packages VALUES($assigned2Id, $package2Id)",
+      sqlu"INSERT INTO content_assigned_packages VALUES($assigned2Id, $packageId2)",
       sqlu"INSERT INTO content_disabled VALUES($item2Id, $studentId)",
     )
   }

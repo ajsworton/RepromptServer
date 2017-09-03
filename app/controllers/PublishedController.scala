@@ -86,7 +86,7 @@ class PublishedController @Inject() (
               formData.assignedId.get,
               formData.cohortId.get))
           } else {
-            Future(Results.BadRequest(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+            Future(Results.BadRequest(Json.toJson(JsonErrorResponse("AssignedId and CohortId must be defined"))))
           }
         }
       )
@@ -98,7 +98,7 @@ class PublishedController @Inject() (
         if (cohortId > 0 && assignedId > 0) {
           handleAttachDetachResult(publishDao.detachCohort(assignedId, cohortId))
         } else {
-          Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+          Future(BadRequest(Json.toJson(JsonErrorResponse("AssignedId and CohortId must be defined"))))
         }
     }
 
@@ -113,7 +113,7 @@ class PublishedController @Inject() (
               formData.assignedId.get,
               formData.packageId.get))
           } else {
-            Future(Results.BadRequest(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+            Future(BadRequest(Json.toJson(JsonErrorResponse("AssignedId and PackageId must be defined"))))
           }
         }
       )
@@ -125,7 +125,7 @@ class PublishedController @Inject() (
         if (packageId > 0 && assignedId > 0) {
           handleAttachDetachResult(publishDao.detachPackage(assignedId, packageId))
         } else {
-          Future(Ok(Json.toJson(JsonErrorResponse("CohortId and UserId must be defined"))))
+          Future(BadRequest(Json.toJson(JsonErrorResponse("AssignedId and PackageId must be defined"))))
         }
     }
 
