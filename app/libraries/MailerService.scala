@@ -18,12 +18,14 @@ package libraries
 
 import play.api.libs.mailer._
 import javax.inject.Inject
+
 import models.User
+import play.api.Configuration
 
 
-class MailerService @Inject() (mailerClient: MailerClient) {
-
-  val fromAddress = "Reprompt Notifier <notifier@reprompt.com>"
+class MailerService @Inject() (mailerClient: MailerClient, config: Configuration) {
+  val configAddress: String = config.underlying.getString("notification.fromEmail")
+  val fromAddress = s"Reprompt Notifier <$configAddress>"
 
   def notifyStudy(user: User): String = {
     val email = Email(
@@ -32,7 +34,6 @@ class MailerService @Inject() (mailerClient: MailerClient) {
       to = Seq(getUserAddress(user)),
       bodyText = Some(createStudyNotificationBody(user)),
     )
-    //println(email)
     mailerClient.send(email)
   }
 
@@ -44,7 +45,7 @@ class MailerService @Inject() (mailerClient: MailerClient) {
        |See you soon,
        |
        |The Reprompt team.
-     """
+     """.stripMargin
   }
 
   def getUserAddress(user: User): String = {

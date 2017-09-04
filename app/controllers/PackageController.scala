@@ -51,8 +51,7 @@ class PackageController @Inject() (
 
   def getPackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      val result = packageDao.find(packageId)
-      result flatMap {
+      packageDao.find(packageId) flatMap {
         r => Future(Ok(Json.toJson(r)))
       }
   }

@@ -14,20 +14,21 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package libraries
+package models.dto
 
-import javax.inject.Inject
+import models.User
+import play.api.libs.json.{Json, OFormat}
 
-import models.dao.StudyDao
+case class UserNotificationDto(
+  firstName: String,
+  surName: String,
+)
 
-class Notifications @Inject() (mailer: MailerService, studyDao: StudyDao) {
+object UserNotificationDto {
 
-  //  def runPromptNotifications(): List[String] = {
-  //    //get users pending notification
-  ////    for {
-  ////      students <- studyDao.getStudentsWithPendingContent
-  ////
-  ////    }
-  //  }
+  def apply(user: User): UserNotificationDto = {
+    UserNotificationDto(user.firstName, s"${user.surName.substring(0,1)}.")
+  }
 
+  implicit val serializer: OFormat[UserNotificationDto] = Json.format[UserNotificationDto]
 }

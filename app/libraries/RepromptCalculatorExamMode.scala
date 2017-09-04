@@ -21,7 +21,6 @@ import java.time.temporal.ChronoUnit
 import models.dto.ScoreDto
 
 class RepromptCalculatorExamMode(percentage: Int = 20) extends RepromptCalculator {
-
   /**
    * In study mode, the reprompt date is set as a date in the 10-20% range of
    * the time remaining until the examination date. For the purposes of the initial
@@ -56,5 +55,4 @@ class RepromptCalculatorExamMode(percentage: Int = 20) extends RepromptCalculato
     else if (scoreDate.plusDays(1).isBefore(examDate)) { Some(scoreDate.plusDays(1)) }
     else { None }
   }
-
 }

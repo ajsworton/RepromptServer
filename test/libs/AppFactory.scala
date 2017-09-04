@@ -23,7 +23,6 @@ import play.api.inject.guice.GuiceApplicationBuilder
 
 trait AppFactory extends FakeApplicationFactory {
   def fakeApplication(): Application = {
-    new GuiceApplicationBuilder()
-      .build()
+    new GuiceApplicationBuilder().build()
   }
 }

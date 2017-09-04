@@ -20,7 +20,9 @@ import javax.inject.{ Inject, Singleton }
 
 import com.mohiva.play.silhouette.api.Silhouette
 import env.JWTEnv
-import models.dao.{ ContentFolderDao, ContentPackageDao }
+import libraries.MailerService
+import models.dao.StudyDao
+import models.dto.UserNotificationDto
 import play.api.{ Configuration, Environment }
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
@@ -33,23 +35,27 @@ class CronController @Inject() (
   messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
-  folderDao: ContentFolderDao,
-  packageDao: ContentPackageDao,
+  studyDao: StudyDao,
+  notifier: MailerService,
   configuration: Configuration,
   environment: Environment)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
-  def executeRepromptNotification(keyphrase: String): Action[AnyContent] = silhouette.UnsecuredAction.async {
-    implicit request: Request[AnyContent] =>
-      val phrase = configuration.underlying.getString("cron.sharedPhrase")
+  def executeRepromptNotification(keyphrase: String): Action[AnyContent] =
+    silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
+      val phrase = configuration.underlying.getString("notification.sharedPhrase")
       keyphrase match {
         case p if p == phrase => runNotifications()
-        case _ => Future(Unauthorized("Leave"))
+        case _ => Future(Unauthorized(Json.toJson("Unauthorised")))
       }
-  }
+    }
 
   private def runNotifications(): Future[Result] = {
-
-    Future(Ok(Json.toJson("Hey!")))
+    studyDao.getStudentsWithPendingContent flatMap { students =>
+      {
+        students.foreach(stud => notifier.notifyStudy(stud))
+        Future(Ok(Json.toJson(students.map(stud => UserNotificationDto(stud)))))
+      }
+    }
   }
 }

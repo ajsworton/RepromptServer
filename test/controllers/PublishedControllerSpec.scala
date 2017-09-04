@@ -22,7 +22,7 @@ import com.mohiva.play.silhouette.test.FakeEnvironment
 import env.JWTEnv
 import libs.{ AppFactory, AuthHelper, TestingDbQueries }
 import models.dao.{ CohortDao, ContentAssignedDao, ContentPackageDao }
-import models.dto.{ CohortDto, ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto, ContentItemDto, ContentPackageDto, ScoreDto }
+import models.dto.{ ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto }
 import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
 import play.api.libs.json.Json
 import play.api.mvc.{ AnyContentAsEmpty, Result }
@@ -42,10 +42,8 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
   val packageDao: ContentPackageDao = fakeApplication().injector.instanceOf[ContentPackageDao]
   val assignedDao: ContentAssignedDao = fakeApplication().injector.instanceOf[ContentAssignedDao]
 
-  implicit var env: FakeEnvironment[JWTEnv] = _
-
-  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = helper.studentFakeRequest
-  var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = helper.educatorFakeRequest
+  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+  var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
 
   val teacherId, contentItem1Id, assigned1Id, packageId = 989898
   val studentId, cohortId, packageId2 = 989899
@@ -91,7 +89,6 @@ class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndA
 
   after {
     database.clearStudyContent(teacherId, studentId, studentId + 1)
-
   }
 
   describe("get(id: Int)") {

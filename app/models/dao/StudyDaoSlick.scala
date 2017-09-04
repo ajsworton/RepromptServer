@@ -264,6 +264,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
 
   WHERE cs.RepromptDate <= CURDATE()
   OR cs.RepromptDate IS NULL
+  ORDER BY u.SurName, u.FirstName
     """.as[User]
 
   override def getStudentsWithPendingContent: Future[Seq[User]] = {
