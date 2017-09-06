@@ -39,7 +39,7 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
     val cohortId:Int = teacherId
     val cohortId2:Int = studentId
     val cohortId3:Int = teacherId - 1
-    val cohortFolderId:Int = studentId
+    val contentFolderId:Int = studentId
     val packageId:Int = teacherId
     val packageId2:Int = studentId
     val packageId3:Int = teacherId - 1
@@ -64,10 +64,10 @@ class TestingDbQueries @Inject() (protected val dbConfigProvider: DatabaseConfig
       sqlu"INSERT INTO cohorts VALUES($cohortId2, $teacherId, 'Test Cohort2', NULL)",
       sqlu"INSERT INTO cohorts VALUES($cohortId3, $teacherId, 'Test Cohort3', NULL)",
       sqlu"INSERT INTO cohort_members VALUES($cohortId, $studentId)",
-      sqlu"INSERT INTO content_folders VALUES($cohortFolderId, $teacherId, 'Folder Name', NULL)",
-      sqlu"INSERT INTO content_packages VALUES($packageId, 'Package Name', $cohortFolderId, $teacherId)",
-      sqlu"INSERT INTO content_packages VALUES($packageId2, 'Package Name2', $cohortFolderId, $teacherId)",
-      sqlu"INSERT INTO content_packages VALUES($packageId3, 'Package Name3', $cohortFolderId, $teacherId)",
+      sqlu"INSERT INTO content_folders VALUES($contentFolderId, $teacherId, 'Folder Name', NULL)",
+      sqlu"INSERT INTO content_packages VALUES($packageId, 'Package Name', $contentFolderId, $teacherId)",
+      sqlu"INSERT INTO content_packages VALUES($packageId2, 'Package Name2', $contentFolderId, $teacherId)",
+      sqlu"INSERT INTO content_packages VALUES($packageId3, 'Package Name3', $contentFolderId, $teacherId)",
       sqlu"INSERT INTO content_items VALUES($item1Id, $packageId, 'imageUrl', 'content', 'name')",
       sqlu"INSERT INTO content_items VALUES($item2Id, $packageId2, 'imageUrl', 'content2', 'name2')",
       sqlu"INSERT INTO content_assessment_questions VALUES($question1Id, 'question', 'MCSA', $item1Id)",

@@ -16,29 +16,45 @@
 
 package controllers
 
-import java.time.LocalDate
+import java.io.File
 
-import libs.{ AppFactory, AuthHelper, TestingDbQueries }
-import models.dto.{ ContentAssignedDto, ContentPackageDto }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
-import play.api.mvc.{ AnyContentAsEmpty, Result }
+import libs.{AppFactory, AuthHelper, TestingDbQueries}
+import models.dto.{AnswerDto, ContentItemDto, ContentPackageDto, QuestionDto}
+import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import play.api.libs.Files.TemporaryFile
+import play.api.libs.json.Json
+import play.api.mvc.MultipartFormData.{BadPart, FilePart}
+import play.api.mvc.{AnyContentAsEmpty, MultipartFormData, Request, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import scala.concurrent.duration._
+
 import scala.concurrent.Future
 
-class PackageControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
+class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar with BeforeAndAfter
   with AppFactory {
 
   val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
   val controller: PackageController = fakeApplication().injector.instanceOf[PackageController]
   val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
 
-  val teacherId, contentItem1Id, assigned1Id, packageId = 987895
-  val studentId, cohortId, packageId2 = 987896
+  val teacherId, contentItem1Id, assigned1Id, packageId, itemId, questionId = 987895
+  val studentId, cohortId, packageId2, contentFolderId = 987896
 
   var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
   var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+
+  //multipart data
+  val file = new File("file")
+  val filePart = FilePart[File](key = "image", filename = "fileName.png", contentType = None, ref = file)
+
+  val fakePackage = ContentPackageDto(id = None, folderId = contentFolderId, ownerId = teacherId,
+    name = "splablopghi")
+
+  val fakeContentItem = ContentItemDto(id = None, packageId = packageId, imageUrl = Some("url"),
+    name = "ContentItemName", content = "Content here")
+
+  val fakeQuestion = QuestionDto(id = None, question = "q", format = "Sort", itemId = itemId)
 
   before {
     database.insertStudyContent(teacherId, studentId, studentId + 1)
@@ -78,8 +94,410 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAft
       val response: Future[Result] = controller.getPackage(packageId)(educatorFakeRequest)
       contentAsString(response).length should be > 0
       val assigned = contentAsJson(response).validate[ContentPackageDto]
-      assigned.asOpt.isDefined should be(true)
+      assigned.isSuccess should be(true)
       assigned.get.name should be("Package Name")
+    }
+  }
+
+  describe("getAllByCurrentUser") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.getAllByCurrentUser()(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.getAllByCurrentUser()(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.getAllByCurrentUser()(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.getAllByCurrentUser()(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.getAllByCurrentUser()(educatorFakeRequest)
+      contentAsString(response).length should be > 0
+      val assigned = contentAsJson(response).validate[List[ContentPackageDto]]
+      assigned.isSuccess should be(true)
+      assigned.get.exists(p => p.name == "Package Name") should be(true)
+    }
+  }
+
+  describe("savePackage") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.savePackage()(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.savePackage()(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad request if an educator but invalid post data") {
+      val response: Future[Result] = controller.savePackage()(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.savePackage()(educatorFakeRequest
+        .withJsonBody(Json.toJson(fakePackage)))
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.savePackage()(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.savePackage()(educatorFakeRequest
+        .withJsonBody(Json.toJson(fakePackage)))
+      contentAsString(response).length should be > 0
+      val saved = contentAsJson(response).validate[ContentPackageDto]
+      saved.isSuccess should be(true)
+      saved.get.id.isDefined should be(true)
+      saved.get.name should be(fakePackage.name)
+      saved.get.folderId should be(fakePackage.folderId)
+      saved.get.ownerId should be(fakePackage.ownerId)
+    }
+  }
+
+  describe("deletePackage(packageId: Int)") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.deletePackage(packageId)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.deletePackage(packageId)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad request if an educator but invalid id") {
+      val response: Future[Result] = controller.deletePackage(0)(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.deletePackage(packageId)(educatorFakeRequest
+        .withJsonBody(Json.toJson(fakePackage)))
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.deletePackage(packageId)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.deletePackage(packageId)(educatorFakeRequest)
+      contentAsString(response).length should be > 0
+      val saved = contentAsString(response)
+      saved.contains("1") should be(true)
+    }
+  }
+
+  describe("getItem(itemId: Int)") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.getItem(itemId)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.getItem(itemId)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad Request if an educator, but itemId is invalid") {
+      val response: Future[Result] = controller.getItem(0)(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.getItem(itemId)(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.getItem(itemId)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.getItem(itemId)(educatorFakeRequest)
+      contentAsString(response).length should be > 0
+      val retrieved = contentAsJson(response).validate[ContentItemDto]
+      retrieved.isSuccess should be(true)
+      retrieved.get.imageUrl should be(Some("imageUrl"))
+    }
+  }
+
+  describe("saveItem") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.saveItem()(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.saveItem()(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad Request if an educator, but post data is invalid") {
+      val response: Future[Result] = controller.saveItem()(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.saveItem()(educatorFakeRequest
+        withJsonBody Json.toJson(fakeContentItem))
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.saveItem()(educatorFakeRequest
+        withJsonBody Json.toJson(fakeContentItem))
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.saveItem()(educatorFakeRequest
+        withJsonBody Json.toJson(fakeContentItem))
+      contentAsString(response).length should be > 0
+      val saved = contentAsJson(response).validate[ContentItemDto]
+      saved.isSuccess should be(true)
+      saved.get.imageUrl should be(fakeContentItem.imageUrl)
+      saved.get.name should be(fakeContentItem.name)
+      saved.get.packageId should be(fakeContentItem.packageId)
+      saved.get.content should be(fakeContentItem.content)
+    }
+
+    it("should correctly write a multipart image") {
+
+      val dataParts: Map[String, Seq[String]] = Map(
+        "id" -> Seq(fakeContentItem.id.toString),
+        "content" -> Seq(fakeContentItem.content),
+        "packageId" -> Seq(fakeContentItem.packageId.toString), "name" -> Seq(fakeContentItem.name),
+        "imageUrl" -> Seq(fakeContentItem.imageUrl.toString), "enabled" -> Seq(fakeContentItem.enabled.toString)
+      )
+      val fakeMultipartRequest = educatorFakeRequest.withBody(MultipartFormData[File](dataParts = dataParts, files = Seq(filePart), badParts = Nil))
+
+      println("Fake: " + fakeMultipartRequest.body)
+
+      val response = controller.saveItem()(fakeMultipartRequest)
+
+      //status(response) should be(OK)
+      //contentAsString(response).length should be > 0
+
+      //      val saved = contentAsJson(response).validate[ContentItemDto]
+      //      saved.isSuccess should be(true)
+      //      saved.get.imageUrl should be(fakeContentItem.imageUrl)
+      //      saved.get.name should be(fakeContentItem.name)
+      //      saved.get.packageId should be(fakeContentItem.packageId)
+      //      saved.get.content should be(fakeContentItem.content)
+      1 should be(2)
+    }
+  }
+
+  describe("deleteItem(itemId: Int)") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.deleteItem(0)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.deleteItem(0)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad Request if an educator, but id is invalid") {
+      val response: Future[Result] = controller.deleteItem(0)(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.deleteItem(itemId)(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.deleteItem(itemId)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.deleteItem(itemId)(educatorFakeRequest)
+      val deleted = contentAsString(response)
+      deleted.length should be > 0
+      deleted.contains("1") should be(true)
+    }
+  }
+
+  describe("getQuestion(questionId: Int)") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.getQuestion(0)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.getQuestion(0)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad Request if an educator, but itemId is invalid") {
+      val response: Future[Result] = controller.getQuestion(0)(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.getQuestion(questionId)(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.getQuestion(questionId)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.getQuestion(questionId)(educatorFakeRequest)
+      contentAsString(response).length should be > 0
+      val retrieved = contentAsJson(response).validate[QuestionDto]
+      retrieved.isSuccess should be(true)
+      retrieved.get.format should be("MCSA")
+      retrieved.get.question should be("question")
+    }
+  }
+
+  describe("saveQuestion") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.saveQuestion()(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.saveQuestion()(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad Request if an educator, but post data is invalid") {
+      val response: Future[Result] = controller.saveQuestion()(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.saveQuestion()(educatorFakeRequest
+        withJsonBody Json.toJson(fakeQuestion))
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.saveQuestion()(educatorFakeRequest
+        withJsonBody Json.toJson(fakeQuestion))
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.saveQuestion()(educatorFakeRequest
+        withJsonBody Json.toJson(fakeQuestion))
+      contentAsString(response).length should be > 0
+      val saved = contentAsJson(response).validate[QuestionDto]
+      saved.isSuccess should be(true)
+      saved.get.question should be(fakeQuestion.question)
+      saved.get.format should be(fakeQuestion.format)
+      saved.get.itemId should be(fakeQuestion.itemId)
+    }
+
+    it("should update an existing question") {
+      val existingRequest = controller.getQuestion(questionId)(educatorFakeRequest)
+      val existing = contentAsJson(existingRequest).validate[QuestionDto]
+      existing.isSuccess should be(true)
+      val fakeAnswer = AnswerDto(id = None, questionId = existing.get.id, answer = "ans", correct = true)
+      val updatedQuestion = existing.get.copy(answers = Some(List(fakeAnswer)))
+      val saveRequest = controller.saveQuestion()(educatorFakeRequest
+        withJsonBody Json.toJson(updatedQuestion))
+      val updated = contentAsJson(saveRequest).validate[QuestionDto]
+      updated.isSuccess should be(true)
+      updated.get.question should be(existing.get.question)
+      updated.get.format should be(existing.get.format)
+      updated.get.itemId should be(existing.get.itemId)
+      updated.get.answers.isDefined should be(true)
+      updated.get.answers.get.size should be(existing.get.answers.get.size + 1)
+    }
+  }
+
+  describe("deleteQuestion(questionId: Int)") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.deleteQuestion(0)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.deleteQuestion(0)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad Request if an educator, but id is invalid") {
+      val response: Future[Result] = controller.deleteQuestion(0)(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.deleteQuestion(questionId)(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.deleteQuestion(questionId)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.deleteQuestion(questionId)(educatorFakeRequest)
+      val deleted = contentAsString(response)
+      deleted.length should be > 0
+      deleted.contains("1") should be(true)
+    }
+  }
+
+  describe("deleteAnswer(answerId: Int)") {
+    it("should return code 401 If not authenticated") {
+      val response: Future[Result] = controller.deleteAnswer(0)(FakeRequest())
+      status(response) should be(UNAUTHORIZED)
+    }
+
+    it("should return 403 unauthorised if not a student") {
+      val response: Future[Result] = controller.deleteAnswer(0)(studentFakeRequest)
+      status(response) should be(FORBIDDEN)
+    }
+
+    it("should return 400 Bad Request if an educator, but id is invalid") {
+      val response: Future[Result] = controller.deleteAnswer(0)(educatorFakeRequest)
+      status(response) should be(BAD_REQUEST)
+    }
+
+    it("should return 200 OK if an educator") {
+      val response: Future[Result] = controller.deleteAnswer(questionId)(educatorFakeRequest)
+      status(response) should be(OK)
+    }
+
+    it("should return json") {
+      val response: Future[Result] = controller.deleteAnswer(questionId)(educatorFakeRequest)
+      contentType(response) should be(Some("application/json"))
+    }
+
+    it("should return the correct content") {
+      val response: Future[Result] = controller.deleteAnswer(questionId)(educatorFakeRequest)
+      val deleted = contentAsString(response)
+      deleted.length should be > 0
+      deleted.contains("1") should be(true)
     }
   }
 

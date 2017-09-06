@@ -17,5 +17,9 @@
 package models.dto
 
 trait Dto {
+  /**
+   * Ensure that all Dtos can return an Id
+   * @return an optional Int
+   */
   def id: Option[Int]
 }

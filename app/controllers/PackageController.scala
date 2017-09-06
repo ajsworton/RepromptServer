@@ -59,13 +59,9 @@ class PackageController @Inject() (
   def getAllByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val user = request.identity
-      if (user.id.isDefined) {
-        val results = packageDao.findByOwner(user.id.get)
-        results flatMap {
-          r => Future(Ok(Json.toJson(r)))
-        }
-      } else {
-        Future(Ok(Json.toJson(JsonErrorResponse("Authentication error"))))
+      val results = packageDao.findByOwner(user.id.get)
+      results flatMap {
+        r => Future(Ok(Json.toJson(r)))
       }
   }
 
@@ -79,20 +75,24 @@ class PackageController @Inject() (
 
   def deletePackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      //delete media folder
-      fileHelper.deletePackageFolderIfExist(packageId, request.identity.id.get)
+      if (packageId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
+        //delete media folder
+        fileHelper.deletePackageFolderIfExist(packageId, request.identity.id.get)
 
-      //delete package with id
-      packageDao.delete(packageId) flatMap {
-        r => Future(Ok(Json.toJson(r)))
+        //delete package with id
+        packageDao.delete(packageId) flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
       }
   }
 
   def getItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      val result = itemDao.find(itemId)
-      result flatMap {
-        r => Future(Ok(Json.toJson(r)))
+      if (itemId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
+        val result = itemDao.find(itemId)
+        result flatMap {
+          r => Future(Ok(Json.toJson(r)))
+        }
       }
   }
 
@@ -108,33 +108,33 @@ class PackageController @Inject() (
       )
   }
 
-  def deleteItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator)
-    .async {
-      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-
-        val futureItem = itemDao.find(itemId)
-        futureItem flatMap {
-          item => //delete item images if exist
-            if (item.isDefined) {
-              fileHelper.deleteItemImagesIfExist(item.get, request.identity.id.get)
-            }
-            Future(item)
+  def deleteItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      if (itemId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
+        itemDao.find(itemId) flatMap {
+          case None => Future(Ok(Json.toJson(0)))
+          case Some(item) =>
+            fileHelper.deleteItemImagesIfExist(item, request.identity.id.get)
+            deleteContentItemById(itemId)
         }
+      }
+  }
 
-        //delete package with id
-        itemDao.delete(itemId) flatMap {
-          r => Future(Ok(Json.toJson(r)))
-        }
+  private def deleteContentItemById(itemId: Int): Future[Result] = {
+    itemDao.delete(itemId) flatMap {
+      r => Future(Ok(Json.toJson(r)))
     }
+  }
 
-  def getQuestion(questionId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator)
-    .async {
-      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+  def getQuestion(questionId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      if (questionId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
         val result = itemDao.findQuestion(questionId)
         result flatMap {
           r => Future(Ok(Json.toJson(r)))
         }
-    }
+      }
+  }
 
   def saveQuestion: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
@@ -147,21 +147,23 @@ class PackageController @Inject() (
       )
   }
 
-  def deleteQuestion(questionId: Int): Action[AnyContent] =
-    silhouette.SecuredAction(AuthEducator).async {
-      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+  def deleteQuestion(questionId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      if (questionId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
         itemDao.deleteQuestion(questionId) flatMap {
           r => Future(Ok(Json.toJson(r)))
         }
-    }
+      }
+  }
 
-  def deleteAnswer(answerId: Int): Action[AnyContent] =
-    silhouette.SecuredAction(AuthEducator).async {
-      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+  def deleteAnswer(answerId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      if (answerId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
         itemDao.deleteAnswer(answerId) flatMap {
           r => Future(Ok(Json.toJson(r)))
         }
-    }
+      }
+  }
 
   private def saveQuestionData(data: QuestionDto): Future[Result] = {
     val qResponse = itemDao.saveQuestion(data)
