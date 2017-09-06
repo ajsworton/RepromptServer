@@ -16,18 +16,18 @@
 
 package controllers
 
-import java.io.File
-
+import akka.stream.Materializer
 import libs.{AppFactory, AuthHelper, TestingDbQueries}
 import models.dto.{AnswerDto, ContentItemDto, ContentPackageDto, QuestionDto}
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.Json
-import play.api.mvc.MultipartFormData.{BadPart, FilePart}
-import play.api.mvc.{AnyContentAsEmpty, MultipartFormData, Request, Result}
+import play.api.mvc.MultipartFormData.FilePart
+import play.api.mvc.{AnyContentAsEmpty, MultipartFormData, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import play.api.libs.Files.TemporaryFileCreator
 
 import scala.concurrent.Future
 
@@ -35,6 +35,8 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
   with AppFactory {
 
   val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
+  val fileCreator = fakeApplication().injector.instanceOf[TemporaryFileCreator]
+  implicit val mat: Materializer = fakeApplication().injector.instanceOf[Materializer]
   val controller: PackageController = fakeApplication().injector.instanceOf[PackageController]
   val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
 
@@ -45,8 +47,9 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
   var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
 
   //multipart data
-  val file = new File("file")
-  val filePart = FilePart[File](key = "image", filename = "fileName.png", contentType = None, ref = file)
+  //val file = new File("file")
+  val file: TemporaryFile = fileCreator.create("image", "jpg")
+  val filePart = FilePart[TemporaryFile](key = "image", filename = "fileName.jpg", contentType = None, ref = file)
 
   val fakePackage = ContentPackageDto(id = None, folderId = contentFolderId, ownerId = teacherId,
     name = "splablopghi")
@@ -54,7 +57,9 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
   val fakeContentItem = ContentItemDto(id = None, packageId = packageId, imageUrl = Some("url"),
     name = "ContentItemName", content = "Content here")
 
+  val fakeAnswer = AnswerDto(id = None, questionId = None, answer = "ans", correct = true)
   val fakeQuestion = QuestionDto(id = None, question = "q", format = "Sort", itemId = itemId)
+
 
   before {
     database.insertStudyContent(teacherId, studentId, studentId + 1)
@@ -279,30 +284,27 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
       saved.get.content should be(fakeContentItem.content)
     }
 
-    it("should correctly write a multipart image") {
+    it("should correctly handle a multipart image") {
 
-      val dataParts: Map[String, Seq[String]] = Map(
-        "id" -> Seq(fakeContentItem.id.toString),
-        "content" -> Seq(fakeContentItem.content),
-        "packageId" -> Seq(fakeContentItem.packageId.toString), "name" -> Seq(fakeContentItem.name),
-        "imageUrl" -> Seq(fakeContentItem.imageUrl.toString), "enabled" -> Seq(fakeContentItem.enabled.toString)
+      val params: Map[String, Seq[String]] = Map("name" -> Seq("Name"),
+        "content" -> Seq("Content"), "packageId" -> Seq(fakeContentItem.packageId.toString),
       )
-      val fakeMultipartRequest = educatorFakeRequest.withBody(MultipartFormData[File](dataParts = dataParts, files = Seq(filePart), badParts = Nil))
 
-      println("Fake: " + fakeMultipartRequest.body)
+      val fakeMultipartRequest = educatorFakeRequest.withMethod("POST")
+        .withMultipartFormDataBody(MultipartFormData[TemporaryFile](dataParts = params, files = Seq(filePart),  badParts = Nil))
 
       val response = controller.saveItem()(fakeMultipartRequest)
 
-      //status(response) should be(OK)
-      //contentAsString(response).length should be > 0
+      val content = contentAsString(response)
+      status(response) should be(OK)
+      content.length should be > 0
 
-      //      val saved = contentAsJson(response).validate[ContentItemDto]
-      //      saved.isSuccess should be(true)
-      //      saved.get.imageUrl should be(fakeContentItem.imageUrl)
-      //      saved.get.name should be(fakeContentItem.name)
-      //      saved.get.packageId should be(fakeContentItem.packageId)
-      //      saved.get.content should be(fakeContentItem.content)
-      1 should be(2)
+      val saved = contentAsJson(response).validate[ContentItemDto]
+      saved.isSuccess should be(true)
+      controller.deleteItem(saved.get.id.get)(educatorFakeRequest)
+      saved.get.name.toString should be(params("name").head)
+      saved.get.content.toString should be(params("content").head)
+      saved.get.packageId.toString should be(params("packageId").head)
     }
   }
 
@@ -431,6 +433,21 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
       updated.get.answers.isDefined should be(true)
       updated.get.answers.get.size should be(existing.get.answers.get.size + 1)
     }
+
+    it("should save a new question with answers") {
+      val newQuestion = fakeQuestion.copy(answers = Some(List(fakeAnswer)))
+      val saveRequest = controller.saveQuestion()(educatorFakeRequest
+        withJsonBody Json.toJson(newQuestion))
+      val updated = contentAsJson(saveRequest).validate[QuestionDto]
+      updated.isSuccess should be(true)
+      updated.get.question should be(newQuestion.question)
+      updated.get.format should be(newQuestion.format)
+      updated.get.itemId should be(newQuestion.itemId)
+      updated.get.answers.isDefined should be(true)
+      updated.get.answers.get.size should be(newQuestion.answers.get.size)
+      updated.get.answers.get.head.questionId should be(updated.get.id)
+    }
+
   }
 
   describe("deleteQuestion(questionId: Int)") {

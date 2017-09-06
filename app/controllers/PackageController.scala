@@ -99,7 +99,8 @@ class PackageController @Inject() (
   def saveItem: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentItemDto.form.bindFromRequest.fold(
-        formError => Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
+        formError =>
+          Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
           val uploadedFiles = request.request.body.asMultipartFormData
           val userId = request.identity.id.get
@@ -172,7 +173,6 @@ class PackageController @Inject() (
         r => Future(Results.Ok(Json.toJson(r.get)))
       }
     } else {
-
       qResponse flatMap {
         question =>
           {
