@@ -21,24 +21,22 @@ import javax.inject.Inject
 import models.dao.Dao
 import models.dto.Dto
 import play.api.libs.json.{ Json, OFormat }
-import play.api.mvc.{ Result, Results }
+import play.api.mvc.{ Results, Result }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 class DaoOnDtoAction @Inject() (implicit ex: ExecutionContext) {
 
   def saveDto[T <: Dto](dao: Dao[T], dto: T)(implicit ex: ExecutionContext, jsf: OFormat[T]): Future[Result] = {
-    val saveResponse = dao.save(dto)
-    println("save response " + saveResponse)
-    saveResponse flatMap {
-      r => Future(Results.Ok(Json.toJson(r.get)))
+    dao.save(dto) flatMap {
+      case Some(saveResponse) => Future(Results.Ok(Json.toJson(saveResponse)))
+      case _ => Future(Results.InternalServerError(Json.toJson("Unable to save data")))
     }
   }
 
   def updateDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
-    val updateResponse = dao.update(dto)
-    updateResponse flatMap {
-      r => Future(Results.Ok(Json.toJson(r.get)))
+    dao.update(dto) flatMap {
+      updateResponse => Future(Results.Ok(Json.toJson(updateResponse.get)))
     }
   }
 

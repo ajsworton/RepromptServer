@@ -26,7 +26,7 @@ DELETE  /api/cohort/member/:cId/:uId        controllers.CohortController.detach(
 GET     /api/content/folder/:id             controllers.ContentController.getFolder(id: Int)
 GET     /api/content/folders/owned          controllers.ContentController.getAllFoldersByCurrentUser
 POST    /api/content/folder/                controllers.ContentController.saveFolder
-DELETE  /api/content/folder/:id             controllers.ContentController.delete(id: Int)
+DELETE  /api/content/folder/:id             controllers.ContentController.deleteFolder(id: Int)
 
 #Content packages
 GET     /api/content/package/:id            controllers.PackageController.getPackage(id: Int)
@@ -77,8 +77,6 @@ GET     /api/cron/notifications/:keyphrase  controllers.CronController.executeRe
 # Angular routes
 GET     /                                   controllers.AngularController.index
 GET     /auth                               controllers.AngularController.index
-#GET     /register                           controllers.AngularController.index
-#GET     /home                               controllers.AngularController.index
 GET     /cohorts                            controllers.AngularController.index
 GET     /content                            controllers.AngularController.index
 GET     /content/package/:id                controllers.AngularController.indexParam(id: Int)

@@ -18,7 +18,6 @@ package controllers
 
 import javax.inject.{ Inject, Singleton }
 
-import akka.http.scaladsl.model.HttpHeader.ParsingResult.Ok
 import com.mohiva.play.silhouette.api._
 import com.mohiva.play.silhouette.api.actions.SecuredRequest
 import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
@@ -34,7 +33,7 @@ import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.libs.mailer.MailerClient
-import play.api.mvc.{ AbstractController, AnyContent, ControllerComponents, MessagesActionBuilder, Request, Result }
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Request, Result }
 import play.libs.ws.WSClient
 import responses.JsonErrorResponse
 
@@ -50,51 +49,51 @@ class AuthController @Inject() (
   authInfoRepository: AuthInfoRepository,
   authTokenService: AuthTokenService,
   avatarService: AvatarService,
-  //passwordHasherRegistry: PasswordHasherRegistry,
   passwordHasher: PasswordHasher,
   ws: WSClient,
   environment: Environment,
   mailerClient: MailerClient)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
-  def register = silhouette.UnsecuredAction.async {
+  def register: Action[AnyContent] = silhouette.UnsecuredAction.async {
     implicit request: Request[AnyContent] =>
       UserRegisterDto.form.bindFromRequest.fold(
-        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formError => Future(BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
           handleTokenAuth(formData, request)
         }
       )
   }
 
-  def login = silhouette.UnsecuredAction.async {
+  def login: Action[AnyContent] = silhouette.UnsecuredAction.async {
     implicit request: Request[AnyContent] =>
       UserLoginDto.form.bindFromRequest.fold(
-        formError => Future(Ok(Json.toJson(formError.errorsAsJson))),
+        formError => Future(BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
-          val loginInfo = LoginInfo(CredentialsProvider.ID, formData.email)
-          userService.retrieve(loginInfo).flatMap {
-            case None => Future(Ok(Json.toJson(JsonErrorResponse("No Matching Record Found"))))
-            case Some(user) => {
-              if (passwordHasher.matches(
-                user.profiles.find(p => p.loginInfo == loginInfo).get
-                .passwordInfo.get,
-                formData.password)) {
-                //user is authenticated
-                embedToken(loginInfo, request, user)
-              } else {
-                //user not authenticated
-                Future(Ok(Json.toJson(JsonErrorResponse("No Matching Record Found"))))
-              }
-            }
-          }
+          CheckRetrieveAndHandleUser(LoginInfo(CredentialsProvider.ID, formData.email), request, formData)
         }
       )
   }
 
-  def profile = silhouette.SecuredAction.async {
+  def profile: Action[AnyContent] = silhouette.SecuredAction.async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       Future(Ok(Json.toJson(UserDto(request.identity))))
+  }
+
+  private def CheckRetrieveAndHandleUser(loginInfo: LoginInfo, request: Request[AnyContent], formData: UserLoginDto) = {
+    userService.retrieve(loginInfo).flatMap {
+      case None => Future(BadRequest(Json.toJson(JsonErrorResponse("No Matching Record Found"))))
+      case Some(user) => HandleUserLogin(request, formData, loginInfo, user)
+    }
+  }
+
+  private def HandleUserLogin(request: Request[AnyContent], formData: UserLoginDto, loginInfo: LoginInfo, user: User) = {
+    if (passwordHasher.matches(
+      user.profiles.find(p => p.loginInfo == loginInfo).get.passwordInfo.get, formData.password)) { //user is authenticated
+      embedToken(loginInfo, request, user)
+    } else { //user not authenticated
+      Future(BadRequest(Json.toJson(JsonErrorResponse("No Matching Record Found"))))
+    }
   }
 
   private def handleTokenAuth(formData: UserRegisterDto, request: Request[AnyContent]): Future[Result] = {
@@ -128,13 +127,5 @@ class AuthController @Inject() (
       }
     }
   }
-
-  //  private def embedToken(loginInfo: LoginInfo, request: Request[AnyContent], user: User): Future[Result] =
-  //    for {
-  //      authenticator <- silhouette.env.authenticatorService.create(loginInfo)(request)
-  //      _ <- silhouette.env.eventBus.publish(LoginEvent(user, request))
-  //      token <- silhouette.env.authenticatorService.init(authenticator)(request)
-  //      embed <- silhouette.env.authenticatorService.embed(token, Ok(Json.toJson(UserDto(user))))(request)
-  //    } yield embed
 
 }

@@ -58,14 +58,15 @@ class ContentController @Inject() (
       }
   }
 
-  def getFolder(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator)
-    .async {
-      implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+  def getFolder(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
+    implicit request: SecuredRequest[JWTEnv, AnyContent] =>
+      if (folderId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
         val result = folderDao.find(folderId)
         result flatMap {
           r => Future(Ok(Json.toJson(r)))
         }
-    }
+      }
+  }
 
   def saveFolder: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
@@ -75,7 +76,7 @@ class ContentController @Inject() (
       )
   }
 
-  def delete(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
+  def deleteFolder(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       //delete cohort with id
       folderDao.delete(folderId) flatMap {
