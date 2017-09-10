@@ -45,7 +45,6 @@ class UserController @Inject() (
 
   def getAll: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
-      //retrieve all users
       userDao.all().map(users => Ok(Json.toJson(users.map(u => UserDto(u)))))
   }
 
