@@ -129,9 +129,7 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: 
    * @return a future option PasswordInfo
    */
   override def remove(loginInfo: LoginInfo): Future[Unit] = {
-    userService.retrieve(loginInfo) flatMap {
-      case Some(usr) => userService.save(usr.profileFor(loginInfo).get)
-    }
+    userDao.delete(loginInfo)
     Future()
   }
 }
