@@ -170,3 +170,5 @@ server.pid
 !.vscode/extensions.json
 
 # End of https://www.gitignore.io/api/java,scala,eclipse,intellij+iml,playframework,visualstudiocode
+
+RUNNING_PID

@@ -112,14 +112,18 @@ class StudyControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       status(response) should be(OK)
     }
 
-    it("should return 500 Internal server error if a duplicate studyScore is provided") {
+    it("should return 200 Ok if a duplicate studyScore is provided and update") {
       val response: Future[Result] = controller.saveStudyScore()(studentFakeRequest
         .withJsonBody(Json.toJson(scoreDto)))
       val extractedScore = contentAsJson(response).validate[ScoreDto]
+      extractedScore.isSuccess should be(true)
       val duplicate: Future[Result] = controller.saveStudyScore()(studentFakeRequest
-        .withJsonBody(Json.toJson(scoreDto)))
+        .withJsonBody(Json.toJson(scoreDto.copy(score = extractedScore.get.score - 2))))
+      val extractedDuplicate = contentAsJson(duplicate).validate[ScoreDto]
       status(response) should be(OK)
-      status(duplicate) should be(INTERNAL_SERVER_ERROR)
+      status(duplicate) should be(OK)
+      extractedDuplicate.isSuccess should be(true)
+      extractedDuplicate.get.score should be(extractedScore.get.score - 2)
     }
 
     it("should return json") {
