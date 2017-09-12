@@ -48,12 +48,12 @@ class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws:
   def media(file: String) = Action {
     try {
       Ok.sendFile(
-        content = new File(s"${environment.rootPath}/media/$file"),
+        content = new File(s"media/$file"),
         inline = true
       )
     } catch {
-      case _: FileNotFoundException => NotFound(s"Image not found, media/$file")
-      case _: NoSuchFileException => NotFound(s"Image not found, media/$file")
+      case _: FileNotFoundException => NotFound(s"Image not found, ${environment.rootPath}/media/$file")
+      case _: NoSuchFileException => NotFound(s"No Such Image, ${environment.rootPath}/media/$file")
     }
   }
 }

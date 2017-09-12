@@ -55,8 +55,8 @@ DELETE  /api/published/exam/:id             controllers.PublishedController.dele
 
 POST    /api/published/cohort/              controllers.PublishedController.attachCohort
 DELETE  /api/published/cohort/:cId/:aId     controllers.PublishedController.detachCohort(cId: Int, aId: Int)
-POST    /api/published/package/             controllers.PublishedController.attachCohort
-DELETE  /api/published/package/:cId/:aId    controllers.PublishedController.detachCohort(cId: Int, aId: Int)
+POST    /api/published/package/             controllers.PublishedController.attachPackage
+DELETE  /api/published/package/:pId/:aId    controllers.PublishedController.detachPackage(pId: Int, aId: Int)
 
 #Study
 GET     /api/studies/                       controllers.StudyController.getContentItems
@@ -80,9 +80,11 @@ GET     /auth                               controllers.AngularController.index
 GET     /cohorts                            controllers.AngularController.index
 GET     /content                            controllers.AngularController.index
 GET     /content/package/:id                controllers.AngularController.indexParam(id: Int)
+GET     /publish                            controllers.AngularController.index
 GET     /users                              controllers.AngularController.index
-GET     /study                              controllers.AngularController.index
 GET     /manage                             controllers.AngularController.index
+GET     /progress                           controllers.AngularController.index
+GET     /study                              controllers.AngularController.index
 
 
 

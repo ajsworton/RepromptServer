@@ -83,9 +83,8 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
             WHERE csx.ScoreDate > cs.ScoreDate
             AND csx.ContentItemId = cs.ContentItemId
             AND csx.UserId = cs.UserId
-            AND csx.ScoreDate = cs.ScoreDate
           )
-          AND cd.UserId IS NULL
+          AND cd.ContentAssignedId IS NULL
 
             ORDER BY ci.Name, q.Question
          """.as[(ContentItemDto, Option[ScoreDto], Option[QuestionDto], Option[AnswerDto])]
@@ -138,7 +137,7 @@ class StudyDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPro
   }
 
   override def saveScoreData(scoreData: ScoreDto): Future[Either[String, ScoreDto]] = {
-    db.run((Scores += scoreData).asTry) map {
+    db.run(Scores.insertOrUpdate(scoreData).asTry) map {
       case Failure(ex) => Left(ex.getMessage)
       case Success(response) => response match {
         case 1 => Right(scoreData)
