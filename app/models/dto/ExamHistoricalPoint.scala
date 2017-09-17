@@ -21,9 +21,20 @@ import java.time.LocalDate
 import play.api.libs.json.{ Json, OFormat }
 import slick.jdbc.GetResult
 
+/**
+ * ExamHistoricalPoint data object
+ * @param name database value
+ * @param value database value
+ */
 case class ExamHistoricalPoint(name: LocalDate, value: Int)
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ExamHistoricalPoint {
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getExamHistoryDtoResult: GetResult[ExamHistoricalPoint] = GetResult(r =>
     ExamHistoricalPoint(
       r.nextDate.toLocalDate,
@@ -31,5 +42,8 @@ object ExamHistoricalPoint {
     )
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer: OFormat[ExamHistoricalPoint] = Json.format[ExamHistoricalPoint]
 }

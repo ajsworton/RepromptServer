@@ -26,6 +26,18 @@ import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.ProvenShape
 
+/**
+ * User data object
+ * @param id database value
+ * @param firstName database value
+ * @param surName database value
+ * @param email database value
+ * @param isEmailVerified database value
+ * @param isEducator database value
+ * @param isAdministrator database value
+ * @param avatarUrl database value
+ * @param profiles database value
+ */
 case class User(
   id: Option[Int] = None,
   firstName: String,
@@ -40,6 +52,9 @@ case class User(
   def profileFor(loginInfo: LoginInfo): Option[Profile] = profiles.find(_.loginInfo == loginInfo)
 }
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object User {
 
   def apply(profile: Profile) = {

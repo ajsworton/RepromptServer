@@ -29,7 +29,15 @@ import slick.model.ForeignKeyAction
 
 case class CohortMemberDto(cohortId: Option[Int], userId: Option[Int])
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object CohortMemberDto {
+
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class CohortsMembersTable(tag: Tag) extends Table[CohortMemberDto](tag, "cohort_members") {
     def cohortId: lifted.Rep[Option[Int]] = column[Int]("CohortId")
     def userId: lifted.Rep[Option[Int]] = column[Int]("UserId")
@@ -51,10 +59,16 @@ object CohortMemberDto {
 
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getResult = GetResult(r =>
     CohortMemberDto(Some(r.nextInt), Some(r.nextInt))
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getSomeResult = GetResult(r =>
     (r.nextInt, r.nextInt) match {
       case (0, 0) => None
@@ -62,11 +76,19 @@ object CohortMemberDto {
     }
   )
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[CohortMemberDto] = Form(
     mapping(
       "cohortId" -> optional(number),
       "userId" -> optional(number)
     )(CohortMemberDto.apply _)(CohortMemberDto.unapply)
   )
+
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[CohortMemberDto]
 }

@@ -24,6 +24,14 @@ import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
+/**
+ * Cohort data object
+ * @param id database value
+ * @param parentId database value
+ * @param ownerId database value
+ * @param name database value
+ * @param members database value
+ */
 case class CohortDto(
   id: Option[Int],
   parentId: Option[Int],
@@ -32,6 +40,9 @@ case class CohortDto(
   members: Option[List[UserDto]] = None
 ) extends Dto
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object CohortDto {
 
   def construct(id: Option[Int], parentId: Option[Int], ownerId: Int, name: String) =
@@ -43,6 +54,10 @@ object CohortDto {
       ) => Some(id, parentId, ownerId, name)
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[CohortDto] = Form(
     mapping(
       "id" -> optional(number),
@@ -52,6 +67,10 @@ object CohortDto {
     )(CohortDto.construct)(CohortDto.deconstruct)
   )
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class CohortsTable(tag: Tag) extends Table[CohortDto](tag, "cohorts") {
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
@@ -64,6 +83,9 @@ object CohortDto {
       ((CohortDto.construct _).tupled, CohortDto.deconstruct)
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getCohortResult = GetResult(r =>
     CohortDto(
       Some(r.nextInt),
@@ -74,6 +96,9 @@ object CohortDto {
     )
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getSomeCohortResult = GetResult(r =>
     Some(CohortDto(
       Some(r.nextInt),
@@ -84,5 +109,8 @@ object CohortDto {
     ))
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[CohortDto]
 }

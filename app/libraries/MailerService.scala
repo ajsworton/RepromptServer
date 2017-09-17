@@ -22,11 +22,20 @@ import javax.inject.Inject
 import models.User
 import play.api.Configuration
 
-
+/**
+  * Service to  handle construction and sending of a single email.
+  * @param mailerClient injected mailer to perform the send operation
+  * @param config injected config to allow retrieval of config data from files
+  */
 class MailerService @Inject() (mailerClient: MailerClient, config: Configuration) {
   val configAddress: String = config.underlying.getString("notification.fromEmail")
   val fromAddress = s"Reprompt Notifier <$configAddress>"
 
+  /**
+    * Compile and dispatch email.
+    * @param user the supplied recipient
+    * @return the message id
+    */
   def notifyStudy(user: User): String = {
     val email = Email(
       subject = "Reprompt Notification - Time to Study",
@@ -37,6 +46,11 @@ class MailerService @Inject() (mailerClient: MailerClient, config: Configuration
     mailerClient.send(email)
   }
 
+  /**
+    * Prepare the message using userdata.
+    * @param user the supplied user
+    * @return the message
+    */
   def createStudyNotificationBody(user: User): String = {
     s"""${user.firstName},
        |
@@ -48,6 +62,11 @@ class MailerService @Inject() (mailerClient: MailerClient, config: Configuration
      """.stripMargin
   }
 
+  /**
+    * create the recipient address from userdata.
+    * @param user the supplied user
+    * @return the address
+    */
   def getUserAddress(user: User): String = {
     s"${user.firstName} ${user.surName} <${user.email}>"
   }

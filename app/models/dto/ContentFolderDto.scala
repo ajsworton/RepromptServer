@@ -24,6 +24,14 @@ import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
+/**
+ * ContentFolder data object
+ * @param id database value
+ * @param parentId database value
+ * @param ownerId database value
+ * @param name database value
+ * @param members database value
+ */
 case class ContentFolderDto(
   id: Option[Int],
   parentId: Option[Int],
@@ -32,6 +40,9 @@ case class ContentFolderDto(
   members: Option[List[ContentPackageDto]] = None
 ) extends Dto
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ContentFolderDto {
 
   def construct(id: Option[Int], parentId: Option[Int], ownerId: Int, name: String) =
@@ -43,6 +54,10 @@ object ContentFolderDto {
       ) => Some(id, parentId, ownerId, name)
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[ContentFolderDto] = Form(
     mapping(
       "id" -> optional(number),
@@ -52,6 +67,10 @@ object ContentFolderDto {
     )(ContentFolderDto.construct)(ContentFolderDto.deconstruct)
   )
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class ContentFoldersTable(tag: Tag) extends Table[ContentFolderDto](tag, "content_folders") {
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
@@ -64,6 +83,9 @@ object ContentFolderDto {
       ((ContentFolderDto.construct _).tupled, ContentFolderDto.deconstruct)
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getContentResult = GetResult(r =>
     ContentFolderDto(
       Some(r.nextInt),
@@ -74,6 +96,9 @@ object ContentFolderDto {
     )
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getOptionContentResult = GetResult(r =>
     Some(ContentFolderDto(
       Some(r.nextInt),
@@ -84,6 +109,9 @@ object ContentFolderDto {
     ))
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[ContentFolderDto]
 }
 

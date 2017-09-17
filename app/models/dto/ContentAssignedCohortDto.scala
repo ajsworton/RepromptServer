@@ -26,10 +26,22 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 import slick.model.ForeignKeyAction
 
+/**
+ * ContentAssignedCohort data object
+ * @param assignedId database value
+ * @param cohortId database value
+ */
 case class ContentAssignedCohortDto(assignedId: Option[Int], cohortId: Option[Int])
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ContentAssignedCohortDto {
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class ContentAssignedCohortTable(tag: Tag) extends Table[ContentAssignedCohortDto](
     tag, "content_assigned_cohorts") {
     def assignedId: lifted.Rep[Option[Int]] = column[Int]("AssignedId")
@@ -52,11 +64,19 @@ object ContentAssignedCohortDto {
 
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[ContentAssignedCohortDto] = Form(
     mapping(
       "assignedId" -> optional(number),
       "cohortId" -> optional(number)
     )(ContentAssignedCohortDto.apply)(ContentAssignedCohortDto.unapply)
   )
+
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[ContentAssignedCohortDto]
 }

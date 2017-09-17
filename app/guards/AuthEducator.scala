@@ -23,6 +23,9 @@ import play.api.mvc.Request
 
 import scala.concurrent.Future
 
+/**
+ * AuthEducator guard to determine if user should be granted access to the guarded resource.
+ */
 case object AuthEducator extends silhouette.api.Authorization[User, JWTAuthenticator] {
   override def isAuthorized[B](user: User, authenticator: JWTAuthenticator)(implicit request: Request[B]): Future[Boolean] = {
     Future.successful(user.isEducator)

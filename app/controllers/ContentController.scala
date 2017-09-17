@@ -33,18 +33,28 @@ import responses.JsonErrorResponse
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * This controller handles Content requests.
+ * @param cc injected controller components for the extended abstract controller
+ * @param silhouette injected authentication library
+ * @param folderDao injected model
+ * @param packageDao injected model
+ * @param ec injected execution context to execute futures
+ */
 @Singleton
 class ContentController @Inject() (
-  messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   folderDao: ContentFolderDao,
-  packageDao: ContentPackageDao,
-  environment: Environment)(implicit ec: ExecutionContext)
+  packageDao: ContentPackageDao)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
   val daoHelper = new DaoOnDtoAction
 
+  /**
+   * Endpoint to retrieve all folders by the current user
+   * @return JSON list of users
+   */
   def getAllFoldersByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val user = request.identity
@@ -58,6 +68,11 @@ class ContentController @Inject() (
       }
   }
 
+  /**
+   * Endpoint to retrieve a folder by id
+   * @param folderId the supplied folder id
+   * @return an optional folder
+   */
   def getFolder(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       if (folderId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
@@ -68,6 +83,10 @@ class ContentController @Inject() (
       }
   }
 
+  /**
+   * Endpoint to save a supplied folder
+   * @return the saved folder with id
+   */
   def saveFolder: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentFolderDto.form.bindFromRequest.fold(
@@ -76,6 +95,11 @@ class ContentController @Inject() (
       )
   }
 
+  /**
+   * Endpoint to delete a folder by id
+   * @param folderId the supplied id
+   * @return a number representing the number of affected rows
+   */
   def deleteFolder(folderId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       //delete cohort with id

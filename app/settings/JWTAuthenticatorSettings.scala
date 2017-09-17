@@ -20,6 +20,15 @@ import com.mohiva.play.silhouette.api.util.RequestPart
 
 import scala.concurrent.duration._
 
+/**
+ * Configuration class for Silhouette's JWTAuthenticator
+ * @param fieldName the header field's name
+ * @param requestParts the request's header values
+ * @param issuerClaim the identifier for issuerClaim
+ * @param authenticatorIdleTimeout idle timeout
+ * @param authenticatorExpiry expiry duration
+ * @param sharedSecret shared secret for JWT
+ */
 case class JWTAuthenticatorSettings(
   fieldName: String = "X-Auth-Token",
   requestParts: Option[Seq[RequestPart.Value]] = Some(Seq(RequestPart.Headers)),

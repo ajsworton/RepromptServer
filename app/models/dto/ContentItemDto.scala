@@ -35,6 +35,9 @@ case class ContentItemDto(
   score: Option[ScoreDto] = None
 ) extends Dto
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ContentItemDto {
 
   def construct(id: Option[Int], packageId: Int, imageUrl: Option[String], name: String,
@@ -58,6 +61,10 @@ object ContentItemDto {
       Some(enabled))
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[ContentItemDto] = Form(
     mapping(
       "id" -> optional(number),
@@ -69,6 +76,10 @@ object ContentItemDto {
     )(ContentItemDto.formConstruct)(ContentItemDto.formDeconstruct)
   )
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class ContentItemsTable(tag: Tag) extends Table[ContentItemDto](tag, "content_items") {
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc).?
@@ -82,6 +93,9 @@ object ContentItemDto {
       ((ContentItemDto.construct _).tupled, ContentItemDto.deconstruct)
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getContentItemResult = GetResult(r =>
     ContentItemDto(
       Some(r.nextInt),
@@ -95,6 +109,9 @@ object ContentItemDto {
     )
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getSomeContentItemResult = GetResult(r =>
     Some(ContentItemDto(
       Some(r.nextInt),
@@ -108,6 +125,9 @@ object ContentItemDto {
     ))
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[ContentItemDto]
 }
 

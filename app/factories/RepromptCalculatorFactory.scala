@@ -19,6 +19,9 @@ package factories
 import libraries.{ RepromptCalculator, RepromptCalculatorExamMode, RepromptCalculatorStudyMode }
 import models.dto.ScoreDto
 
+/**
+ * Factory to determine which Reprompt calculator to instantiate based on streak count.
+ */
 object RepromptCalculatorFactory {
   def getCalculator(scoreDto: ScoreDto): RepromptCalculator = {
     if (scoreDto.streak > 3) { new RepromptCalculatorExamMode }

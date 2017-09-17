@@ -24,6 +24,14 @@ import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
+/**
+ * Answer data object
+ * @param id database value
+ * @param questionId database value
+ * @param answer database value
+ * @param correct database value
+ * @param sequence database value
+ */
 case class AnswerDto(
   id: Option[Int],
   questionId: Option[Int],
@@ -32,6 +40,9 @@ case class AnswerDto(
   sequence: Int = 0
 ) extends Dto
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object AnswerDto {
 
   def construct(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean,
@@ -43,6 +54,10 @@ object AnswerDto {
       sequence: Int) => Some(id, questionId, answer, correct, sequence)
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[AnswerDto] = Form(
     mapping(
       "id" -> optional(number),
@@ -53,6 +68,10 @@ object AnswerDto {
     )(AnswerDto.construct)(AnswerDto.deconstruct)
   )
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class AnswersTable(tag: Tag) extends Table[AnswerDto](tag, "content_assessment_answers") {
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
@@ -71,6 +90,9 @@ object AnswerDto {
       ((AnswerDto.construct _).tupled, AnswerDto.deconstruct)
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getAnswerResult = GetResult(r =>
     AnswerDto(
       Some(r.nextInt),
@@ -81,6 +103,9 @@ object AnswerDto {
     )
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getSomeAnswerResult = GetResult(r =>
     Some(AnswerDto(
       Some(r.nextInt),
@@ -91,5 +116,8 @@ object AnswerDto {
     ))
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val AnswerDtoFormat = Json.format[AnswerDto]
 }

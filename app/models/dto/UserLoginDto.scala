@@ -21,6 +21,7 @@ import play.api.data.Forms._
 import play.api.libs.json.Json
 
 /**
+ * User login data object
  * @param email              The user's email address
  * @param password           The user's Password
  */
@@ -29,8 +30,15 @@ case class UserLoginDto(
   password: String
 )
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object UserLoginDto {
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[UserLoginDto] = Form(
     mapping(
       "email" -> nonEmptyText,
@@ -38,6 +46,9 @@ object UserLoginDto {
     )(UserLoginDto.apply)(UserLoginDto.unapply)
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[UserLoginDto]
 }
 

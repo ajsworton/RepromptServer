@@ -29,19 +29,27 @@ import models.dao.UserDao
 import models.dto.{ UserDto, UserLoginDto, UserRegisterDto }
 import models.services.{ AuthTokenService, UserService }
 import models.{ Profile, User }
-import play.api.Environment
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
-import play.api.libs.mailer.MailerClient
-import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, MessagesActionBuilder, Request, Result }
-import play.libs.ws.WSClient
+import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponents, Request, Result }
 import responses.JsonErrorResponse
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * This controller handles authentication requests.
+ * @param cc injected controller components for the extended abstract controller
+ * @param silhouette injected authentication library
+ * @param userService injected model
+ * @param userDao injected model
+ * @param authInfoRepository injected authentication library
+ * @param authTokenService injected authentication library
+ * @param avatarService injected authentication library
+ * @param passwordHasher injected authentication library
+ * @param ec injected execution context to execute futures
+ */
 @Singleton
 class AuthController @Inject() (
-  messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   userService: UserService,
@@ -49,12 +57,13 @@ class AuthController @Inject() (
   authInfoRepository: AuthInfoRepository,
   authTokenService: AuthTokenService,
   avatarService: AvatarService,
-  passwordHasher: PasswordHasher,
-  ws: WSClient,
-  environment: Environment,
-  mailerClient: MailerClient)(implicit ec: ExecutionContext)
+  passwordHasher: PasswordHasher)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
+  /**
+   * Endpoint to handle register POST requests
+   * @return JSON
+   */
   def register: Action[AnyContent] = silhouette.UnsecuredAction.async {
     implicit request: Request[AnyContent] =>
       UserRegisterDto.form.bindFromRequest.fold(
@@ -65,6 +74,10 @@ class AuthController @Inject() (
       )
   }
 
+  /**
+   * Endpoint to handle login POST requests
+   * @return JSON
+   */
   def login: Action[AnyContent] = silhouette.UnsecuredAction.async {
     implicit request: Request[AnyContent] =>
       UserLoginDto.form.bindFromRequest.fold(
@@ -75,19 +88,40 @@ class AuthController @Inject() (
       )
   }
 
+  /**
+   * Endpoint to handle user profile requests for self
+   * @return JSON
+   */
   def profile: Action[AnyContent] = silhouette.SecuredAction.async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       Future(Ok(Json.toJson(UserDto(request.identity))))
   }
 
-  private def CheckRetrieveAndHandleUser(loginInfo: LoginInfo, request: Request[AnyContent], formData: UserLoginDto) = {
+  /**
+   * Helper to Obtain and handle the requested user
+   * @param loginInfo supplied loginInfo
+   * @param request supplied request
+   * @param formData supplied formdata
+   * @return Future[Result]
+   */
+  private def CheckRetrieveAndHandleUser(loginInfo: LoginInfo, request: Request[AnyContent],
+    formData: UserLoginDto): Future[Result] = {
     userService.retrieve(loginInfo).flatMap {
       case None => Future(BadRequest(Json.toJson(JsonErrorResponse("No Matching Record Found"))))
       case Some(user) => HandleUserLogin(request, formData, loginInfo, user)
     }
   }
 
-  private def HandleUserLogin(request: Request[AnyContent], formData: UserLoginDto, loginInfo: LoginInfo, user: User) = {
+  /**
+   * Helper to handle valid and invalid login credentials
+   * @param request supplied request
+   * @param formData supplied formData
+   * @param loginInfo supplied loginInfo
+   * @param user supplied user
+   * @return Future[Result]
+   */
+  private def HandleUserLogin(request: Request[AnyContent], formData: UserLoginDto,
+    loginInfo: LoginInfo, user: User): Future[Result] = {
     if (passwordHasher.matches(
       user.profiles.find(p => p.loginInfo == loginInfo).get.passwordInfo.get, formData.password)) { //user is authenticated
       embedToken(loginInfo, request, user)
@@ -96,6 +130,12 @@ class AuthController @Inject() (
     }
   }
 
+  /**
+   * Helper to handle the JWT token creation and embed in response
+   * @param formData supplied formData
+   * @param request supplied request
+   * @return Future[Result]
+   */
   private def handleTokenAuth(formData: UserRegisterDto, request: Request[AnyContent]): Future[Result] = {
     val loginInfo = LoginInfo(CredentialsProvider.ID, formData.email)
     userService.retrieve(loginInfo).flatMap {
@@ -117,6 +157,13 @@ class AuthController @Inject() (
     }
   }
 
+  /**
+   * Helper to embed the token in the response
+   * @param loginInfo supplied loginInfo
+   * @param request loginInfo request
+   * @param user loginInfo user
+   * @return Future[Result]
+   */
   private def embedToken(loginInfo: LoginInfo, request: Request[AnyContent], user: User): Future[Result] = {
     silhouette.env.authenticatorService.create(loginInfo)(request).flatMap { authenticator =>
       silhouette.env.eventBus.publish(LoginEvent(user, request))

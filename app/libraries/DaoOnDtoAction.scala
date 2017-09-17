@@ -25,8 +25,21 @@ import play.api.mvc.{ Results, Result }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * DaoOnDtoAction is a helper class to apply common functions between related Daos and Dtos.
+ * @param ex
+ */
 class DaoOnDtoAction @Inject() (implicit ex: ExecutionContext) {
 
+  /**
+   * Save a Dto using a supplied Dao.
+   * @param dao injected model
+   * @param dto injected data object
+   * @param ex injected execution context to execute futures
+   * @param jsf injected json formatter
+   * @tparam T generic type for constraint
+   * @return a future result
+   */
   def saveDto[T <: Dto](dao: Dao[T], dto: T)(implicit ex: ExecutionContext, jsf: OFormat[T]): Future[Result] = {
     dao.save(dto) flatMap {
       case Some(saveResponse) => Future(Results.Ok(Json.toJson(saveResponse)))
@@ -34,12 +47,28 @@ class DaoOnDtoAction @Inject() (implicit ex: ExecutionContext) {
     }
   }
 
+  /**
+   * Update a Dto using a supplied Dao.
+   * @param dao injected model
+   * @param dto injected data object
+   * @param jsf injected json formatter
+   * @tparam T generic type for constraint
+   * @return a future result
+   */
   def updateDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
     dao.update(dto) flatMap {
       updateResponse => Future(Results.Ok(Json.toJson(updateResponse.get)))
     }
   }
 
+  /**
+   * Determine whether to save or update a supplied Dto
+   * @param dao injected model
+   * @param dto injected data object
+   * @param jsf injected json formatter
+   * @tparam T generic type for constraint
+   * @return a future result
+   */
   def validateAndSaveDto[T <: Dto](dao: Dao[T], dto: T)(implicit jsf: OFormat[T]): Future[Result] = {
     //check if exists
     if (dto.id.isDefined) {

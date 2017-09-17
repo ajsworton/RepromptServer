@@ -24,6 +24,14 @@ import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
+/**
+ * ContentPackage data object
+ * @param id database value
+ * @param folderId database value
+ * @param ownerId database value
+ * @param name database value
+ * @param content database value
+ */
 case class ContentPackageDto(
   id: Option[Int],
   folderId: Int,
@@ -32,6 +40,9 @@ case class ContentPackageDto(
   content: Option[List[ContentItemDto]] = None
 ) extends Dto
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ContentPackageDto {
 
   def construct(id: Option[Int], folderId: Int, ownerId: Int, name: String) =
@@ -43,6 +54,10 @@ object ContentPackageDto {
       ) => Some(id, folderId, ownerId, name)
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[ContentPackageDto] = Form(
     mapping(
       "id" -> optional(number),
@@ -52,6 +67,10 @@ object ContentPackageDto {
     )(ContentPackageDto.construct)(ContentPackageDto.deconstruct)
   )
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class PackageTable(tag: Tag) extends Table[ContentPackageDto](tag, "content_packages") {
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
@@ -64,6 +83,9 @@ object ContentPackageDto {
       ((ContentPackageDto.construct _).tupled, ContentPackageDto.deconstruct)
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getContentResult = GetResult(r =>
     ContentPackageDto(
       Some(r.nextInt),
@@ -74,6 +96,9 @@ object ContentPackageDto {
     )
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getOptionContentResult = GetResult(r =>
     Some(ContentPackageDto(
       Some(r.nextInt),
@@ -84,6 +109,9 @@ object ContentPackageDto {
     ))
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[ContentPackageDto]
 }
 

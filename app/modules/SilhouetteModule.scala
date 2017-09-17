@@ -58,7 +58,6 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     bind[Silhouette[JWTEnv]].to[SilhouetteProvider[JWTEnv]]
     bind[AuthTokenDao].to[AuthTokenDaoImpl]
     bind[AuthTokenService].to[AuthTokenServiceImpl]
-    //bind[UnsecuredErrorHandler].to[CustomUnsecuredErrorHandler]
     bind[SecuredErrorHandler].to[ApiSecuredErrorHandler]
     bind[UserService].to[UserServiceImpl]
     bind[IDGenerator].toInstance(new SecureRandomIDGenerator())

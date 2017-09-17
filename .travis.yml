@@ -21,7 +21,7 @@ before_script:
 deploy:
   provider: heroku
   api_key:
-    secure: rZ5dFH6QiumMKeQKNnKljdcLqU0Bd9NAWTFBjujX7FcMhZa40pd1v2ERhjBT5SgW/cw9sGnYxSl3k+WakdFn8SfMhV8s2+HXuHpsLuAMm/jMxmFXl7MsMSacZ4cUKdwVyXqcyuGwFvne2jfB0ndIW2eAycHNyv8BiHvF57dedU7G4u41vo40jbyT47rOYH8kKT5hdjt/kzXX5vk/R1T2j+dqZzNuArhGD40oJtrN6YQzEK0f2SCL7mX1eE4rMOES7/zl+Na6xBmUBIaFykElWQUYbZAfORkZ7UEntVdfxsN8dsT4hH87IqAesn81DJQEnP81Mt16K6vM3LBKvJoKbkMEgnC9VGr9P9hU1L4FWNvkg8bCooxTQmef/alNb9J5rpl458HOeb7L64eD9tTHNBxiiViaw0++yZC/xIoiASB34ObPtY2BIhXmdEqdQnI08OKivAs9Rhy5FkahuY/H//7n4ZmUGuGX0AdVKzH6hTrpevaGCq6cKMMW+tDUOZKm6YO1OtR3JIMQgyvGM3raWenYWC7bSThCkz4H1aJtU8s7zdFlXsoBG2JfpoOj+fuM0FGwP/GltyRfkwILGhbtincBBTeIgRCqAk824A5p7BIS+7cnG8UsBTqCXfbSP1nYTU1Nm7pQ/kKuwxBh38H/pcJCzUsI4QGkMFkmQj1S5/Q=
+    secure: <removed>
   app: repromptserver
   on:
     repo: aworton/RepromptServer

@@ -22,7 +22,7 @@ import play.api.data.Forms._
 import play.api.libs.json.Json
 
 /**
- *
+ * User security restricted field data object
  * @param id                 The user's Id
  * @param firstName          The user's first name
  * @param surName            The user's last name
@@ -44,6 +44,9 @@ case class UserDto(
   avatarUrl: Option[String]
 )
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object UserDto {
 
   def apply(user: User): UserDto = {
@@ -59,6 +62,10 @@ object UserDto {
       user.avatarUrl)
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[UserDto] = Form(
     mapping(
       "id" -> optional(number),
@@ -73,6 +80,9 @@ object UserDto {
     )(UserDto.apply)(UserDto.unapply)
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[UserDto]
 }
 

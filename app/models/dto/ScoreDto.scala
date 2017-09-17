@@ -37,8 +37,14 @@ case class ScoreDto(
   repromptDate: Option[LocalDate] = None
 )
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ScoreDto {
 
+  /**
+   * implcit date converter
+   */
   implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
     l => Date.valueOf(l.toString),
     d => d.toLocalDate
@@ -66,6 +72,10 @@ object ScoreDto {
       scoreDate, streak, repromptDate)
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[ScoreDto] = Form(
     mapping(
       "userId" -> optional(number),
@@ -77,6 +87,10 @@ object ScoreDto {
     )(ScoreDto.formConstruct)(ScoreDto.formDeconstruct)
   )
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class ScoreTable(tag: Tag) extends Table[ScoreDto](tag, "content_scores") {
 
     def userId: lifted.Rep[Option[Int]] = column[Int]("UserId", O.PrimaryKey).?
@@ -91,6 +105,9 @@ object ScoreDto {
       ((ScoreDto.construct _).tupled, ScoreDto.deconstruct)
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getScoreResult: GetResult[ScoreDto] = GetResult(r =>
     ScoreDto(
       Some(r.nextInt),
@@ -108,6 +125,9 @@ object ScoreDto {
     )
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getSomeScoreResult: GetResult[Some[ScoreDto]] = GetResult(r =>
     Some(ScoreDto(
       Some(r.nextInt),
@@ -125,5 +145,8 @@ object ScoreDto {
     ))
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer: OFormat[ScoreDto] = Json.format[ScoreDto]
 }

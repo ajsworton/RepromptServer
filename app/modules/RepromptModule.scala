@@ -41,7 +41,7 @@ import net.codingwell.scalaguice.ScalaModule
 class RepromptModule extends AbstractModule with ScalaModule {
 
   /**
-   * Configures the module.
+   * Configures the module for slick.
    */
   def configure(): Unit = {
     bind[UserDao].to[UserDaoSlick]

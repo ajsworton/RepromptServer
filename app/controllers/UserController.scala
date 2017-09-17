@@ -31,8 +31,12 @@ import com.mohiva.play.silhouette.api._
 import scala.concurrent.{ ExecutionContext, Future }
 
 /**
- * This controller creates an `Action` to handle HTTP requests to the
- * application's home page.
+ * This controller handles retrieval of userDtos.
+ * @param cc injected controller components for the extended abstract controller
+ * @param userDao injected model
+ * @param silhouette injected authentication library
+ * @param cohortDao injected model
+ * @param ec injected execution context to execute futures
  */
 @Singleton
 class UserController @Inject() (
@@ -43,11 +47,20 @@ class UserController @Inject() (
 )(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
+  /**
+   * Endpoint to retrieve all users.
+   * @return a list of all users
+   */
   def getAll: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       userDao.all().map(users => Ok(Json.toJson(users.map(u => UserDto(u)))))
   }
 
+  /**
+   * Endpoin t to retrieve a user by Id
+   * @param id the supplied id
+   * @return an individual UserDto
+   */
   def get(id: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       userDao.find(id).map(user => Ok(Json.toJson(UserDto(user.get))))

@@ -26,10 +26,22 @@ import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 import slick.model.ForeignKeyAction
 
+/**
+ * ContentAssignedPackage data object
+ * @param assignedId database value
+ * @param packageId database value
+ */
 case class ContentAssignedPackageDto(assignedId: Option[Int], packageId: Option[Int])
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ContentAssignedPackageDto {
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class ContentAssignedPackageTable(tag: Tag) extends Table[ContentAssignedPackageDto](
     tag, "content_assigned_packages") {
     def assignedId: lifted.Rep[Option[Int]] = column[Int]("AssignedId")
@@ -52,12 +64,20 @@ object ContentAssignedPackageDto {
 
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[ContentAssignedPackageDto] = Form(
     mapping(
       "assignedId" -> optional(number),
       "packageId" -> optional(number)
     )(ContentAssignedPackageDto.apply _)(ContentAssignedPackageDto.unapply)
   )
+
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[ContentAssignedPackageDto]
 }
 

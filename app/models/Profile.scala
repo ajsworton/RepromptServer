@@ -39,6 +39,9 @@ case class Profile(
   avatarUrl: Option[String] = None
 ) extends SocialProfile
 
+/**
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object Profile {
 
   implicit val getResult = GetResult(r =>
@@ -53,17 +56,6 @@ object Profile {
     )
   )
 
-//  implicit val getOptionResult = GetResult(r =>
-//    Some(Profile(
-//      Some(r.nextInt),
-//      LoginInfo(r.nextString, r.nextString),
-//      r.nextBoolean,
-//      r.nextString match {case null => None; case "" => None; case str => Some(str)},
-//      r.nextString match {case null => None; case "" => None; case str => Some(str)},
-//      r.nextString match {case null => None; case "" => None; case str => Some(str)},
-//      r.nextString match {case null => None; case "" => None; case str => Some(str)},
-//    ))
-//  )
 
   class ProfilesTable(tag: Tag) extends Table[Profile](tag, "profiles") {
 

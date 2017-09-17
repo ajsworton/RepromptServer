@@ -19,16 +19,27 @@ package models.dto
 import models.User
 import play.api.libs.json.{Json, OFormat}
 
+/**
+  * User notification data object
+  * @param firstName database value
+  * @param surName database value
+  */
 case class UserNotificationDto(
   firstName: String,
   surName: String,
 )
 
+/**
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object UserNotificationDto {
 
   def apply(user: User): UserNotificationDto = {
     UserNotificationDto(user.firstName, s"${user.surName.substring(0,1)}.")
   }
 
+  /**
+    * implicit json conversion formatter
+    */
   implicit val serializer: OFormat[UserNotificationDto] = Json.format[UserNotificationDto]
 }

@@ -32,14 +32,20 @@ import responses.JsonErrorResponse
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * This controller handles package and content item requests.
+ * @param cc injected controller components for the extended abstract controller
+ * @param silhouette injected authentication library
+ * @param publishDao injected model
+ * @param itemDao injected model
+ * @param ec ec injected execution context to execute futures
+ */
 @Singleton
 class PublishedController @Inject() (
-  messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   publishDao: ContentAssignedDao,
-  itemDao: ContentItemDao,
-  environment: Environment)(implicit ec: ExecutionContext)
+  itemDao: ContentItemDao)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
   def get(id: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {

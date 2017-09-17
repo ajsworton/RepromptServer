@@ -34,17 +34,22 @@ import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponen
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * This controller handles published exam data.
+ * @param cc injected controller components for the extended abstract controller
+ * @param silhouette injected authentication library
+ * @param studyDao injected model
+ * @param ec injected execution context to execute futures
+ */
 @Singleton
 class StudyController @Inject() (
-  messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
-  studyDao: StudyDao,
-  environment: Environment)(implicit ec: ExecutionContext)
+  studyDao: StudyDao)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
   /**
-   * Get all content items for the current student
+   * Endpoint to get all content items for the current student.
    * @return ContentItems as Json
    */
   def getContentItems: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
@@ -52,7 +57,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Save a provided score by POST
+   * Endpoint to save a provided score by POST.
    * @return ScoreDto as JSON
    */
   def saveStudyScore: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
@@ -78,7 +83,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Get all the current user's assigned content including status
+   * Endpoint to get all the current user's assigned content including status.
    * @return List[ContentAssignedDto] as JSON
    */
   def getContentAssignedStatus: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
@@ -92,7 +97,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * disable a content item for the currently logged in user by assigned content id
+   * Endpoint to disable a content item for the currently logged in user by assigned content id.
    * @param assignedId the supplied assigned content id
    * @return an Integer to indicate number of rows affected
    */
@@ -106,7 +111,7 @@ class StudyController @Inject() (
     }
 
   /**
-   * A helper function to apply content disablement and return result
+   * A helper function to apply content disablement and return result.
    * @param assignedId the assigned content id
    * @param id the user Id
    * @return a future result
@@ -118,7 +123,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Enable a content item for the currently logged in student
+   * Endpoint to enable a content item for the currently logged in student.
    * @param assignedId the supplied assigned content id
    * @return an Integer to indicate number of rows affected
    */
@@ -131,7 +136,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Get historical score data for the current user aggregated by examination
+   * Endpoint to get historical score data for the current user aggregated by examination.
    * @return a list of exam aggregated historical performance data as JSON
    */
   def getHistoricalPerformanceByExam: Action[AnyContent] = silhouette.SecuredAction(AuthStudent).async {
@@ -143,7 +148,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Helper function to retrieve and return historical data
+   * Helper function to retrieve and return historical data.
    * @param id the supplied user id
    * @return a future result
    */
@@ -154,7 +159,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Helper function to enable an assigned content item and return a result
+   * Helper function to enable an assigned content item and return a result.
    * @param assignedId the supplied assigned content it
    * @param id the user id
    * @return a future result
@@ -166,7 +171,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Helper function to validate score data for persistence to backing store
+   * Helper function to validate score data for persistence to backing store.
    * @param scoreData the score data to persist
    * @return a future result
    */
@@ -183,7 +188,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Helper function to persist score data to backing store and handle response
+   * Helper function to persist score data to backing store and handle response.
    * @param scoreData the supplied score data
    * @return a future result
    */
@@ -195,7 +200,7 @@ class StudyController @Inject() (
   }
 
   /**
-   * Helper function to perform retrieval of study items
+   * Helper function to perform retrieval of study items.
    * @param id the user id
    * @return a future result
    */

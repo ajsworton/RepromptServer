@@ -16,12 +16,14 @@
 
 package responses
 
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
+/**
+ * Helper wrapper to convert an error message into json.
+ * @param error the supplied error
+ */
 case class JsonErrorResponse(error: String = "Unknown Error")
 
 object JsonErrorResponse {
-
-  implicit val JsonErrorResponseFormat = Json.format[JsonErrorResponse]
-
+  implicit val JsonErrorResponseFormat: OFormat[JsonErrorResponse] = Json.format[JsonErrorResponse]
 }

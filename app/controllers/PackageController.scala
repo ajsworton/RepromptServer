@@ -36,19 +36,31 @@ import responses.JsonErrorResponse
 
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
+/**
+ * This controller handles package requests.
+ * @param cc injected controller components for the extended abstract controller
+ * @param silhouette injected authentication library
+ * @param packageDao injected model
+ * @param itemDao injected model
+ * @param fileHelper injected helper
+ * @param daoHelper injected helper
+ * @param ec injected execution context to execute futures
+ */
 @Singleton
 class PackageController @Inject() (
-  messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   packageDao: ContentPackageDao,
   itemDao: ContentItemDao,
   fileHelper: FileHelper,
-  environment: Environment)(implicit ec: ExecutionContext)
+  daoHelper: DaoOnDtoAction)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
-  val daoHelper = new DaoOnDtoAction
-
+  /**
+   * Endpoint to retrieve a package by Id.
+   * @param packageId the supplied id
+   * @return an optional package
+   */
   def getPackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       packageDao.find(packageId) flatMap {
@@ -56,6 +68,10 @@ class PackageController @Inject() (
       }
   }
 
+  /**
+   * Endpoint to retrieve all packages associated with the current user.
+   * @return a list of packages
+   */
   def getAllByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       val user = request.identity
@@ -65,6 +81,10 @@ class PackageController @Inject() (
       }
   }
 
+  /**
+   * Endpoint to save a supplied package via POST.
+   * @return the package including Id
+   */
   def savePackage: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentPackageDto.form.bindFromRequest.fold(
@@ -73,6 +93,11 @@ class PackageController @Inject() (
       )
   }
 
+  /**
+   * Endpoint to delete a package by supplied Id.
+   * @param packageId the supplied Id
+   * @return a number representing the number of affected rows
+   */
   def deletePackage(packageId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       if (packageId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
@@ -86,6 +111,11 @@ class PackageController @Inject() (
       }
   }
 
+  /**
+   * Endpoint to get a content item by Id.
+   * @param itemId supplied id
+   * @return an optional item
+   */
   def getItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       if (itemId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
@@ -96,6 +126,10 @@ class PackageController @Inject() (
       }
   }
 
+  /**
+   * Endpoint to save a supplied content item.
+   * @return the saved item with id
+   */
   def saveItem: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       ContentItemDto.form.bindFromRequest.fold(
@@ -109,6 +143,11 @@ class PackageController @Inject() (
       )
   }
 
+  /**
+   * Endpoint to delete an item by id.
+   * @param itemId the supplied id
+   * @return a number representing the number of affected rows
+   */
   def deleteItem(itemId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       if (itemId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
@@ -121,12 +160,22 @@ class PackageController @Inject() (
       }
   }
 
+  /**
+   * Helper to delete a content item by id.
+   * @param itemId the supplied id
+   * @return a number representing the number of affected rows
+   */
   private def deleteContentItemById(itemId: Int): Future[Result] = {
     itemDao.delete(itemId) flatMap {
       r => Future(Ok(Json.toJson(r)))
     }
   }
 
+  /**
+   * Endpoint to retrieve a question by Id.
+   * @param questionId the supplied id
+   * @return an optional question
+   */
   def getQuestion(questionId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       if (questionId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
@@ -137,6 +186,10 @@ class PackageController @Inject() (
       }
   }
 
+  /**
+   * Endpoint to save a supplied question.
+   * @return the saved question with id
+   */
   def saveQuestion: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       QuestionDto.form.bindFromRequest.fold(
@@ -148,6 +201,11 @@ class PackageController @Inject() (
       )
   }
 
+  /**
+   * Endpoint to delete a question by id.
+   * @param questionId the supplied id
+   * @return
+   */
   def deleteQuestion(questionId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       if (questionId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
@@ -157,6 +215,11 @@ class PackageController @Inject() (
       }
   }
 
+  /**
+   * Endpoint to delete an answer by id.
+   * @param answerId the supplied id
+   * @return a number representing the number of affected rows
+   */
   def deleteAnswer(answerId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
       if (answerId < 1) { Future(BadRequest(Json.toJson("Invalid Id"))) } else {
@@ -166,6 +229,11 @@ class PackageController @Inject() (
       }
   }
 
+  /**
+   * Helper to save a supplied question.
+   * @param data the supplied question
+   * @return a future result
+   */
   private def saveQuestionData(data: QuestionDto): Future[Result] = {
     val qResponse = itemDao.saveQuestion(data)
     if (data.answers.isEmpty) {
@@ -196,6 +264,11 @@ class PackageController @Inject() (
     }
   }
 
+  /**
+   * Helper to update a question.
+   * @param data the supplied question
+   * @return a future result
+   */
   private def updateQuestionData(data: QuestionDto): Future[Result] = {
     val qResponse = itemDao.updateQuestion(data)
     if (data.answers.isEmpty) {
@@ -228,6 +301,13 @@ class PackageController @Inject() (
 
   }
 
+  /**
+   * Helper to save a content item with an uploaded file.
+   * @param contentItem the supplied item
+   * @param uploadedFiles the supplied file
+   * @param userId the supplied userId
+   * @return a future result
+   */
   private def SaveDataWithFile(
     contentItem: ContentItemDto,
     uploadedFiles: Option[MultipartFormData[Files.TemporaryFile]],
@@ -253,11 +333,25 @@ class PackageController @Inject() (
     }
   }
 
-  private def writeBackImageUrl(item: ContentItemDto, newUrl: Option[String], itemId: Int) = {
+  /**
+   * Helper to write the url of a saved image back to the associated content item.
+   * @param item the supplied item
+   * @param newUrl the supplied newUrl
+   * @param itemId the supplied item id
+   * @return a future result
+   */
+  private def writeBackImageUrl(item: ContentItemDto, newUrl: Option[String], itemId: Int): Future[Result] = {
     val newData = item.copy(id = Some(itemId), imageUrl = newUrl)
     daoHelper.validateAndSaveDto[ContentItemDto](itemDao, newData)
   }
 
+  /**
+   * Helper to store an uploaded image.
+   * @param uploadedFiles the uploaded image file
+   * @param userId the supplied user id
+   * @param item the associated item
+   * @return a future result
+   */
   private def storeImage(uploadedFiles: MultipartFormData[Files.TemporaryFile], userId: Int,
     item: ContentItemDto): Option[String] = {
     //remove existing images

@@ -21,13 +21,22 @@ import slick.jdbc.GetResult
 
 case class ExamHistoryDto(name: String, series: List[ExamHistoricalPoint] = Nil)
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ExamHistoryDto {
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getExamHistoryDtoResult: GetResult[ExamHistoryDto] = GetResult(r =>
     ExamHistoryDto(
       r.nextString
     )
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer: OFormat[ExamHistoryDto] = Json.format[ExamHistoryDto]
 }

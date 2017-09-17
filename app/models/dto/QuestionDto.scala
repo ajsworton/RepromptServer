@@ -24,6 +24,14 @@ import slick.jdbc.MySQLProfile.api._
 import slick.lifted
 import slick.lifted.{ PrimaryKey, ProvenShape }
 
+/**
+ * Question data object
+ * @param id database value
+ * @param question database value
+ * @param format database value
+ * @param itemId database value
+ * @param answers database value
+ */
 case class QuestionDto(
   id: Option[Int],
   question: String,
@@ -32,6 +40,9 @@ case class QuestionDto(
   answers: Option[List[AnswerDto]] = None
 ) extends Dto
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object QuestionDto {
 
   def construct(id: Option[Int], question: String, format: String, itemId: Int) =
@@ -43,6 +54,10 @@ object QuestionDto {
       ) => Some(id, question, format, itemId)
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[QuestionDto] = Form(
     mapping(
       "id" -> optional(number),
@@ -59,6 +74,10 @@ object QuestionDto {
     )(QuestionDto.apply)(QuestionDto.unapply)
   )
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class QuestionsTable(tag: Tag) extends Table[QuestionDto](tag, "content_assessment_questions") {
 
     def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
@@ -71,6 +90,9 @@ object QuestionDto {
       ((QuestionDto.construct _).tupled, QuestionDto.deconstruct)
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getQuestionResult = GetResult(r =>
     QuestionDto(
       Some(r.nextInt),
@@ -81,6 +103,9 @@ object QuestionDto {
     )
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getSomeQuestionResult = GetResult(r =>
     Some(QuestionDto(
       Some(r.nextInt),
@@ -91,5 +116,8 @@ object QuestionDto {
     ))
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val QuestionDtoFormat = Json.format[QuestionDto]
 }

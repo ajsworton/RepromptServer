@@ -38,6 +38,9 @@ case class ContentAssignedDto(
   packages: Option[List[ContentPackageDto]] = None
 ) extends Dto
 
+/**
+ * Companion Object for to hold boiler plate for forms, json conversion, slick
+ */
 object ContentAssignedDto {
 
   implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
@@ -62,6 +65,10 @@ object ContentAssignedDto {
       ownerId: Option[Int], enabled: Boolean, cohorts: Option[List[CohortDto]], packages: Option[List[ContentPackageDto]]) => Some(id, name, examDate, active, ownerId, Some(enabled), cohorts, packages)
   }
 
+  /**
+   * Form definition for data type to bindFromRequest when receiving data
+   * @return a form for the dat object
+   */
   def form: Form[ContentAssignedDto] = Form(
     mapping(
       "id" -> optional(number),
@@ -85,6 +92,10 @@ object ContentAssignedDto {
     )(ContentAssignedDto.formConstruct)(ContentAssignedDto.formDeconstruct)
   )
 
+  /**
+   * Table definition for database mapping via slick
+   * @param tag identifies a specific row
+   */
   class ContentAssignedTable(tag: Tag) extends Table[ContentAssignedDto](tag, "content_assigned") {
 
     def id: lifted.Rep[Option[Int]] = column[Option[Int]]("Id", O.PrimaryKey, O.AutoInc)
@@ -98,6 +109,9 @@ object ContentAssignedDto {
       ((ContentAssignedDto.construct _).tupled, ContentAssignedDto.deconstruct)
   }
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getCAResult = GetResult(r =>
     ContentAssignedDto(
       Some(r.nextInt),
@@ -109,6 +123,9 @@ object ContentAssignedDto {
     )
   )
 
+  /**
+   * implicit converter to coerce direct sql query into data object
+   */
   implicit val getSomeCAResult = GetResult(r =>
     Some(ContentAssignedDto(
       Some(r.nextInt),
@@ -120,5 +137,8 @@ object ContentAssignedDto {
     ))
   )
 
+  /**
+   * implicit json conversion formatter
+   */
   implicit val serializer = Json.format[ContentAssignedDto]
 }

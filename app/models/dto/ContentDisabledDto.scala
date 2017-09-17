@@ -26,8 +26,15 @@ case class ContentDisabledDto(
                                UserId: Int
                              )
 
+/**
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object ContentDisabledDto {
 
+  /**
+    * Table definition for database mapping via slick
+    * @param tag identifies a specific row
+    */
   class ContentDisabledTable(tag: Tag) extends Table[ContentDisabledDto](tag, "content_disabled") {
 
     def assignedId: lifted.Rep[Int] = column[Int]("ContentAssignedId", O.PrimaryKey)
@@ -38,6 +45,9 @@ object ContentDisabledDto {
       ((ContentDisabledDto.apply _).tupled, ContentDisabledDto.unapply)
   }
 
+  /**
+    * implicit converter to coerce direct sql query into data object
+    */
   implicit val getContentDisabledResult = GetResult(r =>
     ContentDisabledDto(
       r.nextInt,
@@ -45,6 +55,9 @@ object ContentDisabledDto {
     )
   )
 
+  /**
+    * implicit converter to coerce direct sql query into data object
+    */
   implicit val getOptionContentDisabledResult = GetResult(r =>
     Some(ContentDisabledDto(
       r.nextInt,

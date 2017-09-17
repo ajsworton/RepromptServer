@@ -35,16 +35,35 @@ import scala.concurrent.ExecutionContext
 class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws: WSClient,
   environment: Environment)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
+  /**
+   * Endpoint to serve the Angular index
+   * @return the angular index html file
+   */
   def index = {
     assets.at(path = "/public/", "index.html")
   }
 
+  /**
+   * Endpoint to serve the Angular index when an int parameter is supplied
+   * @param id
+   * @return JSON
+   */
   def indexParam(id: Int) = {
     index()
   }
 
+  /**
+   * Endpoint to serve the Angular index for webpack bundled packages
+   * @param file the remaining uri
+   * @return JSON
+   */
   def angular(file: String) = assets.at(path = "/public/", file)
 
+  /**
+   * Endpoint to return file media previously uploaded
+   * @param file the requested file
+   * @return JSON
+   */
   def media(file: String) = Action {
     try {
       Ok.sendFile(

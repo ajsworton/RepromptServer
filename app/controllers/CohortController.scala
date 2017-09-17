@@ -33,19 +33,24 @@ import responses.JsonErrorResponse
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * This controller handles authentication requests.
+ * @param cc injected controller components for the extended abstract controller
+ * @param silhouette injected authentication library
+ * @param cohortDao injected model
+ * @param ec injected execution context to execute futures
+ */
 @Singleton
 class CohortController @Inject() (
-  messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
-  cohortDao: CohortDao,
-  environment: Environment)(implicit ec: ExecutionContext)
+  cohortDao: CohortDao)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
   val daoHelper = new DaoOnDtoAction
 
   /**
-   * Get all cohortDtos by supplied ownerId
+   * Endpoint to Get all cohortDtos by supplied ownerId.
    * @param ownerId the supplied id
    * @return the matching CohortDto
    */
@@ -58,7 +63,7 @@ class CohortController @Inject() (
   }
 
   /**
-   * Get a specific CohortDto by id
+   * Endpoint to Get a specific CohortDto by id.
    * @param cohortId the supplied id
    * @return the matching CohortDto
    */
@@ -71,7 +76,7 @@ class CohortController @Inject() (
   }
 
   /**
-   * Get all cohorts owned byh current user
+   * Endpoint to Get all cohorts owned by current user.
    * @return List[CohortDto]
    */
   def getAllByCurrentUser: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
@@ -84,7 +89,7 @@ class CohortController @Inject() (
   }
 
   /**
-   * Save a cohortDto supplied by POST
+   * Endpoint to Save a cohortDto supplied by POST.
    * @return saved CohortDto
    */
   def save: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
@@ -108,9 +113,9 @@ class CohortController @Inject() (
   }
 
   /**
-   *
-   * @param cohortId
-   * @return
+   * Endpoint to delete a cohort by id.
+   * @param cohortId supplied cohort Id
+   * @return a number representing the number of affected rows.
    */
   def delete(cohortId: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
@@ -121,8 +126,8 @@ class CohortController @Inject() (
   }
 
   /**
-   * attach a user and cohort
-   * @return an integer representing the number of affected rows
+   * Endpoint to attach a user and cohort.
+   * @return a number representing the number of affected rows.
    */
   def attach: Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
@@ -140,10 +145,10 @@ class CohortController @Inject() (
   }
 
   /**
-   * detach a user from a cohort
+   * Endpoint to detach a user from a cohort
    * @param cohortId the cohort identifier
    * @param userId the user identifier
-   * @return an integer representing the number of affected rows
+   * @return a number representing the number of affected rows.
    */
   def detach(cohortId: Int, userId: Int): Action[AnyContent] =
     silhouette.SecuredAction(AuthEducator).async {

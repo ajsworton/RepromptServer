@@ -30,17 +30,29 @@ import play.api.mvc.{ AbstractController, Action, AnyContent, ControllerComponen
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+/**
+ * This controller handles cron or scheduled actions (housekeeping, notifications)
+ * @param cc injected controller components for the extended abstract controller
+ * @param silhouette injected authentication library
+ * @param studyDao injected model for study data to retrieve users pending exposure
+ * @param notifier injected notification service
+ * @param configuration injected config to retrieve shared pass phrase
+ * @param ec injected execution context to execute futures
+ */
 @Singleton
 class CronController @Inject() (
-  messagesAction: MessagesActionBuilder,
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   studyDao: StudyDao,
   notifier: MailerService,
-  configuration: Configuration,
-  environment: Environment)(implicit ec: ExecutionContext)
+  configuration: Configuration)(implicit ec: ExecutionContext)
   extends AbstractController(cc) with I18nSupport {
 
+  /**
+   * Passphrase secured endpoint to execute the notifications system
+   * @param keyphrase the shared key for access
+   * @return list of notified students
+   */
   def executeRepromptNotification(keyphrase: String): Action[AnyContent] =
     silhouette.UnsecuredAction.async { implicit request: Request[AnyContent] =>
       val phrase = configuration.underlying.getString("notification.sharedPhrase")
@@ -50,6 +62,10 @@ class CronController @Inject() (
       }
     }
 
+  /**
+   * Helper to action the notification sequence
+   * @return a future result
+   */
   private def runNotifications(): Future[Result] = {
     studyDao.getStudentsWithPendingContent flatMap { students =>
       {

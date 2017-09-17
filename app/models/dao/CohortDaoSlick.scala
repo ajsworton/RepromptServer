@@ -35,10 +35,6 @@ class CohortDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigPr
   private val Cohorts = TableQuery[CohortsTable]
   private val CohortsMembers = TableQuery[CohortsMembersTable]
 
-  //  override def find(cohortId: Int): Future[Option[CohortDto]] = {
-  //    db.run(Cohorts.filter(_.id === cohortId).result.headOption)
-  //  }
-
   def findCohortQuery(cohortId: Int) =
     sql"""
           SELECT cohorts.Id, cohorts.ParentId, cohorts.OwnerId, cohorts.Name,
