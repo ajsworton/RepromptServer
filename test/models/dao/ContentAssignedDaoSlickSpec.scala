@@ -17,16 +17,15 @@
 package models.dao
 
 import java.time.LocalDate
-import java.util.TimeZone
 
-import libs.{ AppFactory, TestingDbQueries }
+import libs.{DatabaseSupport, TestingDbQueries}
 import models.dto.ContentAssignedDto
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 
-class ContentAssignedDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with AppFactory {
+class ContentAssignedDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
-  val service: ContentAssignedDao = fakeApplication().injector.instanceOf[ContentAssignedDaoSlick]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val service: ContentAssignedDao = app.injector.instanceOf[ContentAssignedDaoSlick]
+  val database: TestingDbQueries = app.injector.instanceOf[TestingDbQueries]
   val examDate: LocalDate = LocalDate.now().plusMonths(2)
   val name = "ContentName"
 
@@ -51,7 +50,7 @@ class ContentAssignedDaoSlickSpec extends AsyncFunSpec with Matchers with Before
         saved <- service.save(mockContent)
         retrieved <- service.find(saved.get.id.get)
         _ <- service.delete(saved.get.id.get)
-        assertion = {
+        assertion <- {
           retrieved.isDefined should be(true)
           retrieved.get.examDate should be(examDate)
         }
@@ -128,7 +127,7 @@ class ContentAssignedDaoSlickSpec extends AsyncFunSpec with Matchers with Before
         after <- database.getAssignedCohort(assignedId, cohortId)
         assertion = {
           before should be(Some(assignedId, cohortId))
-          saved should be(Left("Duplicate entry '7072-7071' for key 'PRIMARY'"))
+          saved.left.toOption.get should include("Key (assigned_id, cohort_id)=(7072, 7071) already exists.")
           after should be(Some(assignedId, cohortId))
         }
       } yield assertion
@@ -218,7 +217,7 @@ class ContentAssignedDaoSlickSpec extends AsyncFunSpec with Matchers with Before
         after <- database.getAssignedPackage(assignedId, packageId)
         assertion = {
           before should be(Some(assignedId, packageId))
-          saved should be(Left("Duplicate entry '7072-7071' for key 'PRIMARY'"))
+          saved.left.toOption.get should include("Key (assigned_id, package_id)=(7072, 7071) already exists.")
           after should be(Some(assignedId, packageId))
         }
       } yield assertion

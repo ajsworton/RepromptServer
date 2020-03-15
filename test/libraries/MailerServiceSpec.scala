@@ -16,25 +16,25 @@
 
 package libraries
 
-import libs.AppFactory
+
 import models.User
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.mockito.Mockito._
 import org.mockito.Matchers.any
 import org.mockito.invocation.InvocationOnMock
 import org.scalatest.{FunSpec, Matchers}
 import play.api.Configuration
 import play.api.libs.mailer.{Email, MailerClient}
+import libs.DatabaseSupport
 
 
-
-class MailerServiceSpec extends FunSpec with Matchers with MockitoSugar with AppFactory {
+class MailerServiceSpec extends FunSpec with Matchers with MockitoSugar with DatabaseSupport {
 
   val mockMailerClient: MailerClient = mock[MailerClient]
-  val config: Configuration = fakeApplication().injector.instanceOf[Configuration]
+  val config: Configuration = app.injector.instanceOf[Configuration]
 
   val mailerService = new MailerService(mockMailerClient, config)
-  val user = User(firstName= "Andy", surName = "Baloo", email = "a.baloo@reprompt.com")
+  val user = User(firstName= "Andy", surname = "Baloo", email = "a.baloo@reprompt.com")
   var data = Email(
     subject = "Reprompt Notification - Time to Study",
     from = mailerService.fromAddress,

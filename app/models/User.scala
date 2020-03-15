@@ -16,124 +16,139 @@
 
 package models
 
-import java.sql.{ Date, Timestamp }
-import java.time.{ LocalDate, LocalDateTime }
+import java.sql.{Date, Timestamp}
+import java.time.{LocalDate, LocalDateTime}
 
-import com.mohiva.play.silhouette.api.{ Identity, LoginInfo }
-import models.dto.{ Dto, ScoreDto }
-import slick.jdbc.GetResult
-import slick.jdbc.MySQLProfile.api._
+import com.mohiva.play.silhouette.api.{Identity, LoginInfo}
+import models.dto.Dto
+import slick.jdbc.PostgresProfile.api._
+import slick.jdbc.{GetResult, JdbcType}
 import slick.lifted
 import slick.lifted.ProvenShape
 
 /**
- * User data object
- * @param id database value
- * @param firstName database value
- * @param surName database value
- * @param email database value
- * @param isEmailVerified database value
- * @param isEducator database value
- * @param isAdministrator database value
- * @param avatarUrl database value
- * @param profiles database value
- */
+  * User data object
+  * @param id database value
+  * @param firstName database value
+  * @param surname database value
+  * @param email database value
+  * @param isEmailVerified database value
+  * @param isEducator database value
+  * @param isAdministrator database value
+  * @param avatarUrl database value
+  * @param profiles database value
+  */
 case class User(
-  id: Option[Int] = None,
-  firstName: String,
-  surName: String,
-  email: String,
-  isEmailVerified: Boolean = false,
-  isEducator: Boolean = false,
-  isAdministrator: Boolean = false,
-  avatarUrl: Option[String] = None,
-  profiles: List[Profile] = Nil
-) extends Identity with Dto {
+    id: Option[Int] = None,
+    firstName: String,
+    surname: String,
+    email: String,
+    isEmailVerified: Boolean = false,
+    isEducator: Boolean = false,
+    isAdministrator: Boolean = false,
+    avatarUrl: Option[String] = None,
+    profiles: List[Profile] = Nil
+) extends Identity
+    with Dto {
   def profileFor(loginInfo: LoginInfo): Option[Profile] = profiles.find(_.loginInfo == loginInfo)
 }
 
 /**
- * Companion Object for to hold boiler plate for forms, json conversion, slick
- */
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object User {
 
-  def apply(profile: Profile) = {
+  def apply(profile: Profile): User =
     new User(
       profiles = List(profile),
       firstName = profile.firstName.getOrElse(""),
-      surName = profile.lastName.getOrElse(""),
+      surname = profile.lastName.getOrElse(""),
       email = profile.email.getOrElse(""),
       avatarUrl = if (profile.avatarUrl.isDefined) profile.avatarUrl else None
     )
-  }
 
-  implicit val getResult = GetResult(r =>
-    User(
-      Some(r.nextInt),
-      r.nextString,
-      r.nextString,
-      r.nextString,
-      r.nextBoolean,
-      r.nextBoolean,
-      r.nextBoolean,
-      r.nextString match { case null => None; case str => Some(str) },
-      Nil
-    )
-  )
-
-  implicit val getOptionResult = GetResult(r =>
-    Some(User(
-      Some(r.nextInt),
-      r.nextString,
-      r.nextString,
-      r.nextString,
-      r.nextBoolean,
-      r.nextBoolean,
-      r.nextBoolean,
-      r.nextString match { case null => None; case str => Some(str) },
-      Nil
+  implicit val getResult: GetResult[User] = GetResult(
+    r =>
+      User(
+        Some(r.nextInt),
+        r.nextString,
+        r.nextString,
+        r.nextString,
+        r.nextBoolean,
+        r.nextBoolean,
+        r.nextBoolean,
+        r.nextString match { case null => None; case str => Some(str) },
+        Nil
     ))
-  )
+
+  implicit val getOptionResult: GetResult[Some[User]] = GetResult(
+    r =>
+      Some(
+        User(
+          Some(r.nextInt),
+          r.nextString,
+          r.nextString,
+          r.nextString,
+          r.nextBoolean,
+          r.nextBoolean,
+          r.nextBoolean,
+          r.nextString match { case null => None; case str => Some(str) },
+          Nil
+        )))
 
   class UsersTable(tag: Tag) extends Table[User](tag, "users") {
-    implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
+    implicit val localDateToDate: JdbcType[LocalDate] = MappedColumnType.base[LocalDate, Date](
       l => Date.valueOf(l),
       d => d.toLocalDate
     )
 
-    implicit val localDateTimeToDateTime = MappedColumnType.base[LocalDateTime, Timestamp](
+    implicit val localDateTimeToDateTime: JdbcType[LocalDateTime] = MappedColumnType.base[LocalDateTime, Timestamp](
       l => Timestamp.valueOf(l),
       d => d.toLocalDateTime
     )
 
-    def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc).?
-    def firstName: lifted.Rep[String] = column[String]("FirstName")
-    def surName: lifted.Rep[String] = column[String]("surName")
-    def email: lifted.Rep[String] = column[String]("Email")
-    def isEmailVerified: lifted.Rep[Boolean] = column[Boolean]("IsEmailVerified")
-    def isEducator: lifted.Rep[Boolean] = column[Boolean]("IsEducator")
-    def isAdministrator: lifted.Rep[Boolean] = column[Boolean]("IsAdministrator")
-    def avatarUrl: lifted.Rep[Option[String]] = column[Option[String]]("AvatarUrl")
+    def id: lifted.Rep[Option[Int]]           = column[Int]("id", O.PrimaryKey, O.AutoInc).?
+    def firstName: lifted.Rep[String]         = column[String]("first_name")
+    def surname: lifted.Rep[String]           = column[String]("surname")
+    def email: lifted.Rep[String]             = column[String]("email")
+    def isEmailVerified: lifted.Rep[Boolean]  = column[Boolean]("is_email_verified")
+    def isEducator: lifted.Rep[Boolean]       = column[Boolean]("is_educator")
+    def isAdministrator: lifted.Rep[Boolean]  = column[Boolean]("is_administrator")
+    def avatarUrl: lifted.Rep[Option[String]] = column[Option[String]]("avatar_url")
 
-    def * : ProvenShape[User] = (id, firstName, surName, email, isEmailVerified,
-      isEducator, isAdministrator, avatarUrl) <> ((constructUser _).tupled, deconstructUser)
+    def * : ProvenShape[User] =
+      (id, firstName, surname, email, isEmailVerified, isEducator, isAdministrator, avatarUrl) <> ((constructUser _).tupled, deconstructUser)
 
-    def constructUser(id: Option[Int], firstName: String, surName: String, email: String,
-      isEmailVerified: Boolean, isEducator: Boolean, isAdministrator: Boolean,
-      avatarUrl: Option[String]) =
-      {
-        User(id = id, firstName = firstName, surName = surName, email = email,
-          isEmailVerified = isEmailVerified, isEducator = isEducator,
-          isAdministrator = isAdministrator, avatarUrl = avatarUrl)
-      }
+    def constructUser(id: Option[Int],
+                      firstName: String,
+                      surname: String,
+                      email: String,
+                      isEmailVerified: Boolean,
+                      isEducator: Boolean,
+                      isAdministrator: Boolean,
+                      avatarUrl: Option[String]) =
+      User(
+        id = id,
+        firstName = firstName,
+        surname = surname,
+        email = email,
+        isEmailVerified = isEmailVerified,
+        isEducator = isEducator,
+        isAdministrator = isAdministrator,
+        avatarUrl = avatarUrl
+      )
 
     def deconstructUser(user: User) = user match {
-      case User(id: Option[Int], firstName: String, surName: String,
-        email: String, isEmailVerified: Boolean, isEducator: Boolean, isAdministrator: Boolean,
-        avatarUrl: Option[String], profiles: List[Profile]) => {
-        Option(id, firstName, surName, email, isEmailVerified, isEducator, isAdministrator,
-          avatarUrl)
-      }
+      case User(id: Option[Int],
+                firstName: String,
+                surname: String,
+                email: String,
+                isEmailVerified: Boolean,
+                isEducator: Boolean,
+                isAdministrator: Boolean,
+                avatarUrl: Option[String],
+                profiles: List[Profile]) =>
+        Option(id, firstName, surname, email, isEmailVerified, isEducator, isAdministrator, avatarUrl)
     }
   }
 }

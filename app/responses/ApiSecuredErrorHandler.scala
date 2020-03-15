@@ -24,7 +24,7 @@ import play.api.mvc.{ RequestHeader, Result, Results }
 import scala.concurrent.{ ExecutionContext, Future }
 
 class ApiSecuredErrorHandler @Inject() ()(implicit ec: ExecutionContext)
-  extends SecuredErrorHandler with Results {
+    extends SecuredErrorHandler with Results {
   /**
    * Called when a user is not authenticated.
    *

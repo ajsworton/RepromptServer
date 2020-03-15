@@ -17,14 +17,14 @@
 package models.dto
 
 import slick.jdbc.GetResult
-import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.PostgresProfile.api._
 import slick.lifted
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import slick.lifted.{PrimaryKey, ProvenShape}
 
 case class ContentDisabledDto(
-                               assignedId: Int,
-                               UserId: Int
-                             )
+    assignedId: Int,
+    UserId: Int
+)
 
 /**
   * Companion Object for to hold boiler plate for forms, json conversion, slick
@@ -37,31 +37,33 @@ object ContentDisabledDto {
     */
   class ContentDisabledTable(tag: Tag) extends Table[ContentDisabledDto](tag, "content_disabled") {
 
-    def assignedId: lifted.Rep[Int] = column[Int]("ContentAssignedId", O.PrimaryKey)
-    def userId: lifted.Rep[Int] = column[Int]("UserId", O.PrimaryKey)
-    def pk: PrimaryKey = primaryKey("PRIMARY", (assignedId, userId))
+    def assignedId: lifted.Rep[Int] = column[Int]("content_assigned_id", O.PrimaryKey)
+    def userId: lifted.Rep[Int]     = column[Int]("user_id", O.PrimaryKey)
+    def pk: PrimaryKey              = primaryKey("PRIMARY", (assignedId, userId))
 
-    def * : ProvenShape[ContentDisabledDto] = (assignedId, userId) <>
-      ((ContentDisabledDto.apply _).tupled, ContentDisabledDto.unapply)
+    def * : ProvenShape[ContentDisabledDto] =
+      (assignedId, userId) <>
+        ((ContentDisabledDto.apply _).tupled, ContentDisabledDto.unapply)
   }
 
   /**
     * implicit converter to coerce direct sql query into data object
     */
-  implicit val getContentDisabledResult = GetResult(r =>
-    ContentDisabledDto(
-      r.nextInt,
-      r.nextInt,
-    )
-  )
+  implicit val getContentDisabledResult: GetResult[ContentDisabledDto] = GetResult(
+    r =>
+      ContentDisabledDto(
+        r.nextInt,
+        r.nextInt,
+    ))
 
   /**
     * implicit converter to coerce direct sql query into data object
     */
-  implicit val getOptionContentDisabledResult = GetResult(r =>
-    Some(ContentDisabledDto(
-      r.nextInt,
-      r.nextInt,
-    ))
-  )
+  implicit val getOptionContentDisabledResult: GetResult[Some[ContentDisabledDto]] = GetResult(
+    r =>
+      Some(
+        ContentDisabledDto(
+          r.nextInt,
+          r.nextInt,
+        )))
 }

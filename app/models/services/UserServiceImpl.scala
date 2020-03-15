@@ -31,7 +31,7 @@ import scala.concurrent.{ ExecutionContext, Future }
  * @param ex      The execution context.
  */
 class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext)
-  extends UserService {
+    extends UserService {
 
   /**
    * Retrieves a user that matches the specified ID.
@@ -104,8 +104,8 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
     val firstName = if (validProfile.firstName.isDefined) { validProfile.firstName.get }
     else { user.firstName }
 
-    val surName = if (validProfile.lastName.isDefined) { validProfile.lastName.get }
-    else { user.surName }
+    val surname = if (validProfile.lastName.isDefined) { validProfile.lastName.get }
+    else { user.surname }
 
     val profiles: List[Profile] = user.profiles.map(p => if (p.loginInfo == validProfile.loginInfo)
       validProfile else p)
@@ -113,7 +113,7 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
     val avatarUrl = if (user.avatarUrl.isEmpty && validProfile.avatarUrl.isDefined) { validProfile.avatarUrl }
     else { user.avatarUrl }
 
-    user.copy(firstName = firstName, surName = surName, profiles = profiles, avatarUrl = avatarUrl)
+    user.copy(firstName = firstName, surname = surname, profiles = profiles, avatarUrl = avatarUrl)
   }
 
   private def convertEmptyProfileValuesToNone(profile: Profile): Profile = {
@@ -135,9 +135,10 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
   def createUserAndProfile(profile: Profile): Future[Option[User]] = {
     val associatedUser = userDao.save(User(
       firstName = getFirstName(profile.firstName, profile.fullName),
-      surName = getSurName(profile.lastName, profile.fullName),
+      surname = getsurname(profile.lastName, profile.fullName),
       email = profile.email.getOrElse(""),
-      avatarUrl = profile.avatarUrl))
+      avatarUrl = profile.avatarUrl
+    ))
     // write the profile
     associatedUser.flatMap((u) => userDao.link(u.get, profile.copy(userId = u.get.id)))
   }
@@ -152,7 +153,7 @@ class UserServiceImpl @Inject() (userDao: UserDao)(implicit ex: ExecutionContext
     }
   }
 
-  def getSurName(surName: Option[String], fullName: Option[String]): String = surName match {
+  def getsurname(surname: Option[String], fullName: Option[String]): String = surname match {
     case Some(value) => value
     case None => fullName match {
       case None => ""

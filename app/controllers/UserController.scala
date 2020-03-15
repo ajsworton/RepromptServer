@@ -45,7 +45,7 @@ class UserController @Inject() (
   silhouette: Silhouette[JWTEnv],
   cohortDao: CohortDao
 )(implicit ec: ExecutionContext)
-  extends AbstractController(cc) with I18nSupport {
+    extends AbstractController(cc) with I18nSupport {
 
   /**
    * Endpoint to retrieve all users.

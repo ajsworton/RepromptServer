@@ -19,64 +19,69 @@ package models.dto
 import models.dto.CohortDto.CohortsTable
 import models.dto.ContentAssignedDto.ContentAssignedTable
 import play.api.data.Form
-import play.api.data.Forms.{ mapping, number, optional }
-import play.api.libs.json.Json
-import slick.jdbc.MySQLProfile.api._
+import play.api.data.Forms.{mapping, number, optional}
+import play.api.libs.json.{Json, OFormat}
+import slick.jdbc.PostgresProfile.api._
 import slick.lifted
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import slick.lifted.{PrimaryKey, ProvenShape}
 import slick.model.ForeignKeyAction
 
 /**
- * ContentAssignedCohort data object
- * @param assignedId database value
- * @param cohortId database value
- */
+  * ContentAssignedCohort data object
+  * @param assignedId database value
+  * @param cohortId database value
+  */
 case class ContentAssignedCohortDto(assignedId: Option[Int], cohortId: Option[Int])
 
 /**
- * Companion Object for to hold boiler plate for forms, json conversion, slick
- */
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object ContentAssignedCohortDto {
 
   /**
-   * Table definition for database mapping via slick
-   * @param tag identifies a specific row
-   */
-  class ContentAssignedCohortTable(tag: Tag) extends Table[ContentAssignedCohortDto](
-    tag, "content_assigned_cohorts") {
-    def assignedId: lifted.Rep[Option[Int]] = column[Int]("AssignedId")
-    def cohortId: lifted.Rep[Option[Int]] = column[Int]("CohortId")
+    * Table definition for database mapping via slick
+    * @param tag identifies a specific row
+    */
+  class ContentAssignedCohortTable(tag: Tag)
+      extends Table[ContentAssignedCohortDto](
+        tag,
+        "content_assigned_cohorts"
+      ) {
+    def assignedId: lifted.Rep[Option[Int]] = column[Int]("assigned_id")
+    def cohortId: lifted.Rep[Option[Int]]   = column[Int]("cohort_id")
 
     def * : ProvenShape[ContentAssignedCohortDto] =
       (assignedId, cohortId) <> ((ContentAssignedCohortDto.apply _).tupled, ContentAssignedCohortDto.unapply)
 
     def pk: PrimaryKey = primaryKey("PRIMARY", (assignedId, cohortId))
 
-    def assignedFK = foreignKey("AssignedId", assignedId, TableQuery[ContentAssignedTable])(
+    def assignedFK = foreignKey("assigned_id", assignedId, TableQuery[ContentAssignedTable])(
       _.id,
       onUpdate = ForeignKeyAction.Cascade,
-      onDelete = ForeignKeyAction.Cascade)
+      onDelete = ForeignKeyAction.Cascade
+    )
 
-    def cohortsFK = foreignKey("CohortId", cohortId, TableQuery[CohortsTable])(
+    def cohortsFK = foreignKey("cohort_id", cohortId, TableQuery[CohortsTable])(
       _.id,
       onUpdate = ForeignKeyAction.Cascade,
-      onDelete = ForeignKeyAction.Cascade)
+      onDelete = ForeignKeyAction.Cascade
+    )
 
   }
 
   /**
-   * Form definition for data type to bindFromRequest when receiving data
-   * @return a form for the dat object
-   */
+    * Form definition for data type to bindFromRequest when receiving data
+    * @return a form for the dat object
+    */
   def form: Form[ContentAssignedCohortDto] = Form(
     mapping(
       "assignedId" -> optional(number),
-      "cohortId" -> optional(number)
+      "cohortId"   -> optional(number)
     )(ContentAssignedCohortDto.apply)(ContentAssignedCohortDto.unapply)
   )
 
   /**
-   * implicit json conversion formatter
-   */
-  implicit val serializer = Json.format[ContentAssignedCohortDto]
+    * implicit json conversion formatter
+    */
+  implicit val serializer: OFormat[ContentAssignedCohortDto] = Json.format[ContentAssignedCohortDto]
 }

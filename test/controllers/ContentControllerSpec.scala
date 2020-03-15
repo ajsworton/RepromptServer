@@ -16,21 +16,21 @@
 
 package controllers
 
-import libs.{ AppFactory, AuthHelper, TestingDbQueries }
-import models.dto.{ ContentFolderDto, ContentItemDto }
-import org.scalatest.{ BeforeAndAfter, FunSpec, Matchers }
+import libs.{AuthHelper, DatabaseSupport, TestingDbQueries}
+import models.dto.ContentFolderDto
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import play.api.libs.json.Json
-import play.api.mvc.{ AnyContentAsEmpty, Result }
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class ContentControllerSpec extends FunSpec with Matchers with BeforeAndAfter with AppFactory {
+class ContentControllerSpec extends FunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
-  val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
-  val controller: ContentController = fakeApplication().injector.instanceOf[ContentController]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val helper: AuthHelper = app.injector.instanceOf[AuthHelper]
+  val controller: ContentController = app.injector.instanceOf[ContentController]
+  val database: TestingDbQueries = app.injector.instanceOf[TestingDbQueries]
 
   val teacherId, contentItem1Id, assigned1Id, packageId, itemId, questionId = 485265
   val studentId, cohortId, packageId2, contentFolderId, folderId = 485266

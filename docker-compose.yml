@@ -1,0 +1,19 @@
+version: '3.7'
+services:
+  db:
+    image: postgres:11-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: reprompt
+      POSTGRES_USER: reprompt
+      POSTGRES_PASSWORD: repromptpassword
+      PGDATA: /var/lib/postgresql/data/pg_data
+    ports:
+      - '5432:5432'
+    expose:
+      - '3306'
+    volumes:
+      - pg_db:/var/lib/postgresql/data/pg_data
+
+volumes:
+  pg_db:

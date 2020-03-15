@@ -20,27 +20,27 @@ import java.time.LocalDate
 
 import com.mohiva.play.silhouette.test.FakeEnvironment
 import env.JWTEnv
-import libs.{ AppFactory, AuthHelper, TestingDbQueries }
-import models.dao.{ CohortDao, ContentAssignedDao, ContentPackageDao }
-import models.dto.{ ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import libs.{AuthHelper, DatabaseSupport, TestingDbQueries}
+import models.dao.{CohortDao, ContentAssignedDao, ContentPackageDao}
+import models.dto.{ContentAssignedCohortDto, ContentAssignedDto, ContentAssignedPackageDto}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import play.api.libs.json.Json
-import play.api.mvc.{ AnyContentAsEmpty, Result }
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, Future }
+import scala.concurrent.{Await, Future}
 
 class PublishedControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with AppFactory {
+  with DatabaseSupport {
 
-  val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
-  val controller: PublishedController = fakeApplication().injector.instanceOf[PublishedController]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
-  val cohortDao: CohortDao = fakeApplication().injector.instanceOf[CohortDao]
-  val packageDao: ContentPackageDao = fakeApplication().injector.instanceOf[ContentPackageDao]
-  val assignedDao: ContentAssignedDao = fakeApplication().injector.instanceOf[ContentAssignedDao]
+  val helper: AuthHelper = app.injector.instanceOf[AuthHelper]
+  val controller: PublishedController = app.injector.instanceOf[PublishedController]
+  val database: TestingDbQueries = app.injector.instanceOf[TestingDbQueries]
+  val cohortDao: CohortDao = app.injector.instanceOf[CohortDao]
+  val packageDao: ContentPackageDao = app.injector.instanceOf[ContentPackageDao]
+  val assignedDao: ContentAssignedDao = app.injector.instanceOf[ContentAssignedDao]
 
   var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
   var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _

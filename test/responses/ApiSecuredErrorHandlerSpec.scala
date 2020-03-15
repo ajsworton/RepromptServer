@@ -16,13 +16,14 @@
 
 package responses
 
-import libs.AppFactory
-import org.scalatest.{ AsyncFunSpec, Matchers }
+
+import org.scalatest.{AsyncFunSpec, Matchers}
 import play.api.test.FakeRequest
+import libs.DatabaseSupport
 
-class ApiSecuredErrorHandlerSpec extends AsyncFunSpec with Matchers with AppFactory {
+class ApiSecuredErrorHandlerSpec extends AsyncFunSpec with Matchers with DatabaseSupport {
 
-  val errorHandler = fakeApplication().injector.instanceOf[ApiSecuredErrorHandler]
+  val errorHandler = app.injector.instanceOf[ApiSecuredErrorHandler]
 
   describe("onNotAuthenticated") {
     it("should return a 401 error response") {

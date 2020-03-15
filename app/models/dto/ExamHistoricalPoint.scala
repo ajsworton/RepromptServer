@@ -39,8 +39,7 @@ object ExamHistoricalPoint {
     ExamHistoricalPoint(
       r.nextDate.toLocalDate,
       r.nextInt
-    )
-  )
+    ))
 
   /**
    * implicit json conversion formatter

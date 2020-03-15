@@ -16,23 +16,22 @@
 
 package controllers
 
-import libs.{ AppFactory, AuthHelper, CohortTestData }
-import models.dto.{ CohortDto, CohortMemberDto, ContentItemDto, QuestionDto, ScoreDto }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
-import play.api.libs.json.{ JsError, JsPath, JsSuccess, Json, Reads }
-import play.api.mvc.{ Action, AnyContent, AnyContentAsEmpty, Result }
+import libs.{AuthHelper, CohortTestData, DatabaseSupport}
+import models.dto.{CohortDto, CohortMemberDto}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import play.api.libs.json.Json
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import play.api.libs.functional.syntax._
 
 import scala.concurrent.Future
 
 class CohortControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with AppFactory {
+  with DatabaseSupport {
 
-  val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
-  val controller: CohortController = fakeApplication().injector.instanceOf[CohortController]
-  val testData: CohortTestData = fakeApplication().injector.instanceOf[CohortTestData]
+  val helper: AuthHelper = app.injector.instanceOf[AuthHelper]
+  val controller: CohortController = app.injector.instanceOf[CohortController]
+  val testData: CohortTestData = app.injector.instanceOf[CohortTestData]
 
   var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
   var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _

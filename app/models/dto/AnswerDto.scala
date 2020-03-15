@@ -18,106 +18,107 @@ package models.dto
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import slick.jdbc.GetResult
-import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.PostgresProfile.api._
 import slick.lifted
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import slick.lifted.{PrimaryKey, ProvenShape}
 
 /**
- * Answer data object
- * @param id database value
- * @param questionId database value
- * @param answer database value
- * @param correct database value
- * @param sequence database value
- */
+  * Answer data object
+  * @param id database value
+  * @param questionId database value
+  * @param answer database value
+  * @param correct database value
+  * @param sequence database value
+  */
 case class AnswerDto(
-  id: Option[Int],
-  questionId: Option[Int],
-  answer: String,
-  correct: Boolean,
-  sequence: Int = 0
+    id: Option[Int],
+    questionId: Option[Int],
+    answer: String,
+    correct: Boolean,
+    sequence: Int = 0
 ) extends Dto
 
 /**
- * Companion Object for to hold boiler plate for forms, json conversion, slick
- */
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object AnswerDto {
 
-  def construct(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean,
-    sequence: Int) =
+  def construct(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean, sequence: Int) =
     new AnswerDto(id = id, questionId = questionId, answer = answer, correct = correct, sequence = sequence)
 
   def deconstruct(dto: AnswerDto): Option[(Option[Int], Option[Int], String, Boolean, Int)] = dto match {
-    case AnswerDto(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean,
-      sequence: Int) => Some(id, questionId, answer, correct, sequence)
+    case AnswerDto(id: Option[Int], questionId: Option[Int], answer: String, correct: Boolean, sequence: Int) =>
+      Some(id, questionId, answer, correct, sequence)
   }
 
   /**
-   * Form definition for data type to bindFromRequest when receiving data
-   * @return a form for the dat object
-   */
+    * Form definition for data type to bindFromRequest when receiving data
+    * @return a form for the dat object
+    */
   def form: Form[AnswerDto] = Form(
     mapping(
-      "id" -> optional(number),
+      "id"         -> optional(number),
       "questionId" -> optional(number),
-      "answer" -> nonEmptyText,
-      "correct" -> boolean,
-      "sequence" -> number
+      "answer"     -> nonEmptyText,
+      "correct"    -> boolean,
+      "sequence"   -> number
     )(AnswerDto.construct)(AnswerDto.deconstruct)
   )
 
   /**
-   * Table definition for database mapping via slick
-   * @param tag identifies a specific row
-   */
+    * Table definition for database mapping via slick
+    * @param tag identifies a specific row
+    */
   class AnswersTable(tag: Tag) extends Table[AnswerDto](tag, "content_assessment_answers") {
 
-    def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
+    def id: lifted.Rep[Option[Int]] = column[Int]("id", O.PrimaryKey, O.AutoInc)
 
-    def questionId: lifted.Rep[Option[Int]] = column[Int]("QuestionId")
+    def questionId: lifted.Rep[Option[Int]] = column[Int]("question_id")
 
-    def answer: lifted.Rep[String] = column[String]("Answer")
+    def answer: lifted.Rep[String] = column[String]("answer")
 
-    def correct: lifted.Rep[Boolean] = column[Boolean]("Correct")
+    def correct: lifted.Rep[Boolean] = column[Boolean]("correct")
 
-    def sequence: lifted.Rep[Int] = column[Int]("Sequence")
+    def sequence: lifted.Rep[Int] = column[Int]("sequence")
 
     def pk: PrimaryKey = primaryKey("PRIMARY", id)
 
-    def * : ProvenShape[AnswerDto] = (id, questionId, answer, correct, sequence) <>
-      ((AnswerDto.construct _).tupled, AnswerDto.deconstruct)
+    def * : ProvenShape[AnswerDto] =
+      (id, questionId, answer, correct, sequence) <>
+        ((AnswerDto.construct _).tupled, AnswerDto.deconstruct)
   }
 
   /**
-   * implicit converter to coerce direct sql query into data object
-   */
-  implicit val getAnswerResult = GetResult(r =>
-    AnswerDto(
-      Some(r.nextInt),
-      Some(r.nextInt),
-      r.nextString,
-      r.nextBoolean,
-      r.nextInt
-    )
-  )
-
-  /**
-   * implicit converter to coerce direct sql query into data object
-   */
-  implicit val getSomeAnswerResult = GetResult(r =>
-    Some(AnswerDto(
-      Some(r.nextInt),
-      Some(r.nextInt),
-      r.nextString,
-      r.nextBoolean,
-      r.nextInt
+    * implicit converter to coerce direct sql query into data object
+    */
+  implicit val getAnswerResult: GetResult[AnswerDto] = GetResult(
+    r =>
+      AnswerDto(
+        Some(r.nextInt),
+        Some(r.nextInt),
+        r.nextString,
+        r.nextBoolean,
+        r.nextInt
     ))
-  )
 
   /**
-   * implicit json conversion formatter
-   */
-  implicit val AnswerDtoFormat = Json.format[AnswerDto]
+    * implicit converter to coerce direct sql query into data object
+    */
+  implicit val getSomeAnswerResult: GetResult[Some[AnswerDto]] = GetResult(
+    r =>
+      Some(
+        AnswerDto(
+          Some(r.nextInt),
+          Some(r.nextInt),
+          r.nextString,
+          r.nextBoolean,
+          r.nextInt
+        )))
+
+  /**
+    * implicit json conversion formatter
+    */
+  implicit val AnswerDtoFormat: OFormat[AnswerDto] = Json.format[AnswerDto]
 }

@@ -33,7 +33,7 @@ import com.mohiva.play.silhouette.password.BCryptPasswordHasher
 import com.mohiva.play.silhouette.persistence.daos.{ DelegableAuthInfoDAO, InMemoryAuthInfoDAO }
 import com.mohiva.play.silhouette.persistence.repositories.DelegableAuthInfoRepository
 import env.JWTEnv
-import models.dao.{ AuthInfoDaoCredentialsSlick, AuthTokenDao, AuthTokenDaoImpl, CohortDao, CohortDaoSlick, ContentAssignedDao, ContentAssignedDaoSlick, ContentFolderDao, ContentFolderDaoSlick, ContentItemDao, ContentItemDaoSlick, ContentPackageDao, ContentPackageDaoSlick, StudyDao, StudyDaoSlick, UserDao, UserDaoSlick }
+import models.dao.{ AuthInfoDaoCredentialsSlick, AuthTokenDao, AuthTokenDaoImpl, UserDao }
 import models.services.{ AuthTokenService, AuthTokenServiceImpl, UserService, UserServiceImpl }
 import net.ceedubs.ficus.Ficus._
 import net.ceedubs.ficus.readers.ArbitraryTypeReader._
@@ -44,6 +44,7 @@ import play.api.mvc.CookieHeaderEncoding
 import responses.ApiSecuredErrorHandler
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 /**
  * The Guice module which wires all Silhouette dependencies.
@@ -53,7 +54,7 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
   /**
    * Configures the module.
    */
-  def configure() {
+  override def configure() {
 
     bind[Silhouette[JWTEnv]].to[SilhouetteProvider[JWTEnv]]
     bind[AuthTokenDao].to[AuthTokenDaoImpl]
@@ -67,7 +68,6 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     bind[Clock].toInstance(Clock())
 
     // Replace this with the bindings to your concrete DAOs
-    bind[DelegableAuthInfoDAO[PasswordInfo]].to[AuthInfoDaoCredentialsSlick]
     bind[DelegableAuthInfoDAO[OAuth1Info]].toInstance(new InMemoryAuthInfoDAO[OAuth1Info])
     bind[DelegableAuthInfoDAO[OAuth2Info]].toInstance(new InMemoryAuthInfoDAO[OAuth2Info])
     bind[DelegableAuthInfoDAO[OpenIDInfo]].toInstance(new InMemoryAuthInfoDAO[OpenIDInfo])
@@ -82,6 +82,10 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
   @Provides
   def provideHTTPLayer(client: WSClient): HTTPLayer = new PlayHTTPLayer(client)
 
+  @Provides
+  def provideAuthInfoDaoCredentialsSlick(userService: UserService, userDao: UserDao): DelegableAuthInfoDAO[PasswordInfo] =
+    new AuthInfoDaoCredentialsSlick(userService, userDao)
+
   /**
    * Provides the Silhouette environment.
    *
@@ -94,7 +98,8 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
   def provideEnvironment(
     userService: UserService,
     authenticatorService: AuthenticatorService[JWTAuthenticator],
-    eventBus: EventBus): Environment[JWTEnv] = {
+    eventBus: EventBus
+  ): Environment[JWTEnv] = {
 
     Environment[JWTEnv](
       userService,
@@ -137,10 +142,23 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     fingerprintGenerator: FingerprintGenerator,
     idGenerator: IDGenerator,
     configuration: Configuration,
-    clock: Clock): AuthenticatorService[JWTAuthenticator] = {
+    clock: Clock
+  ): AuthenticatorService[JWTAuthenticator] = {
 
-    //val config = configuration.underlying.as[JWTAuthenticatorSettings]("silhouette.authenticator")
-    val config = new JWTAuthenticatorSettings(sharedSecret = "at0micB4dgerL0ver69")
+    val fieldName = configuration.get[String]("silhouette.authenticator.headerName")
+    val issuerClaim = configuration.get[String]("silhouette.authenticator.issuerClaim")
+    val authenticatorIdleTimeout = configuration.get[Option[FiniteDuration]]("silhouette.authenticator.rememberMe.authenticatorIdleTimeout")
+    val authenticatorExpiry = configuration.get[FiniteDuration]("silhouette.authenticator.rememberMe.authenticatorExpiry")
+    val sharedSecret = configuration.get[String]("silhouette.authenticator.sharedSecret")
+
+    val config = JWTAuthenticatorSettings(
+      fieldName = fieldName,
+      requestParts = Some(Seq(RequestPart.Headers)),
+      issuerClaim = issuerClaim,
+      authenticatorIdleTimeout = authenticatorIdleTimeout,
+      authenticatorExpiry = authenticatorExpiry,
+      sharedSecret = sharedSecret
+    )
     val authenticatorEncoder = new CrypterAuthenticatorEncoder(crypter)
 
     new JWTAuthenticatorService(config, None, authenticatorEncoder, idGenerator, clock)
@@ -176,7 +194,8 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
   @Provides
   def provideCredentialsProvider(
     authInfoRepository: AuthInfoRepository,
-    passwordHasherRegistry: PasswordHasherRegistry): CredentialsProvider = {
+    passwordHasherRegistry: PasswordHasherRegistry
+  ): CredentialsProvider = {
 
     new CredentialsProvider(authInfoRepository, passwordHasherRegistry)
   }
@@ -208,7 +227,8 @@ class SilhouetteModule extends AbstractModule with ScalaModule {
     passwordInfoDAO: DelegableAuthInfoDAO[PasswordInfo],
     oauth1InfoDAO: DelegableAuthInfoDAO[OAuth1Info],
     oauth2InfoDAO: DelegableAuthInfoDAO[OAuth2Info],
-    openIDInfoDAO: DelegableAuthInfoDAO[OpenIDInfo]): AuthInfoRepository = {
+    openIDInfoDAO: DelegableAuthInfoDAO[OpenIDInfo]
+  ): AuthInfoRepository = {
 
     new DelegableAuthInfoRepository(passwordInfoDAO, oauth1InfoDAO, oauth2InfoDAO, openIDInfoDAO)
   }

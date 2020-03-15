@@ -45,8 +45,9 @@ class PublishedController @Inject() (
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   publishDao: ContentAssignedDao,
-  itemDao: ContentItemDao)(implicit ec: ExecutionContext)
-  extends AbstractController(cc) with I18nSupport {
+  itemDao: ContentItemDao
+)(implicit ec: ExecutionContext)
+    extends AbstractController(cc) with I18nSupport {
 
   def get(id: Int): Action[AnyContent] = silhouette.SecuredAction(AuthEducator).async {
     implicit request: SecuredRequest[JWTEnv, AnyContent] =>
@@ -90,7 +91,8 @@ class PublishedController @Inject() (
             && formData.assignedId.isDefined && formData.assignedId.get > 0) {
             handleAttachDetachResult(publishDao.attachCohort(
               formData.assignedId.get,
-              formData.cohortId.get))
+              formData.cohortId.get
+            ))
           } else {
             Future(Results.BadRequest(Json.toJson(JsonErrorResponse("AssignedId and CohortId must be defined"))))
           }
@@ -117,7 +119,8 @@ class PublishedController @Inject() (
             && formData.assignedId.isDefined && formData.assignedId.get > 0) {
             handleAttachDetachResult(publishDao.attachCohort(
               formData.assignedId.get,
-              formData.packageId.get))
+              formData.packageId.get
+            ))
           } else {
             Future(BadRequest(Json.toJson(JsonErrorResponse("AssignedId and PackageId must be defined"))))
           }
@@ -160,7 +163,8 @@ class PublishedController @Inject() (
 
   private def handleCohortAndPackageInsertion(
     savedAssigned: Future[Option[ContentAssignedDto]],
-    assigned: ContentAssignedDto) = {
+    assigned: ContentAssignedDto
+  ) = {
     savedAssigned flatMap {
       r =>
         {

@@ -16,21 +16,21 @@
 
 package controllers
 
-import libs.AppFactory
 import models.dto.UserNotificationDto
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import play.api.Configuration
 import play.api.mvc.Result
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import libs.DatabaseSupport
 
 import scala.concurrent.Future
 
 class CronControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with AppFactory {
+  with DatabaseSupport {
 
-  val controller: CronController = fakeApplication().injector.instanceOf[CronController]
-  val config: Configuration = fakeApplication().injector.instanceOf[Configuration]
+  val controller: CronController = app.injector.instanceOf[CronController]
+  val config: Configuration = app.injector.instanceOf[Configuration]
 
   describe("executeRepromptNotification(keyphrase: String)") {
     it("should return unauthorised when an incorrect passphrase is given") {

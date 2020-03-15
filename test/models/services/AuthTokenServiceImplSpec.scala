@@ -18,14 +18,14 @@ package models.services
 
 import java.time.LocalDateTime
 
-import libs.AppFactory
-import org.scalatest.{ AsyncFunSpec, Matchers }
+import org.scalatest.{AsyncFunSpec, Matchers}
+import libs.DatabaseSupport
 
 import scala.concurrent.duration._
 
-class AuthTokenServiceImplSpec extends AsyncFunSpec with Matchers with AppFactory {
+class AuthTokenServiceImplSpec extends AsyncFunSpec with Matchers with DatabaseSupport {
 
-  val service: AuthTokenService = fakeApplication().injector.instanceOf[AuthTokenServiceImpl]
+  val service: AuthTokenService = app.injector.instanceOf[AuthTokenServiceImpl]
 
   describe("create") {
     it("should create and return a Future AuthToken") {

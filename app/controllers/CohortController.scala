@@ -44,8 +44,9 @@ import scala.concurrent.{ ExecutionContext, Future }
 class CohortController @Inject() (
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
-  cohortDao: CohortDao)(implicit ec: ExecutionContext)
-  extends AbstractController(cc) with I18nSupport {
+  cohortDao: CohortDao
+)(implicit ec: ExecutionContext)
+    extends AbstractController(cc) with I18nSupport {
 
   val daoHelper = new DaoOnDtoAction
 

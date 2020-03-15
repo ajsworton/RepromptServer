@@ -18,106 +18,108 @@ package models.dto
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 import slick.jdbc.GetResult
-import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.PostgresProfile.api._
 import slick.lifted
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import slick.lifted.{PrimaryKey, ProvenShape}
 
 /**
- * Question data object
- * @param id database value
- * @param question database value
- * @param format database value
- * @param itemId database value
- * @param answers database value
- */
+  * Question data object
+  * @param id database value
+  * @param question database value
+  * @param format database value
+  * @param itemId database value
+  * @param answers database value
+  */
 case class QuestionDto(
-  id: Option[Int],
-  question: String,
-  format: String,
-  itemId: Int,
-  answers: Option[List[AnswerDto]] = None
+    id: Option[Int],
+    question: String,
+    format: String,
+    itemId: Int,
+    answers: Option[List[AnswerDto]] = None
 ) extends Dto
 
 /**
- * Companion Object for to hold boiler plate for forms, json conversion, slick
- */
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object QuestionDto {
 
   def construct(id: Option[Int], question: String, format: String, itemId: Int) =
     new QuestionDto(id = id, question = question, format = format, itemId = itemId, answers = None)
 
   def deconstruct(dto: QuestionDto): Option[(Option[Int], String, String, Int)] = dto match {
-    case QuestionDto(id: Option[Int], question: String, format: String, itemId: Int,
-      _: Option[List[AnswerDto]]
-      ) => Some(id, question, format, itemId)
+    case QuestionDto(id: Option[Int], question: String, format: String, itemId: Int, _: Option[List[AnswerDto]]) => Some(id, question, format, itemId)
   }
 
   /**
-   * Form definition for data type to bindFromRequest when receiving data
-   * @return a form for the dat object
-   */
+    * Form definition for data type to bindFromRequest when receiving data
+    * @return a form for the dat object
+    */
   def form: Form[QuestionDto] = Form(
     mapping(
-      "id" -> optional(number),
+      "id"       -> optional(number),
       "question" -> nonEmptyText,
-      "format" -> nonEmptyText,
-      "itemId" -> number,
-      "answers" -> optional(list(mapping(
-        "id" -> optional(number),
-        "questionId" -> optional(number),
-        "answer" -> nonEmptyText,
-        "correct" -> boolean,
-        "sequence" -> number
-      )(AnswerDto.construct)(AnswerDto.deconstruct)))
+      "format"   -> nonEmptyText,
+      "itemId"   -> number,
+      "answers" -> optional(
+        list(
+          mapping(
+            "id"         -> optional(number),
+            "questionId" -> optional(number),
+            "answer"     -> nonEmptyText,
+            "correct"    -> boolean,
+            "sequence"   -> number
+          )(AnswerDto.construct)(AnswerDto.deconstruct)))
     )(QuestionDto.apply)(QuestionDto.unapply)
   )
 
   /**
-   * Table definition for database mapping via slick
-   * @param tag identifies a specific row
-   */
+    * Table definition for database mapping via slick
+    * @param tag identifies a specific row
+    */
   class QuestionsTable(tag: Tag) extends Table[QuestionDto](tag, "content_assessment_questions") {
 
-    def id: lifted.Rep[Option[Int]] = column[Int]("Id", O.PrimaryKey, O.AutoInc)
-    def question: lifted.Rep[String] = column[String]("Question")
-    def format: lifted.Rep[String] = column[String]("Format")
-    def itemId: lifted.Rep[Int] = column[Int]("ItemId")
-    def pk: PrimaryKey = primaryKey("PRIMARY", id)
+    def id: lifted.Rep[Option[Int]]  = column[Int]("id", O.PrimaryKey, O.AutoInc)
+    def question: lifted.Rep[String] = column[String]("question")
+    def format: lifted.Rep[String]   = column[String]("format")
+    def itemId: lifted.Rep[Int]      = column[Int]("item_id")
+    def pk: PrimaryKey               = primaryKey("PRIMARY", id)
 
-    def * : ProvenShape[QuestionDto] = (id, question, format, itemId) <>
-      ((QuestionDto.construct _).tupled, QuestionDto.deconstruct)
+    def * : ProvenShape[QuestionDto] =
+      (id, question, format, itemId) <>
+        ((QuestionDto.construct _).tupled, QuestionDto.deconstruct)
   }
 
   /**
-   * implicit converter to coerce direct sql query into data object
-   */
-  implicit val getQuestionResult = GetResult(r =>
-    QuestionDto(
-      Some(r.nextInt),
-      r.nextString,
-      r.nextString,
-      r.nextInt,
-      None
-    )
-  )
-
-  /**
-   * implicit converter to coerce direct sql query into data object
-   */
-  implicit val getSomeQuestionResult = GetResult(r =>
-    Some(QuestionDto(
-      Some(r.nextInt),
-      r.nextString,
-      r.nextString,
-      r.nextInt,
-      None
+    * implicit converter to coerce direct sql query into data object
+    */
+  implicit val getQuestionResult: GetResult[QuestionDto] = GetResult(
+    r =>
+      QuestionDto(
+        Some(r.nextInt),
+        r.nextString,
+        r.nextString,
+        r.nextInt,
+        None
     ))
-  )
 
   /**
-   * implicit json conversion formatter
-   */
-  implicit val QuestionDtoFormat = Json.format[QuestionDto]
+    * implicit converter to coerce direct sql query into data object
+    */
+  implicit val getSomeQuestionResult: GetResult[Some[QuestionDto]] = GetResult(
+    r =>
+      Some(
+        QuestionDto(
+          Some(r.nextInt),
+          r.nextString,
+          r.nextString,
+          r.nextInt,
+          None
+        )))
+
+  /**
+    * implicit json conversion formatter
+    */
+  implicit val QuestionDtoFormat: OFormat[QuestionDto] = Json.format[QuestionDto]
 }

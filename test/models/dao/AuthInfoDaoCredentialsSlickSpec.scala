@@ -16,22 +16,19 @@
 
 package models.dao
 
-import com.mohiva.play.silhouette.api.util.{ PasswordHasher, PasswordInfo }
-import libs.{ AppFactory, UserProfileTestData }
-import play.api.db.DBApi
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, BeforeAndAfterAll, Matchers }
-import org.scalatest.mockito.MockitoSugar
-import play.api.db.evolutions.Evolutions
+import com.mohiva.play.silhouette.api.repositories.AuthInfoRepository
+import com.mohiva.play.silhouette.api.util.{PasswordHasher, PasswordInfo}
+import libs.{DatabaseSupport, UserProfileTestData}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import org.scalatestplus.mockito.MockitoSugar
 
-class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with MockitoSugar with AppFactory {
+class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with MockitoSugar with DatabaseSupport {
 
-  val authInfoDao: AuthInfoDaoCredentialsSlick = fakeApplication()
-    .injector.instanceOf[AuthInfoDaoCredentialsSlick]
-  val userDao: UserDaoSlick = fakeApplication().injector.instanceOf[UserDaoSlick]
-  val passwordHasher: PasswordHasher = fakeApplication().injector.instanceOf[PasswordHasher]
-  val testData = new UserProfileTestData(userDao)
-  val newPasswordInfo: PasswordInfo = passwordHasher.hash("12345") // <- That's the exact same
+  val authInfoDao: AuthInfoRepository = app.injector.instanceOf[AuthInfoRepository]
+  val userDao: UserDaoSlick           = app.injector.instanceOf[UserDaoSlick]
+  val passwordHasher: PasswordHasher  = app.injector.instanceOf[PasswordHasher]
+  val testData                        = new UserProfileTestData(userDao)
+  val newPasswordInfo: PasswordInfo   = passwordHasher.hash("12345") // <- That's the exact same
   // code I have on my luggage!
 
   before {
@@ -46,10 +43,10 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
     it("should obtain PasswordInfo from backing store from a supplied loginInfo") {
       //find
       for {
-        user <- userDao.save(testData.user1Linked)
-        passwordInfo <- authInfoDao.find(testData.profile1.loginInfo)
-        valid <- passwordInfo should be(testData.profile1.passwordInfo)
-        _ <- userDao.delete(user.get.id.get)
+        user         <- userDao.save(testData.user1Linked)
+        passwordInfo <- authInfoDao.find[PasswordInfo](testData.profile1.loginInfo)
+        valid        <- passwordInfo should be(testData.profile1.passwordInfo)
+        _            <- userDao.delete(user.get.id.get)
       } yield valid
     }
 
@@ -57,11 +54,11 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
       //add
       val user1 = testData.getUserDoubleProfile
       for {
-        user <- userDao.save(user1)
-        passInfo <- authInfoDao.add(user1.profiles.head.loginInfo, newPasswordInfo)
-        returned <- authInfoDao.find(user1.profiles.head.loginInfo)
-        valid <- returned should be(Some(passInfo))
-        _ <- userDao.delete(user.get.id.get)
+        user     <- userDao.save(user1)
+        passInfo <- authInfoDao.add[PasswordInfo](user1.profiles.head.loginInfo, newPasswordInfo)
+        returned <- authInfoDao.find[PasswordInfo](user1.profiles.head.loginInfo)
+        valid    <- returned should be(Some(passInfo))
+        _        <- userDao.delete(user.get.id.get)
       } yield valid
     }
 
@@ -69,11 +66,11 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
       //update
       val user1 = testData.getUserSingleProfile
       for {
-        user <- userDao.save(user1)
-        _ <- authInfoDao.update(user1.profiles.head.loginInfo, newPasswordInfo)
-        returned <- authInfoDao.find(user1.profiles.head.loginInfo)
-        valid <- returned should be(Some(newPasswordInfo))
-        _ <- userDao.delete(user.get.id.get)
+        user     <- userDao.save(user1)
+        _        <- authInfoDao.update[PasswordInfo](user1.profiles.head.loginInfo, newPasswordInfo)
+        returned <- authInfoDao.find[PasswordInfo](user1.profiles.head.loginInfo)
+        valid    <- returned should be(Some(newPasswordInfo))
+        _        <- userDao.delete(user.get.id.get)
       } yield valid
     }
 
@@ -81,23 +78,23 @@ class AuthInfoDaoCredentialsSlickSpec extends AsyncFunSpec with Matchers with Be
       //save
       val user1 = testData.getUserSingleProfile
       for {
-        user <- userDao.save(user1)
-        _ <- authInfoDao.save(user1.profiles.head.loginInfo, newPasswordInfo)
-        returned <- authInfoDao.find(user1.profiles.head.loginInfo)
-        valid <- returned should be(Some(newPasswordInfo))
-        _ <- userDao.delete(user.get.id.get)
+        user     <- userDao.save(user1)
+        _        <- authInfoDao.save[PasswordInfo](user1.profiles.head.loginInfo, newPasswordInfo)
+        returned <- authInfoDao.find[PasswordInfo](user1.profiles.head.loginInfo)
+        valid    <- returned should be(Some(newPasswordInfo))
+        _        <- userDao.delete(user.get.id.get)
       } yield valid
     }
 
     it("should remove PasswordInfo from supplied loginInfo") {
       for {
-        user <- userDao.save(testData.user1Linked)
-        add <- authInfoDao.add(testData.profile1.loginInfo, newPasswordInfo)
-        remove <- authInfoDao.remove(testData.profile1.loginInfo)
-        returned <- authInfoDao.find(testData.profile1.loginInfo)
-        valid <- returned should be(None)
-        _ <- userDao.delete(user.get.id.get)
-        _ <- userDao.delete(user.get.id.get)
+        user     <- userDao.save(testData.user1Linked)
+        add      <- authInfoDao.add[PasswordInfo](testData.profile1.loginInfo, newPasswordInfo)
+        remove   <- authInfoDao.remove[PasswordInfo](testData.profile1.loginInfo)
+        returned <- authInfoDao.find[PasswordInfo](testData.profile1.loginInfo)
+        valid    <- returned should be(None)
+        _        <- userDao.delete(user.get.id.get)
+        _        <- userDao.delete(user.get.id.get)
       } yield valid
     }
 

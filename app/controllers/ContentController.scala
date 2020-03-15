@@ -46,8 +46,9 @@ class ContentController @Inject() (
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
   folderDao: ContentFolderDao,
-  packageDao: ContentPackageDao)(implicit ec: ExecutionContext)
-  extends AbstractController(cc) with I18nSupport {
+  packageDao: ContentPackageDao
+)(implicit ec: ExecutionContext)
+    extends AbstractController(cc) with I18nSupport {
 
   val daoHelper = new DaoOnDtoAction
 

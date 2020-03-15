@@ -21,18 +21,19 @@ import javax.inject._
 import com.mohiva.play.silhouette.api.LoginInfo
 import models.Profile.ProfilesTable
 import models.User.UsersTable
-import models.{ Profile, User }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import models.{Profile, User}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
-import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.PostgresProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
-class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
-  extends UserDao with HasDatabaseConfigProvider[JdbcProfile] {
+class UserDaoSlick @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+    extends UserDao
+    with HasDatabaseConfigProvider[JdbcProfile] {
 
-  private val Users = TableQuery[UsersTable]
+  private val Users    = TableQuery[UsersTable]
   private val Profiles = TableQuery[ProfilesTable]
 
   def all(): Future[Seq[User]] = db.run(Users.result)
@@ -41,17 +42,22 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
     val returnedUser = db.run(Users.filter(_.id === id).result.headOption)
     returnedUser flatMap {
       case None => Future(None)
-      case Some(user) => for {
-        usersProfiles: Seq[Profile] <- db.run(Profiles.filter(_.userId === user.id).result)
-        usr <- Future(Some(user.copy(profiles = usersProfiles.toList)))
-      } yield usr
+      case Some(user) =>
+        for {
+          usersProfiles: Seq[Profile] <- db.run(Profiles.filter(_.userId === user.id).result)
+          usr                         <- Future(Some(user.copy(profiles = usersProfiles.toList)))
+        } yield usr
     }
   }
 
   override def find(loginInfo: LoginInfo): Future[Option[User]] = {
-    val profile = db.run(Profiles.filter(p => p.providerId === loginInfo.providerID
-      && p.providerKey === loginInfo.providerKey)
-      .result.headOption)
+    val profile = db.run(
+      Profiles
+        .filter(p =>
+          p.providerId === loginInfo.providerID
+            && p.providerKey === loginInfo.providerKey)
+        .result
+        .headOption)
 
     profile flatMap {
       case None => Future(None)
@@ -62,43 +68,40 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
           case Some(user) =>
             for {
               usersProfiles: Seq[Profile] <- db.run(Profiles.filter(_.userId === user.id).result)
-              usr: Option[User] <- Future(Some(user.copy(profiles = usersProfiles.toList)))
+              usr: Option[User]           <- Future(Some(user.copy(profiles = usersProfiles.toList)))
             } yield usr
         }
     }
   }
 
-  override def save(user: User): Future[Option[User]] = {
+  override def save(user: User): Future[Option[User]] =
     for {
-      returnedUser <- db.run((Users returning Users.map(_.id)
-        into ((user, returnedId) => user.copy(id = returnedId))
-      ) += user)
+      returnedUser <- db.run(
+        (Users returning Users.map(_.id)
+          into ((user, returnedId) => user.copy(id = returnedId))) += user)
       usrMapped = returnedUser.copy(profiles = returnedUser.profiles.map(p => p.copy(userId = returnedUser.id)))
-      _ <- db.run(DBIO.sequence(usrMapped.profiles.map(row => Profiles.insertOrUpdate(row))))
+      _    <- db.run(DBIO.sequence(usrMapped.profiles.map(row => Profiles.insertOrUpdate(row))))
       read <- find(usrMapped.id.get)
     } yield read
-  }
 
   override def delete(userId: Int): Future[Int] = db.run(Users.filter(_.id === userId).delete)
 
   override def delete(loginInfo: LoginInfo): Future[Int] = {
     val affected = for {
-      id <- db.run(Profiles.filter(p => matchOnLoginInfo(p, loginInfo)).map(_.userId.get).result.headOption)
+      id       <- db.run(Profiles.filter(p => matchOnLoginInfo(p, loginInfo)).map(_.userId.get).result.headOption)
       affected <- db.run(Users.filter(_.id === id.getOrElse(0)).delete)
     } yield affected
     affected
   }
 
-  override def checkDuplicate(user: User): Future[Boolean] = {
+  override def checkDuplicate(user: User): Future[Boolean] =
     db.run(Users.filter(u => matchUserOnDuplicate(u, user)).result.headOption) flatMap {
-      case None => Future(false)
+      case None    => Future(false)
       case Some(_) => Future(true)
     }
-  }
 
-  private def matchUserOnDuplicate(u: User.UsersTable, user: User): Rep[Option[Boolean]] = {
+  private def matchUserOnDuplicate(u: User.UsersTable, user: User): Rep[Option[Boolean]] =
     u.id === user.id.getOrElse(-1)
-  }
 
   override def confirm(loginInfo: LoginInfo): Future[Int] = {
     val query = for {
@@ -108,46 +111,42 @@ class UserDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProv
     db.run(query.update(true))
   }
 
-  override def link(user: User, profile: Profile): Future[Option[User]] = {
+  override def link(user: User, profile: Profile): Future[Option[User]] =
     if (user.id.isEmpty) {
       Future(None)
     } else {
       for {
-        _ <- db.run(Profiles += profile.copy(userId = user.id))
+        _    <- db.run(Profiles += profile.copy(userId = user.id))
         read <- find(user.id.get)
       } yield read
     }
-  }
 
-  override def update(user: User): Future[Option[User]] = {
+  override def update(user: User): Future[Option[User]] =
     if (user.id.isEmpty) {
       Future(None)
     } else {
 
       val mappedProfiles = user.profiles.map(p => p.copy(userId = user.id))
-      val usrMapped = user.copy(profiles = mappedProfiles)
+      val usrMapped      = user.copy(profiles = mappedProfiles)
 
       for {
-        _ <- db.run(Users.filter(_.id === user.id) update user)
-        _ <- db.run(DBIO.sequence(usrMapped.profiles.map(row => Profiles.insertOrUpdate(row))))
+        _    <- db.run(Users.filter(_.id === user.id) update user)
+        _    <- db.run(DBIO.sequence(usrMapped.profiles.map(row => Profiles.insertOrUpdate(row))))
         read <- find(user.id.get)
       } yield read
     }
-  }
 
-  override def update(profile: Profile): Future[Option[User]] = {
+  override def update(profile: Profile): Future[Option[User]] =
     if (profile.userId.isEmpty) {
       Future(None)
     } else {
       for {
-        _ <- db.run(Profiles.filter(p => p.userId === profile.userId).update(profile))
+        _    <- db.run(Profiles.filter(p => p.userId === profile.userId).update(profile))
         read <- find(profile.userId.get)
       } yield read
     }
-  }
 
-  def matchOnLoginInfo(p: Profile.ProfilesTable, loginInfo: LoginInfo): Rep[Boolean] = {
+  def matchOnLoginInfo(p: Profile.ProfilesTable, loginInfo: LoginInfo): Rep[Boolean] =
     p.providerId === loginInfo.providerID && p.providerKey === loginInfo.providerKey &&
       p.confirmed === false
-  }
 }

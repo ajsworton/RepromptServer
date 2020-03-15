@@ -18,7 +18,7 @@ package models.dto
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 /**
  * User login data object
@@ -49,6 +49,6 @@ object UserLoginDto {
   /**
    * implicit json conversion formatter
    */
-  implicit val serializer = Json.format[UserLoginDto]
+  implicit val serializer: OFormat[UserLoginDto] = Json.format[UserLoginDto]
 }
 

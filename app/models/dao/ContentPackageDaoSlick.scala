@@ -18,59 +18,60 @@ package models.dao
 
 import javax.inject.Inject
 
-import models.dto.{ AnswerDto, ContentItemDto, ContentPackageDto, QuestionDto }
+import models.dto.{AnswerDto, ContentItemDto, ContentPackageDto, QuestionDto}
 import models.dto.ContentPackageDto.PackageTable
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
-import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.PostgresProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
-class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
-  extends ContentPackageDao with HasDatabaseConfigProvider[JdbcProfile] {
+class ContentPackageDaoSlick @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+    extends ContentPackageDao
+    with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val ContentPackages = TableQuery[PackageTable]
 
   def findContentPackageQuery(packageId: Int) =
     sql"""
-          SELECT  cp.Id, cp.FolderId, cp.OwnerId, cp.Name,
-                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, 1,
-                  q.Id, q.Question, q.Format, q.ItemId,
-                  a.Id, a.QuestionId, a.Answer, a.Correct, a.Sequence
+          SELECT  cp.id, cp.folder_id, cp.owner_id, cp.name,
+                  ci.id, ci.package_id, ci.image_url, ci.name, ci.content, 1,
+                  q.id, q.question, q.format, q.item_id,
+                  a.id, a.question_id, a.answer, a.correct, a.sequence
 
           FROM content_packages AS cp
 
             LEFT JOIN content_items AS ci
-            ON cp.Id = ci.PackageId
+            ON cp.id = ci.package_id
 
             LEFT JOIN content_assessment_questions AS q
-            ON ci.Id = q.ItemId
+            ON ci.id = q.item_id
 
             LEFT JOIN content_assessment_answers AS a
-            ON q.Id = a.QuestionId
+            ON q.id = a.question_id
 
-          WHERE cp.Id = $packageId
-          ORDER BY cp.Name, ci.Name, q.Question, a.Answer
+          WHERE cp.id = $packageId
+          ORDER BY cp.name, ci.name, q.question, a.answer
          """.as[(ContentPackageDto, Option[ContentItemDto], Option[QuestionDto], Option[AnswerDto])]
 
   def findContentPackageQueryByOwner(ownerId: Int) =
     sql"""
-          SELECT  cp.Id, cp.FolderId, cp.OwnerId, cp.Name,
-                  ci.Id, ci.PackageId, ci.ImageUrl, ci.Name, ci.Content, 1
+          SELECT  cp.id, cp.folder_id, cp.owner_id, cp.name,
+                  ci.id, ci.package_id, ci.image_url, ci.name, ci.content, 1
 
           FROM content_packages AS cp
 
               LEFT JOIN content_items AS ci
-              ON cp.Id = ci.PackageId
+              ON cp.id = ci.package_id
 
-          WHERE cp.OwnerId = $ownerId
-          ORDER BY cp.Name, ci.Name
+          WHERE cp.owner_id = $ownerId
+          ORDER BY cp.name, ci.name
          """.as[(ContentPackageDto, Option[ContentItemDto])]
 
   override def find(packageId: Int): Future[Option[ContentPackageDto]] = {
     val result = findContentPackageQuery(packageId)
-    val run = db.run(result)
+    val run    = db.run(result)
 
     run.flatMap(
       r => {
@@ -79,8 +80,8 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
           val groupedByQuestion = r.groupBy(_._3)
           val questions = for {
             questions <- groupedByQuestion
-            questionData = questions._2
-            answers = questionData.map(p => p._4.get).toList.filter(m => m.id.get > 0)
+            questionData  = questions._2
+            answers       = questionData.map(p => p._4.get).toList.filter(m => m.id.get > 0)
             questionsProc = questions._1.map(q => q.copy(answers = Some(answers)))
           } yield questionsProc
 
@@ -88,57 +89,63 @@ class ContentPackageDaoSlick @Inject() (protected val dbConfigProvider: Database
 
           val itemsSet = r.map(p => p._2.get).toSet.filter(m => m.id.get > 0)
           val completedItems = itemsSet.toList
-            .map(item => item.copy(questions = Some(qList.filter(q => q.isDefined &&
-              q.get.itemId == item.id.get).map(q => q.get))))
+            .map(
+              item =>
+                item.copy(
+                  questions = Some(
+                    qList
+                      .filter(q =>
+                        q.isDefined &&
+                          q.get.itemId == item.id.get)
+                      .map(q => q.get))))
           Future(Some(r.head._1.copy(content = Some(completedItems))))
         } else {
           Future(None)
         }
-      })
+      }
+    )
   }
 
   override def findByOwner(ownerId: Int): Future[Seq[ContentPackageDto]] = {
     val result = findContentPackageQueryByOwner(ownerId)
-    val run = db.run(result)
+    val run    = db.run(result)
 
     run.flatMap(
       r => {
         val grouped = r.groupBy(_._1)
         val out = for {
           groupMembers <- grouped
-          packages = groupMembers._2
+          packages     = groupMembers._2
           packagesProc = packages.map(p => p._2.get).toList.filter(m => m.id.get > 0)
-          result = groupMembers._1.copy(content = Some(packagesProc))
+          result       = groupMembers._1.copy(content = Some(packagesProc))
         } yield result
         Future(out.toSeq)
       }
     )
   }
 
-  override def save(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]] = {
-    db.run((ContentPackages returning ContentPackages.map(_.id)
-      into ((pkg, returnedId) => Some(pkg.copy(id = returnedId)))
-    ) += packageDto)
-  }
+  override def save(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]] =
+    db.run(
+      (ContentPackages returning ContentPackages.map(_.id)
+        into ((pkg, returnedId) => Some(pkg.copy(id = returnedId)))) += packageDto)
 
-  override def update(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]] = {
+  override def update(packageDto: ContentPackageDto): Future[Option[ContentPackageDto]] =
     if (packageDto.id.isEmpty) {
       Future(None)
     } else {
       for {
-        _ <- db.run(ContentPackages.filter(_.id === packageDto.id).map(c => (c.name, c.folderId,
-          c.ownerId))
-          .update(packageDto.name, packageDto.folderId, packageDto.ownerId))
+        _ <- db.run(
+          ContentPackages
+            .filter(_.id === packageDto.id)
+            .map(c => (c.name, c.folderId, c.ownerId))
+            .update(packageDto.name, packageDto.folderId, packageDto.ownerId))
         read <- find(packageDto.id.get)
       } yield read
     }
-  }
 
-  override def delete(packageId: Int): Future[Int] = {
+  override def delete(packageId: Int): Future[Int] =
     db.run(ContentPackages.filter(_.id === packageId).delete)
-  }
 
-  override def deleteByOwner(ownerId: Int): Future[Int] = {
+  override def deleteByOwner(ownerId: Int): Future[Int] =
     db.run(ContentPackages.filter(_.ownerId === ownerId).delete)
-  }
 }

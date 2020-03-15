@@ -23,14 +23,13 @@ import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import scala.concurrent.duration._
 import slick.dbio.DBIO
 import slick.jdbc.JdbcProfile
-import slick.jdbc.MySQLProfile.api._
-
+import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-class CohortTestData @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit
-                                                                                        executionContext: ExecutionContext)
-  extends HasDatabaseConfigProvider[JdbcProfile] {
+class CohortTestData @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit
+                                                                                       executionContext: ExecutionContext)
+    extends HasDatabaseConfigProvider[JdbcProfile] {
 
   val ownerId = 1
 
@@ -47,38 +46,36 @@ class CohortTestData @Inject() (protected val dbConfigProvider: DatabaseConfigPr
 
     DBIO.seq(
       // Insert some suppliers
-      sqlu"INSERT INTO users VALUES($teacherId, 'Testy', 'Teachy', 't@teachyer', 1, 1, 0, NULL)",
-      sqlu"INSERT INTO users VALUES($studentId, 'Testy', 'Usery', 't@useyer', 1, 0, 0, NULL)",
-      sqlu"""INSERT INTO profiles VALUES($teacherId, 'credentials', 't@teachyer', 1, NULL, NULL, NULL, NULL, '{"hasher": "bcrypt", "password": "$$2a$$10$$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}', NULL, NULL, NULL)""",
-      sqlu"""INSERT INTO profiles VALUES($studentId, 'credentials', 't@useyer', 1, NULL, NULL, NULL, NULL, '{"hasher": "bcrypt", "password": "$$2a$$10$$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}', NULL, NULL, NULL)""",
+      sqlu"INSERT INTO users VALUES($teacherId, 'Testy', 'Teachy', 't@teachyer', 'true', 'true', 'false', NULL)",
+      sqlu"INSERT INTO users VALUES($studentId, 'Testy', 'Usery', 't@useyer', 'true', 'false', 'false', NULL)",
+      sqlu"""INSERT INTO profiles VALUES($teacherId, 'credentials', 't@teachyer', 'true', NULL, NULL, NULL, NULL, '{"hasher": "bcrypt", "password": "$$2a$$10$$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}', NULL, NULL, NULL)""",
+      sqlu"""INSERT INTO profiles VALUES($studentId, 'credentials', 't@useyer', 'true', NULL, NULL, NULL, NULL, '{"hasher": "bcrypt", "password": "$$2a$$10$$SShDo45/naMH3kUAFvZQjuiQ27RgqBYJiBwQiyj2aQGg0CF3.eCFi"}', NULL, NULL, NULL)""",
       sqlu"INSERT INTO cohorts VALUES($cohortId, $teacherId, 'Test Cohort 1', NULL)",
     )
   }
 
-  private def removeCohortDataQueries(teacherId: Int, studentId: Int):
-  DBIO[Unit] = DBIO.seq(
+  private def removeCohortDataQueries(teacherId: Int, studentId: Int): DBIO[Unit] = DBIO.seq(
     sqlu"DELETE FROM users WHERE id = $teacherId",
     sqlu"DELETE FROM users WHERE id = $studentId",
   )
 
-  def insertCohortContent(teacherId: Int, studentId: Int) = {
+  def insertCohortContent(teacherId: Int, studentId: Int): Unit = {
     val response = db.run(insertCohortDataQueries(teacherId, studentId))
     Await.result(response, 10 seconds)
   }
 
-  def clearCohortContent(teacherId: Int, studentId: Int) = {
+  def clearCohortContent(teacherId: Int, studentId: Int): Unit = {
     val response = db.run(removeCohortDataQueries(teacherId, studentId))
     Await.result(response, 10 seconds)
   }
 
   private def getCohortMemberQuery(cohortId: Int, userId: Int) = sql"""
-      SELECT cm.CohortId, cm.UserId
+      SELECT cm.cohort_id, cm.user_id
       FROM cohort_members AS cm
-      WHERE cm.CohortId = $cohortId
-      AND cm.userId = $userId
+      WHERE cm.cohort_id = $cohortId
+      AND cm.user_id = $userId
     """.as[CohortMemberDto]
 
-  def getCohortMember(cohortId: Int, userId: Int): Future[Option[CohortMemberDto]] = {
+  def getCohortMember(cohortId: Int, userId: Int): Future[Option[CohortMemberDto]] =
     db.run(getCohortMemberQuery(cohortId, userId).headOption)
-  }
 }

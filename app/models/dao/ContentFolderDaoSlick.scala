@@ -19,49 +19,50 @@ package models.dao
 import javax.inject.Inject
 
 import models.dto.ContentFolderDto.ContentFoldersTable
-import models.dto.{ ContentFolderDto, ContentPackageDto }
-import play.api.db.slick.{ DatabaseConfigProvider, HasDatabaseConfigProvider }
+import models.dto.{ContentFolderDto, ContentPackageDto}
+import play.api.db.slick.{DatabaseConfigProvider, HasDatabaseConfigProvider}
 import slick.jdbc.JdbcProfile
-import slick.jdbc.MySQLProfile.api._
+import slick.jdbc.PostgresProfile.api._
 import slick.lifted.TableQuery
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
-class ContentFolderDaoSlick @Inject() (protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
-  extends ContentFolderDao with HasDatabaseConfigProvider[JdbcProfile] {
+class ContentFolderDaoSlick @Inject()(protected val dbConfigProvider: DatabaseConfigProvider)(implicit ec: ExecutionContext)
+    extends ContentFolderDao
+    with HasDatabaseConfigProvider[JdbcProfile] {
 
   private val ContentFolders = TableQuery[ContentFoldersTable]
 
   def findContentFolderQuery(folderId: Int) =
     sql"""
-          SELECT  cf.Id, cf.ParentId, cf.OwnerId, cf.Name,
-                  cp.Id, cp.FolderId, cp.OwnerId, cp.Name
+          SELECT  cf.Id, cf.parent_id, cf.owner_id, cf.Name,
+                  cp.Id, cp.folder_id, cp.owner_id, cp.Name
 
           FROM content_folders AS cf
 
             LEFT JOIN content_packages AS cp
-            ON cf.Id = cp.FolderId
+            ON cf.Id = cp.folder_id
 
           WHERE cf.Id = $folderId
          """.as[(ContentFolderDto, Option[ContentPackageDto])]
 
   def findContentFolderQueryByOwner(ownerId: Int) =
     sql"""
-          SELECT cf.Id, cf.ParentId, cf.OwnerId, cf.Name,
-                 cp.Id, cp.FolderId, cp.OwnerId, cp.Name
+          SELECT cf.Id, cf.parent_id, cf.owner_id, cf.Name,
+                 cp.Id, cp.folder_id, cp.owner_id, cp.Name
 
           FROM content_folders AS cf
 
             LEFT JOIN content_packages AS cp
-            ON cf.Id = cp.FolderId
+            ON cf.Id = cp.folder_id
 
-          WHERE cf.OwnerId = $ownerId
+          WHERE cf.owner_id = $ownerId
           ORDER BY cf.Name, cp.Name
          """.as[(ContentFolderDto, Option[ContentPackageDto])]
 
   override def find(folderId: Int): Future[Option[ContentFolderDto]] = {
     val result = findContentFolderQuery(folderId)
-    val run = db.run(result)
+    val run    = db.run(result)
 
     run.flatMap(
       r => {
@@ -71,32 +72,32 @@ class ContentFolderDaoSlick @Inject() (protected val dbConfigProvider: DatabaseC
         } else {
           Future(None)
         }
-      })
+      }
+    )
   }
 
   override def findByOwner(ownerId: Int): Future[Seq[ContentFolderDto]] = {
     val result = findContentFolderQueryByOwner(ownerId)
-    val run = db.run(result)
+    val run    = db.run(result)
 
     run.flatMap(
       r => {
         val grouped = r.groupBy(_._1)
         val out = for {
           groupMembers <- grouped
-          packages = groupMembers._2
+          packages     = groupMembers._2
           packagesProc = packages.map(p => p._2.get).toList.filter(m => m.id.get > 0)
-          result = groupMembers._1.copy(members = Some(packagesProc))
+          result       = groupMembers._1.copy(members = Some(packagesProc))
         } yield result
         Future(out.toSeq)
       }
     )
   }
 
-  override def save(folder: ContentFolderDto): Future[Option[ContentFolderDto]] = {
-    db.run((ContentFolders returning ContentFolders.map(_.id)
-      into ((folder, returnedId) => Some(folder.copy(id = returnedId)))
-    ) += folder)
-  }
+  override def save(folder: ContentFolderDto): Future[Option[ContentFolderDto]] =
+    db.run(
+      (ContentFolders returning ContentFolders.map(_.id)
+        into ((folder, returnedId) => Some(folder.copy(id = returnedId)))) += folder)
 
   override def update(folder: ContentFolderDto): Future[Option[ContentFolderDto]] = {
     val parentId = getFolderParentId(folder)
@@ -104,28 +105,27 @@ class ContentFolderDaoSlick @Inject() (protected val dbConfigProvider: DatabaseC
       Future(None)
     } else {
       for {
-        _ <- db.run(ContentFolders.filter(_.id === folder.id).map(c => (c.name, c.ownerId, c
-          .parentId))
-          .update(folder.name, folder.ownerId, parentId))
+        _ <- db.run(
+          ContentFolders
+            .filter(_.id === folder.id)
+            .map(c => (c.name, c.ownerId, c.parentId))
+            .update(folder.name, folder.ownerId, parentId))
         read <- find(folder.id.get)
       } yield read
     }
   }
 
-  private def getFolderParentId(folder: ContentFolderDto): Option[Int] = {
+  private def getFolderParentId(folder: ContentFolderDto): Option[Int] =
     if (folder.parentId.isDefined && folder.parentId.get > 0) {
       folder.parentId
     } else {
       None
     }
-  }
 
-  override def delete(folderId: Int): Future[Int] = {
+  override def delete(folderId: Int): Future[Int] =
     db.run(ContentFolders.filter(_.id === folderId).delete)
-  }
 
-  override def deleteByOwner(ownerId: Int): Future[Int] = {
+  override def deleteByOwner(ownerId: Int): Future[Int] =
     db.run(ContentFolders.filter(_.ownerId === ownerId).delete)
-  }
 
 }

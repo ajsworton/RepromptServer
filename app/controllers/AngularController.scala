@@ -33,7 +33,7 @@ import scala.concurrent.ExecutionContext
  */
 @Singleton
 class AngularController @Inject() (assets: Assets, cc: ControllerComponents, ws: WSClient,
-  environment: Environment)(implicit ec: ExecutionContext) extends AbstractController(cc) {
+    environment: Environment)(implicit ec: ExecutionContext) extends AbstractController(cc) {
 
   /**
    * Endpoint to serve the Angular index

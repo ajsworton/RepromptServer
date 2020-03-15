@@ -16,137 +16,131 @@
 
 package models.dto
 
-import java.sql.{ Date, Timestamp, Types }
-import java.time.{ LocalDate, LocalDateTime, ZoneId }
-import java.util.UUID
+import java.sql.Date
+import java.time.LocalDate
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.{ Json, OFormat }
-import slick.jdbc.{ GetResult, PositionedParameters, SetParameter }
-import slick.jdbc.MySQLProfile.api._
-import slick.{ driver, lifted }
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import play.api.libs.json.{Json, OFormat}
+import slick.jdbc.{GetResult, JdbcType}
+import slick.jdbc.PostgresProfile.api._
+import slick.lifted.{PrimaryKey, ProvenShape}
 
 case class ScoreDto(
-  userId: Option[Int],
-  contentItemId: Int,
-  score: Int,
-  scoreDate: Option[LocalDate],
-  streak: Int,
-  repromptDate: Option[LocalDate] = None
+    userId: Option[Int],
+    contentItemId: Int,
+    score: Int,
+    scoreDate: Option[LocalDate],
+    streak: Int,
+    repromptDate: Option[LocalDate] = None
 )
 
 /**
- * Companion Object for to hold boiler plate for forms, json conversion, slick
- */
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object ScoreDto {
 
   /**
-   * implcit date converter
-   */
-  implicit val localDateToDate = MappedColumnType.base[LocalDate, Date](
+    * implicit date converter
+    */
+  implicit val localDateToDate: JdbcType[LocalDate] = MappedColumnType.base[LocalDate, Date](
     l => Date.valueOf(l.toString),
     d => d.toLocalDate
   )
 
-  def construct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: LocalDate,
-    streak: Int, repromptDate: LocalDate) =
-    new ScoreDto(userId = userId, contentItemId = contentItemId, score = score,
-      scoreDate = Some(scoreDate), streak = streak, repromptDate = Some(repromptDate))
+  def construct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate], streak: Int, repromptDate: Option[LocalDate]) =
+    new ScoreDto(userId = userId, contentItemId = contentItemId, score = score, scoreDate = scoreDate, streak = streak, repromptDate = repromptDate)
 
   def deconstruct(dto: ScoreDto) = dto match {
-    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate],
-      streak: Int, repromptDate: Option[LocalDate]) =>
-      Some((userId, contentItemId, score, scoreDate.orNull, streak, repromptDate.orNull))
+    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate], streak: Int, repromptDate: Option[LocalDate]) =>
+      Some((userId, contentItemId, score, scoreDate, streak, repromptDate))
   }
 
-  def formConstruct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate],
-    streak: Int, repromptDate: Option[LocalDate]) =
-    new ScoreDto(userId = userId, contentItemId = contentItemId, score = score,
-      scoreDate = scoreDate, streak = streak, repromptDate = repromptDate)
+  def formConstruct(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate], streak: Int, repromptDate: Option[LocalDate]) =
+    new ScoreDto(userId = userId, contentItemId = contentItemId, score = score, scoreDate = scoreDate, streak = streak, repromptDate = repromptDate)
 
   def formDeconstruct(dto: ScoreDto): Option[(Option[Int], Int, Int, Option[LocalDate], Int, Option[LocalDate])] = dto match {
-    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate],
-      streak: Int, repromptDate: Option[LocalDate]) => Some(userId, contentItemId, score,
-      scoreDate, streak, repromptDate)
+    case ScoreDto(userId: Option[Int], contentItemId: Int, score: Int, scoreDate: Option[LocalDate], streak: Int, repromptDate: Option[LocalDate]) =>
+      Some(userId, contentItemId, score, scoreDate, streak, repromptDate)
   }
 
   /**
-   * Form definition for data type to bindFromRequest when receiving data
-   * @return a form for the dat object
-   */
+    * Form definition for data type to bindFromRequest when receiving data
+    * @return a form for the dat object
+    */
   def form: Form[ScoreDto] = Form(
     mapping(
-      "userId" -> optional(number),
+      "userId"        -> optional(number),
       "contentItemId" -> number,
-      "score" -> number,
-      "scoreDate" -> optional(localDate),
-      "streak" -> number,
-      "repromptDate" -> optional(localDate)
+      "score"         -> number,
+      "scoreDate"     -> optional(localDate),
+      "streak"        -> number,
+      "repromptDate"  -> optional(localDate)
     )(ScoreDto.formConstruct)(ScoreDto.formDeconstruct)
   )
 
   /**
-   * Table definition for database mapping via slick
-   * @param tag identifies a specific row
-   */
+    * Table definition for database mapping via slick
+    * @param tag identifies a specific row
+    */
   class ScoreTable(tag: Tag) extends Table[ScoreDto](tag, "content_scores") {
 
-    def userId: lifted.Rep[Option[Int]] = column[Int]("UserId", O.PrimaryKey).?
-    def contentItemId: lifted.Rep[Int] = column[Int]("ContentItemId", O.PrimaryKey)
-    def score: lifted.Rep[Int] = column[Int]("Score")
-    def scoreDate: lifted.Rep[LocalDate] = column[LocalDate]("ScoreDate", O.PrimaryKey)
-    def streak: lifted.Rep[Int] = column[Int]("Streak")
-    def repromptDate: lifted.Rep[LocalDate] = column[LocalDate]("RepromptDate")
-    def pk: PrimaryKey = primaryKey("PRIMARY", (userId, contentItemId, scoreDate))
+    def userId: Rep[Option[Int]]             = column[Int]("user_id", O.PrimaryKey).?
+    def contentItemId: Rep[Int]              = column[Int]("content_item_id", O.PrimaryKey)
+    def score: Rep[Int]                      = column[Int]("score")
+    def scoreDate: Rep[Option[LocalDate]]    = column[Option[LocalDate]]("score_date", O.PrimaryKey)
+    def streak: Rep[Int]                     = column[Int]("streak")
+    def repromptDate: Rep[Option[LocalDate]] = column[Option[LocalDate]]("reprompt_date")
+    def pk: PrimaryKey                       = primaryKey("PRIMARY", (userId, contentItemId, scoreDate))
 
-    def * : ProvenShape[ScoreDto] = (userId, contentItemId, score, scoreDate, streak, repromptDate) <>
-      ((ScoreDto.construct _).tupled, ScoreDto.deconstruct)
+    def * : ProvenShape[ScoreDto] =
+      (userId, contentItemId, score, scoreDate, streak, repromptDate) <>
+        ((ScoreDto.construct _).tupled, ScoreDto.deconstruct)
   }
 
   /**
-   * implicit converter to coerce direct sql query into data object
-   */
-  implicit val getScoreResult: GetResult[ScoreDto] = GetResult(r =>
-    ScoreDto(
-      Some(r.nextInt),
-      r.nextInt,
-      r.nextInt,
-      r.nextDate match {
-        case null => None
-        case date: Date => Some(date.toLocalDate)
-      },
-      r.nextInt,
-      r.nextDate match {
-        case null => None
-        case date: Date => Some(date.toLocalDate)
-      }
-    )
-  )
-
-  /**
-   * implicit converter to coerce direct sql query into data object
-   */
-  implicit val getSomeScoreResult: GetResult[Some[ScoreDto]] = GetResult(r =>
-    Some(ScoreDto(
-      Some(r.nextInt),
-      r.nextInt,
-      r.nextInt,
-      r.nextDate match {
-        case null => None
-        case date: Date => Some(date.toLocalDate)
-      },
-      r.nextInt,
-      r.nextDate match {
-        case null => None
-        case date: Date => Some(date.toLocalDate)
-      }
+    * implicit converter to coerce direct sql query into data object
+    */
+  implicit val getScoreResult: GetResult[ScoreDto] = GetResult(
+    r =>
+      ScoreDto(
+        Some(r.nextInt),
+        r.nextInt,
+        r.nextInt,
+        r.nextDate match {
+          case null       => None
+          case date: Date => Some(date.toLocalDate)
+        },
+        r.nextInt,
+        r.nextDate match {
+          case null       => None
+          case date: Date => Some(date.toLocalDate)
+        }
     ))
-  )
 
   /**
-   * implicit json conversion formatter
-   */
+    * implicit converter to coerce direct sql query into data object
+    */
+  implicit val getSomeScoreResult: GetResult[Option[ScoreDto]] = GetResult(
+    r =>
+      Some(
+        ScoreDto(
+          Some(r.nextInt),
+          r.nextInt,
+          r.nextInt,
+          r.nextDate match {
+            case null       => None
+            case date: Date => Some(date.toLocalDate)
+          },
+          r.nextInt,
+          r.nextDate match {
+            case null       => None
+            case date: Date => Some(date.toLocalDate)
+          }
+        )))
+
+  /**
+    * implicit json conversion formatter
+    */
   implicit val serializer: OFormat[ScoreDto] = Json.format[ScoreDto]
 }

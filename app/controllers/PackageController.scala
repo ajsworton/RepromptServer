@@ -53,8 +53,9 @@ class PackageController @Inject() (
   packageDao: ContentPackageDao,
   itemDao: ContentItemDao,
   fileHelper: FileHelper,
-  daoHelper: DaoOnDtoAction)(implicit ec: ExecutionContext)
-  extends AbstractController(cc) with I18nSupport {
+  daoHelper: DaoOnDtoAction
+)(implicit ec: ExecutionContext)
+    extends AbstractController(cc) with I18nSupport {
 
   /**
    * Endpoint to retrieve a package by Id.
@@ -136,7 +137,7 @@ class PackageController @Inject() (
         formError =>
           Future(Results.BadRequest(Json.toJson(formError.errorsAsJson))),
         formData => {
-          val uploadedFiles = request.request.body.asMultipartFormData
+          val uploadedFiles = request.body.asMultipartFormData
           val userId = request.identity.id.get
           SaveDataWithFile(formData, uploadedFiles, userId)
         }
@@ -311,7 +312,8 @@ class PackageController @Inject() (
   private def SaveDataWithFile(
     contentItem: ContentItemDto,
     uploadedFiles: Option[MultipartFormData[Files.TemporaryFile]],
-    userId: Int): Future[Result] = {
+    userId: Int
+  ): Future[Result] = {
 
     if (uploadedFiles.isEmpty || uploadedFiles.get.file("image").isEmpty) {
       daoHelper.validateAndSaveDto[ContentItemDto](itemDao, contentItem)

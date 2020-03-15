@@ -16,23 +16,21 @@
 
 package controllers
 
-import java.time.LocalDate
-
-import libs.{ AppFactory, AuthHelper, TestingDbQueries }
-import models.dto.{ ContentAssignedDto, ContentFolderDto, ContentPackageDto, UserDto, UserLoginDto, UserRegisterDto }
-import org.scalatest.{ BeforeAndAfter, FunSpec, Matchers }
+import libs.{AuthHelper, DatabaseSupport, TestingDbQueries}
+import models.dto.{UserDto, UserLoginDto, UserRegisterDto}
+import org.scalatest.{BeforeAndAfter, FunSpec, Matchers}
 import play.api.libs.json.Json
-import play.api.mvc.{ AnyContentAsEmpty, Result }
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class AuthControllerSpec extends FunSpec with Matchers with BeforeAndAfter with AppFactory {
+class AuthControllerSpec extends FunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
-  val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
-  val controller: AuthController = fakeApplication().injector.instanceOf[AuthController]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val helper: AuthHelper = app.injector.instanceOf[AuthHelper]
+  val controller: AuthController = app.injector.instanceOf[AuthController]
+  val database: TestingDbQueries = app.injector.instanceOf[TestingDbQueries]
 
   val teacherId, contentItem1Id, assigned1Id, packageId, itemId, questionId = 485265
   val studentId, cohortId, packageId2, contentFolderId, folderId = 485266
@@ -40,7 +38,7 @@ class AuthControllerSpec extends FunSpec with Matchers with BeforeAndAfter with 
   var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
   var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
 
-  val userRegisterDto = UserRegisterDto(firstName = "FakeFirstName", surName = "FakeSurName",
+  val userRegisterDto: UserRegisterDto = UserRegisterDto(firstName = "FakeFirstName", surname = "Fakesurname",
     email = "fakeFirst.fakeSur@address.com", isEducator = false, password = "12345")
 
   var userLoginDto: UserLoginDto = _
@@ -95,7 +93,7 @@ class AuthControllerSpec extends FunSpec with Matchers with BeforeAndAfter with 
       user.get.id.isDefined should be(true)
       user.get.id.get should be > 0
       user.get.firstName should be(userRegisterDto.firstName)
-      user.get.surName should be(userRegisterDto.surName)
+      user.get.surname should be(userRegisterDto.surname)
       user.get.email should be(userRegisterDto.email)
       user.get.isEducator should be(userRegisterDto.isEducator)
     }

@@ -45,8 +45,9 @@ class CronController @Inject() (
   silhouette: Silhouette[JWTEnv],
   studyDao: StudyDao,
   notifier: MailerService,
-  configuration: Configuration)(implicit ec: ExecutionContext)
-  extends AbstractController(cc) with I18nSupport {
+  configuration: Configuration
+)(implicit ec: ExecutionContext)
+    extends AbstractController(cc) with I18nSupport {
 
   /**
    * Passphrase secured endpoint to execute the notifications system

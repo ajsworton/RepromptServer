@@ -18,45 +18,44 @@ package models.dto
 
 import play.api.data.Form
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 /**
- * User registration data object
- * @param password           The user's Password
- * @param firstName          The user's first name
- * @param surName            The user's last name
- * @param email              The user's email address
- */
+  * User registration data object
+  * @param password           The user's Password
+  * @param firstName          The user's first name
+  * @param surname            The user's last name
+  * @param email              The user's email address
+  */
 case class UserRegisterDto(
-  password: String,
-  firstName: String,
-  surName: String,
-  email: String,
-  isEducator: Boolean
+    password: String,
+    firstName: String,
+    surname: String,
+    email: String,
+    isEducator: Boolean
 )
 
 /**
- * Companion Object for to hold boiler plate for forms, json conversion, slick
- */
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object UserRegisterDto {
 
   /**
-   * Form definition for data type to bindFromRequest when receiving data
-   * @return a form for the dat object
-   */
+    * Form definition for data type to bindFromRequest when receiving data
+    * @return a form for the dat object
+    */
   def form: Form[UserRegisterDto] = Form(
     mapping(
-      "password" -> nonEmptyText,
-      "firstName" -> nonEmptyText,
-      "surName" -> nonEmptyText,
-      "email" -> nonEmptyText,
+      "password"   -> nonEmptyText,
+      "firstName"  -> nonEmptyText,
+      "surname"    -> nonEmptyText,
+      "email"      -> nonEmptyText,
       "isEducator" -> boolean
     )(UserRegisterDto.apply)(UserRegisterDto.unapply)
   )
 
   /**
-   * implicit json conversion formatter
-   */
-  implicit val serializer = Json.format[UserRegisterDto]
+    * implicit json conversion formatter
+    */
+  implicit val serializer: OFormat[UserRegisterDto] = Json.format[UserRegisterDto]
 }
-

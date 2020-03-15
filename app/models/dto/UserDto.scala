@@ -19,70 +19,69 @@ package models.dto
 import models.User
 import play.api.data._
 import play.api.data.Forms._
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
 /**
- * User security restricted field data object
- * @param id                 The user's Id
- * @param firstName          The user's first name
- * @param surName            The user's last name
- * @param email              The user's email address
- * @param isEmailVerified    The user's email verification status
- * @param isEducator         The user's educator group status
- * @param isAdministrator    The user's administrator status
- * @param avatarUrl          The user's avatarUrl
- */
+  * User security restricted field data object
+  * @param id                 The user's Id
+  * @param firstName          The user's first name
+  * @param surname            The user's last name
+  * @param email              The user's email address
+  * @param isEmailVerified    The user's email verification status
+  * @param isEducator         The user's educator group status
+  * @param isAdministrator    The user's administrator status
+  * @param avatarUrl          The user's avatarUrl
+  */
 case class UserDto(
-  id: Option[Int],
-  firstName: String,
-  surName: String,
-  name: Option[String],
-  email: String,
-  isEmailVerified: Boolean,
-  isEducator: Boolean,
-  isAdministrator: Boolean,
-  avatarUrl: Option[String]
+    id: Option[Int],
+    firstName: String,
+    surname: String,
+    name: Option[String],
+    email: String,
+    isEmailVerified: Boolean,
+    isEducator: Boolean,
+    isAdministrator: Boolean,
+    avatarUrl: Option[String]
 )
 
 /**
- * Companion Object for to hold boiler plate for forms, json conversion, slick
- */
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object UserDto {
 
-  def apply(user: User): UserDto = {
+  def apply(user: User): UserDto =
     new UserDto(
       user.id,
       user.firstName,
-      user.surName,
-      Some(s"${user.firstName} ${user.surName}"),
+      user.surname,
+      Some(s"${user.firstName} ${user.surname}"),
       user.email,
       user.isEmailVerified,
       user.isEducator,
       user.isAdministrator,
-      user.avatarUrl)
-  }
+      user.avatarUrl
+    )
 
   /**
-   * Form definition for data type to bindFromRequest when receiving data
-   * @return a form for the dat object
-   */
+    * Form definition for data type to bindFromRequest when receiving data
+    * @return a form for the dat object
+    */
   def form: Form[UserDto] = Form(
     mapping(
-      "id" -> optional(number),
-      "firstName" -> nonEmptyText,
-      "surName" -> nonEmptyText,
-      "name" -> optional(text),
-      "email" -> nonEmptyText,
+      "id"              -> optional(number),
+      "firstName"       -> nonEmptyText,
+      "surname"         -> nonEmptyText,
+      "name"            -> optional(text),
+      "email"           -> nonEmptyText,
       "isEmailVerified" -> boolean,
-      "isEducator" -> boolean,
+      "isEducator"      -> boolean,
       "isAdministrator" -> boolean,
-      "avatarUrl" -> optional(text)
+      "avatarUrl"       -> optional(text)
     )(UserDto.apply)(UserDto.unapply)
   )
 
   /**
-   * implicit json conversion formatter
-   */
-  implicit val serializer = Json.format[UserDto]
+    * implicit json conversion formatter
+    */
+  implicit val serializer: OFormat[UserDto] = Json.format[UserDto]
 }
-

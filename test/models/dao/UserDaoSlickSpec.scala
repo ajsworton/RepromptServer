@@ -17,13 +17,12 @@
 package models.dao
 
 import com.mohiva.play.silhouette.api.LoginInfo
-import libs.{ AppFactory, UserProfileTestData }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import libs.{DatabaseSupport, UserProfileTestData}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 
-class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with AppFactory {
+class UserDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
-  val userDao: UserDao = fakeApplication().injector.instanceOf[UserDaoSlick]
+  val userDao: UserDao = app.injector.instanceOf[UserDaoSlick]
   val testData = new UserProfileTestData(userDao)
 
   before {

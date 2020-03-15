@@ -16,16 +16,18 @@
 
 package models.dao
 
-import libs.{ AppFactory, CohortTestData }
+import libs.{CohortTestData, DatabaseSupport}
 import models.dto.CohortDto
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
-import org.scalatest.mockito.MockitoSugar
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import org.scalatestplus.mockito.MockitoSugar
 
-class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with MockitoSugar with AppFactory {
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
-  val cohortDao: CohortDaoSlick = fakeApplication().injector.instanceOf[CohortDaoSlick]
-  val testData: CohortTestData = fakeApplication().injector.instanceOf[CohortTestData]
+class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with MockitoSugar with DatabaseSupport {
+
+  val cohortDao: CohortDaoSlick = app.injector.instanceOf[CohortDaoSlick]
+  val testData: CohortTestData  = app.injector.instanceOf[CohortTestData]
 
   val teacherId = 88888
   val studentId = 88889
@@ -43,24 +45,24 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
     //find(cohortId: Int): Future[Option[CohortDto]]
     it("should correctly find an existing cohort by id") {
       for {
-        retCohort <- cohortDao.save(testData.cohortNoId1)
+        retCohort   <- cohortDao.save(testData.cohortNoId1)
         foundCohort <- cohortDao.find(retCohort.get.id.get)
-        _ <- cohortDao.delete(retCohort.get.id.get)
-        result <- retCohort.get.id should be(foundCohort.get.id)
+        _           <- cohortDao.delete(retCohort.get.id.get)
+        result      <- retCohort.get.id should be(foundCohort.get.id)
       } yield result
     }
 
     //findByOwner(ownerId: Int): Future[List[CohortDto]]
     it("should correctly find an existing user by ownerid") {
-      testData.cohortsNoIds.foreach(c => cohortDao.save(c))
-
-      cohortDao.findByOwner(testData.ownerId).flatMap {
-        result: Seq[CohortDto] =>
-          {
-            cohortDao.deleteByOwner(testData.ownerId)
-            result.size should equal(testData.cohortsNoIds.size)
-            result.head.ownerId should equal(testData.ownerId)
-          }
+      testData.cohortsNoIds.foreach { c =>
+        Await.result(cohortDao.save(c), 10 seconds)
+      }
+      cohortDao.findByOwner(testData.ownerId).flatMap { result: Seq[CohortDto] =>
+        {
+          cohortDao.deleteByOwner(testData.ownerId)
+          result.size should equal(testData.cohortsNoIds.size)
+          result.head.ownerId should equal(testData.ownerId)
+        }
       }
 
     }
@@ -73,13 +75,11 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
       //insert cohort
       val returnedCohort = cohortDao.save(testData.cohortNoId1)
 
-      returnedCohort.flatMap {
-        cohort =>
-          cohortDao.update(cohort.get.copy(name = "Fun")).flatMap {
-            changed =>
-              cohortDao.delete(cohort.get.id.get)
-              changed.get.name should equal("Fun")
-          }
+      returnedCohort.flatMap { cohort =>
+        cohortDao.update(cohort.get.copy(name = "Fun")).flatMap { changed =>
+          cohortDao.delete(cohort.get.id.get)
+          changed.get.name should equal("Fun")
+        }
       }
     }
 
@@ -88,7 +88,7 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   describe("attach(cohortId: Int, userId: Int)") {
     it("should correctly attach a user to a cohort") {
       for {
-        _ <- cohortDao.attach(teacherId, studentId)
+        _     <- cohortDao.attach(teacherId, studentId)
         check <- testData.getCohortMember(teacherId, studentId)
         assertion = {
           check.isDefined should be(true)
@@ -102,10 +102,10 @@ class CohortDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
   describe("detach(cohortId: Int, userId: Int)") {
     it("should correctly detach a user from a cohort") {
       for {
-        _ <- cohortDao.attach(teacherId, studentId)
+        _       <- cohortDao.attach(teacherId, studentId)
         written <- testData.getCohortMember(teacherId, studentId)
-        _ <- cohortDao.detach(teacherId, studentId)
-        check <- testData.getCohortMember(teacherId, studentId)
+        _       <- cohortDao.detach(teacherId, studentId)
+        check   <- testData.getCohortMember(teacherId, studentId)
         assertion = {
           written.isDefined should be(true)
           check.isDefined should be(false)

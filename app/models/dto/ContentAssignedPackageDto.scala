@@ -19,65 +19,69 @@ package models.dto
 import models.dto.ContentAssignedDto.ContentAssignedTable
 import models.dto.ContentPackageDto.PackageTable
 import play.api.data.Form
-import play.api.data.Forms.{ mapping, number, optional }
-import play.api.libs.json.Json
-import slick.jdbc.MySQLProfile.api._
+import play.api.data.Forms.{mapping, number, optional}
+import play.api.libs.json.{Json, OFormat}
+import slick.jdbc.PostgresProfile.api._
 import slick.lifted
-import slick.lifted.{ PrimaryKey, ProvenShape }
+import slick.lifted.{PrimaryKey, ProvenShape}
 import slick.model.ForeignKeyAction
 
 /**
- * ContentAssignedPackage data object
- * @param assignedId database value
- * @param packageId database value
- */
+  * ContentAssignedPackage data object
+  * @param assignedId database value
+  * @param packageId database value
+  */
 case class ContentAssignedPackageDto(assignedId: Option[Int], packageId: Option[Int])
 
 /**
- * Companion Object for to hold boiler plate for forms, json conversion, slick
- */
+  * Companion Object for to hold boiler plate for forms, json conversion, slick
+  */
 object ContentAssignedPackageDto {
 
   /**
-   * Table definition for database mapping via slick
-   * @param tag identifies a specific row
-   */
-  class ContentAssignedPackageTable(tag: Tag) extends Table[ContentAssignedPackageDto](
-    tag, "content_assigned_packages") {
-    def assignedId: lifted.Rep[Option[Int]] = column[Int]("AssignedId")
-    def packageId: lifted.Rep[Option[Int]] = column[Int]("PackageId")
+    * Table definition for database mapping via slick
+    * @param tag identifies a specific row
+    */
+  class ContentAssignedPackageTable(tag: Tag)
+      extends Table[ContentAssignedPackageDto](
+        tag,
+        "content_assigned_packages"
+      ) {
+    def assignedId: lifted.Rep[Option[Int]] = column[Int]("assigned_id")
+    def packageId: lifted.Rep[Option[Int]]  = column[Int]("package_id")
 
     def * : ProvenShape[ContentAssignedPackageDto] =
       (assignedId, packageId) <> ((ContentAssignedPackageDto.apply _).tupled, ContentAssignedPackageDto.unapply)
 
     def pk: PrimaryKey = primaryKey("PRIMARY", (assignedId, packageId))
 
-    def assignedFK = foreignKey("AssignedId", assignedId, TableQuery[ContentAssignedTable])(
+    def assignedFK = foreignKey("assigned_id", assignedId, TableQuery[ContentAssignedTable])(
       _.id,
       onUpdate = ForeignKeyAction.Cascade,
-      onDelete = ForeignKeyAction.Cascade)
+      onDelete = ForeignKeyAction.Cascade
+    )
 
-    def packagesFK = foreignKey("PackageId", packageId, TableQuery[PackageTable])(
+    def packagesFK = foreignKey("package_id", packageId, TableQuery[PackageTable])(
       _.id,
       onUpdate = ForeignKeyAction.Cascade,
-      onDelete = ForeignKeyAction.Cascade)
+      onDelete = ForeignKeyAction.Cascade
+    )
 
   }
 
   /**
-   * Form definition for data type to bindFromRequest when receiving data
-   * @return a form for the dat object
-   */
+    * Form definition for data type to bindFromRequest when receiving data
+    * @return a form for the dat object
+    */
   def form: Form[ContentAssignedPackageDto] = Form(
     mapping(
       "assignedId" -> optional(number),
-      "packageId" -> optional(number)
+      "packageId"  -> optional(number)
     )(ContentAssignedPackageDto.apply _)(ContentAssignedPackageDto.unapply)
   )
 
   /**
-   * implicit json conversion formatter
-   */
-  implicit val serializer = Json.format[ContentAssignedPackageDto]
+    * implicit json conversion formatter
+    */
+  implicit val serializer: OFormat[ContentAssignedPackageDto] = Json.format[ContentAssignedPackageDto]
 }
-

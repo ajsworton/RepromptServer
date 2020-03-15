@@ -16,22 +16,22 @@
 
 package libraries
 
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
-import libs.{ AppFactory, MockDaoDto, MockDto }
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import libs.{DatabaseSupport, MockDaoDto, MockDto}
 import play.api.libs.json.Json
 import play.api.mvc.Results
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
 
-class DaoOnDtoActionSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with AppFactory {
+class DaoOnDtoActionSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
-  implicit val ec: ExecutionContext = fakeApplication().injector.instanceOf[ExecutionContext]
+  implicit val ec: ExecutionContext = app.injector.instanceOf[ExecutionContext]
   val dto = MockDto(Some(1))
   var service: MockDaoDto = _
-  val action: DaoOnDtoAction = fakeApplication().injector.instanceOf[DaoOnDtoAction]
+  val action: DaoOnDtoAction = app.injector.instanceOf[DaoOnDtoAction]
 
   before {
-    service = fakeApplication().injector.instanceOf[MockDaoDto]
+    service = app.injector.instanceOf[MockDaoDto]
   }
 
   describe("saveDto") {

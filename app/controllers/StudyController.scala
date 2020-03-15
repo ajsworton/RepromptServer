@@ -45,8 +45,9 @@ import scala.concurrent.{ ExecutionContext, Future }
 class StudyController @Inject() (
   cc: ControllerComponents,
   silhouette: Silhouette[JWTEnv],
-  studyDao: StudyDao)(implicit ec: ExecutionContext)
-  extends AbstractController(cc) with I18nSupport {
+  studyDao: StudyDao
+)(implicit ec: ExecutionContext)
+    extends AbstractController(cc) with I18nSupport {
 
   /**
    * Endpoint to get all content items for the current student.

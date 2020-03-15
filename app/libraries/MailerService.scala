@@ -68,6 +68,6 @@ class MailerService @Inject() (mailerClient: MailerClient, config: Configuration
     * @return the address
     */
   def getUserAddress(user: User): String = {
-    s"${user.firstName} ${user.surName} <${user.email}>"
+    s"${user.firstName} ${user.surname} <${user.email}>"
   }
 }

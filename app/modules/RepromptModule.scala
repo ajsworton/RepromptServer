@@ -43,7 +43,7 @@ class RepromptModule extends AbstractModule with ScalaModule {
   /**
    * Configures the module for slick.
    */
-  def configure(): Unit = {
+  override def configure(): Unit = {
     bind[UserDao].to[UserDaoSlick]
     bind[CohortDao].to[CohortDaoSlick]
     bind[ContentFolderDao].to[ContentFolderDaoSlick]

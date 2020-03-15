@@ -36,7 +36,8 @@ class RepromptCalculatorExamMode(percentage: Int = 20) extends RepromptCalculato
       score.copy(scoreDate = Some(getScoreDate(score)), repromptDate = calcPromptDate(
         daysBetweenDates,
         scoreDate,
-        examinationDate))
+        examinationDate
+      ))
     } else { score.copy(scoreDate = Some(getScoreDate(score)), repromptDate = None) }
   }
 

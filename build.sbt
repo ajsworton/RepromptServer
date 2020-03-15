@@ -1,62 +1,57 @@
 import java.util.TimeZone
 
-import com.typesafe.sbt.SbtScalariform._
-
-import scalariform.formatter.preferences.{DanglingCloseParenthesis, DoubleIndentClassDeclaration, FormatXml, Preserve}
-
 name := """RepromptServer"""
 
 organization := "com.reprompt"
 
-version := "1.0"
+version := "1.1"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala, LauncherJarPlugin)
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.12.11"
 
 resolvers += "Atlassian Releases" at "https://maven.atlassian.com/public/"
 resolvers += Resolver.jcenterRepo
 
+val silhouetteVersion = "7.0.0"
+val playMailerVersion = "8.0.0"
+val playSlickVersion  = "5.0.0"
+val slickPgVersion    = "0.18.1"
+
 libraryDependencies ++= Seq(
   guice,
   ws,
-  "org.scalatestplus.play" %% "scalatestplus-play" % "3.0.0" % Test,
-  "com.typesafe.play" %% "play-slick" % "3.0.0",
-  "com.typesafe.play" %% "play-slick-evolutions" % "3.0.0",
-  "mysql" % "mysql-connector-java" % "6.0.6",
-  "org.mindrot" % "jbcrypt" % "0.4",
-  "com.iheart" %% "ficus" % "1.4.1",
-  "com.google.code.findbugs" % "findbugs" % "3.0.1",
-  "com.google.code.findbugs" % "jFormatString" % "2.0.1",
-  "net.codingwell" %% "scala-guice" % "4.1.0",
-  "com.mohiva" %% "play-silhouette" % "5.0.0-RC2",
-  "com.mohiva" %% "play-silhouette-password-bcrypt" % "5.0.0-RC2",
-  "com.mohiva" %% "play-silhouette-crypto-jca" % "5.0.0-RC2",
-  "com.typesafe.play" %% "play-mailer" % "6.0.1",
-  "com.typesafe.play" %% "play-mailer-guice" % "6.0.1",
-  "com.mohiva" %% "play-silhouette-persistence" % "5.0.0-RC2",
-  "com.mohiva" %% "play-silhouette-testkit" % "5.0.0-RC2" % "test",
-  "org.mockito" % "mockito-all" % "1.10.19" % "test"
+  "com.typesafe.play"        %% "play-slick"                      % playSlickVersion,
+  "com.typesafe.play"        %% "play-slick-evolutions"           % playSlickVersion,
+  "org.postgresql"           % "postgresql"                       % "42.2.11",
+  "org.mindrot"              % "jbcrypt"                          % "0.4",
+  "com.iheart"               %% "ficus"                           % "1.4.7",
+  "net.codingwell"           %% "scala-guice"                     % "4.2.6",
+  "commons-io"               % "commons-io"                       % "2.6",
+  "com.typesafe.play"        %% "play-mailer"                     % playMailerVersion,
+  "com.typesafe.play"        %% "play-mailer-guice"               % playMailerVersion,
+  "com.mohiva"               %% "play-silhouette"                 % silhouetteVersion,
+  "com.mohiva"               %% "play-silhouette-password-bcrypt" % silhouetteVersion,
+  "com.mohiva"               %% "play-silhouette-crypto-jca"      % silhouetteVersion,
+  "com.mohiva"               %% "play-silhouette-persistence"     % silhouetteVersion,
+  "com.mohiva"               %% "play-silhouette-testkit"         % silhouetteVersion % "test",
+  "org.mockito"              % "mockito-all"                      % "1.10.19" % "test",
+  "org.scalatestplus.play"   %% "scalatestplus-play"              % "5.0.0" % "test",
+  "com.opentable.components" % "otj-pg-embedded"                  % "0.13.3" % "test"
+)
+
+scalacOptions ++= Seq(
+  "-encoding",
+  "utf8", // Option and arguments on same line
+  //  "-Xfatal-warnings",  // New lines for each options
+  //  "-deprecation",
+  "-unchecked",
+  "-language:implicitConversions",
+  "-language:higherKinds",
+  "-language:existentials",
+  "-language:postfixOps"
 )
 
 enablePlugins(JavaServerAppPackaging)
 
 enablePlugins(sbtdocker.DockerPlugin)
-
-// Adds additional packages into Twirl
-//TwirlKeys.templateImports += "com.reprompt.controllers._"
-
-// Adds additional packages into conf/routes
-// play.sbt.routes.RoutesKeys.routesImport += "com.reprompt.binders._"
-
-
-//********************************************************
-// Scalariform settings
-//********************************************************
-
-defaultScalariformSettings
-
-ScalariformKeys.preferences := ScalariformKeys.preferences.value
-  .setPreference(FormatXml, false)
-  .setPreference(DoubleIndentClassDeclaration, false)
-  .setPreference(DanglingCloseParenthesis, Preserve)

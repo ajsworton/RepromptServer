@@ -22,11 +22,11 @@ import play.api.libs.json.{Json, OFormat}
 /**
   * User notification data object
   * @param firstName database value
-  * @param surName database value
+  * @param surname database value
   */
 case class UserNotificationDto(
   firstName: String,
-  surName: String,
+  surname: String,
 )
 
 /**
@@ -35,7 +35,7 @@ case class UserNotificationDto(
 object UserNotificationDto {
 
   def apply(user: User): UserNotificationDto = {
-    UserNotificationDto(user.firstName, s"${user.surName.substring(0,1)}.")
+    UserNotificationDto(user.firstName, s"${user.surname.substring(0,1)}.")
   }
 
   /**

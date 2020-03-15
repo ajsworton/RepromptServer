@@ -57,8 +57,9 @@ class AuthController @Inject() (
   authInfoRepository: AuthInfoRepository,
   authTokenService: AuthTokenService,
   avatarService: AvatarService,
-  passwordHasher: PasswordHasher)(implicit ec: ExecutionContext)
-  extends AbstractController(cc) with I18nSupport {
+  passwordHasher: PasswordHasher
+)(implicit ec: ExecutionContext)
+    extends AbstractController(cc) with I18nSupport {
 
   /**
    * Endpoint to handle register POST requests
@@ -123,7 +124,8 @@ class AuthController @Inject() (
   private def HandleUserLogin(request: Request[AnyContent], formData: UserLoginDto,
     loginInfo: LoginInfo, user: User): Future[Result] = {
     if (passwordHasher.matches(
-      user.profiles.find(p => p.loginInfo == loginInfo).get.passwordInfo.get, formData.password)) { //user is authenticated
+      user.profiles.find(p => p.loginInfo == loginInfo).get.passwordInfo.get, formData.password
+    )) { //user is authenticated
       embedToken(loginInfo, request, user)
     } else { //user not authenticated
       Future(BadRequest(Json.toJson(JsonErrorResponse("No Matching Record Found"))))
@@ -143,8 +145,8 @@ class AuthController @Inject() (
       case None =>
         val profile = Profile(
           loginInfo = loginInfo, email = Some(formData.email),
-          firstName = Some(formData.firstName), lastName = Some(formData.surName),
-          fullName = Some(s"${formData.firstName} ${formData.surName}"),
+          firstName = Some(formData.firstName), lastName = Some(formData.surname),
+          fullName = Some(s"${formData.firstName} ${formData.surname}"),
           passwordInfo = Some(passwordHasher.hash(formData.password))
         )
         for {
@@ -170,7 +172,8 @@ class AuthController @Inject() (
       silhouette.env.authenticatorService.init(authenticator)(request).flatMap { token =>
         silhouette.env.authenticatorService.embed(
           token,
-          Ok(Json.toJson(UserDto(user))))(request)
+          Ok(Json.toJson(UserDto(user)))
+        )(request)
       }
     }
   }

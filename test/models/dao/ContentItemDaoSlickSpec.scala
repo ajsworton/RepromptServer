@@ -16,22 +16,22 @@
 
 package models.dao
 
-import libs.{ AppFactory, TestingDbQueries }
-import models.dto.{ AnswerDto, ContentItemDto, QuestionDto, ScoreDto }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import libs.{DatabaseSupport, TestingDbQueries}
+import models.dto.{AnswerDto, ContentItemDto, QuestionDto, ScoreDto}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 
-class ContentItemDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with AppFactory {
+class ContentItemDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
-  val service: ContentItemDaoSlick = fakeApplication().injector.instanceOf[ContentItemDaoSlick]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val service: ContentItemDaoSlick = app.injector.instanceOf[ContentItemDaoSlick]
+  val database: TestingDbQueries = app.injector.instanceOf[TestingDbQueries]
   val teacherId, packageId = 8744
   val studentId = 8745
   val otherStudentId = 8746
 
-  val fakeQuestion = QuestionDto(None, "Question", "MCSA", teacherId, None)
+  val fakeQuestion = QuestionDto(None, "question", "MCSA", teacherId, None)
   val fakeAnswer = AnswerDto(None, Some(teacherId), "The Answer goes here", correct = true)
 
-  val fakeContentItem = ContentItemDto(None, packageId, None, "Name", "Content", enabled = true, None, None)
+  val fakeContentItem = ContentItemDto(None, packageId, None, "name", "Content", enabled = true, None, None)
 
   before {
     database.insertStudyContent(teacherId, studentId, otherStudentId)
@@ -89,7 +89,7 @@ class ContentItemDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndA
           saved.isDefined should be(true)
           found.isDefined should be(true)
           found.get.id.isDefined should be(true)
-          found.get.name should be("Name")
+          found.get.name should be("name")
           found.get.content should be("Content")
         }
       } yield assertion
@@ -217,7 +217,7 @@ class ContentItemDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndA
           before.get.id.isDefined should be(true)
           after.get.id.isDefined should be(true)
           after.get.id should be(before.get.id)
-          before.get.name should be("Name")
+          before.get.name should be("name")
           after.get.name should be(newName)
         }
       } yield assertion

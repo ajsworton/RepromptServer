@@ -18,18 +18,18 @@ package models.dao
 
 import java.time.LocalDate
 
-import libs.{ AppFactory, TestingDbQueries }
+import libs.{DatabaseSupport, TestingDbQueries}
 import models.dto.ScoreDto
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 
-class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with AppFactory {
+class StudyDaoSlickSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
   val teacherId, item1Id = 99998
   val studentId, item2Id, package2Id = 99999
   val unassignedStudentId = 99997
 
-  val studyDao: StudyDao = fakeApplication().injector.instanceOf[StudyDaoSlick]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val studyDao: StudyDao = app.injector.instanceOf[StudyDaoSlick]
+  val database: TestingDbQueries = app.injector.instanceOf[TestingDbQueries]
   val fakeScoreData = ScoreDto(Some(studentId), item2Id, 60, Some(LocalDate.now().minusMonths(1)), package2Id, Some(LocalDate.now()))
   val fakeScoreData2 = ScoreDto(Some(studentId), item2Id, 60, Some(LocalDate.now().minusMonths(2)), package2Id, Some(LocalDate.now()))
 

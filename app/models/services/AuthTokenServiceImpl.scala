@@ -40,7 +40,7 @@ import scala.language.postfixOps
  * @param ex           The execution context.
  */
 class AuthTokenServiceImpl @Inject() (authTokenDao: AuthTokenDao)(implicit ex: ExecutionContext)
-  extends AuthTokenService {
+    extends AuthTokenService {
 
   /**
    * Creates a new auth token and saves it in the backing store.

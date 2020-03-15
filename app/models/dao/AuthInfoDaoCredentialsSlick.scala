@@ -17,16 +17,17 @@
 package models.dao
 
 import javax.inject.Inject
-
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.api.util.PasswordInfo
 import com.mohiva.play.silhouette.persistence.daos.DelegableAuthInfoDAO
-import models.{ Profile, User }
+import models.{Profile, User}
 import models.services.UserService
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
+import scala.reflect.ClassTag
 
-class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: UserDao)(implicit executionContext: ExecutionContext)
+class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: UserDao)(
+  implicit executionContext: ExecutionContext, clsTag: ClassTag[PasswordInfo])
   extends DelegableAuthInfoDAO[PasswordInfo] {
 
   val emptyPassInfo: PasswordInfo = PasswordInfo("", "", None)
@@ -130,6 +131,8 @@ class AuthInfoDaoCredentialsSlick @Inject() (userService: UserService, userDao: 
    */
   override def remove(loginInfo: LoginInfo): Future[Unit] = {
     userDao.delete(loginInfo)
-    Future()
+    Future(())
   }
+
+  override val classTag: ClassTag[PasswordInfo] = clsTag
 }

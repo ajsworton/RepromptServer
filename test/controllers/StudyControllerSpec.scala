@@ -18,35 +18,29 @@ package controllers
 
 import java.time.LocalDate
 
-import com.mohiva.play.silhouette.api.LoginInfo
-import com.mohiva.play.silhouette.test.FakeEnvironment
-import env.JWTEnv
-import libs.{ AppFactory, AuthHelper, CohortTestData, TestingDbQueries }
-import models.dto.{ CohortDto, ScoreDto }
-import models.{ Profile, User }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
-import play.api.libs.json.Json
-import play.api.mvc.{ AnyContentAsEmpty, Result }
+import libs.{AuthHelper, DatabaseSupport, TestingDbQueries}
+import models.dto.ScoreDto
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
+import play.api.libs.json.{JsResult, JsValue, Json}
+import play.api.mvc.{AnyContentAsEmpty, Result}
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 
 import scala.concurrent.Future
 
-class StudyControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with AppFactory {
+class StudyControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
-  val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
-  val controller: StudyController = fakeApplication().injector.instanceOf[StudyController]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val helper: AuthHelper          = app.injector.instanceOf[AuthHelper]
+  val controller: StudyController = app.injector.instanceOf[StudyController]
+  val database: TestingDbQueries  = app.injector.instanceOf[TestingDbQueries]
 
-  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type]  = _
   var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
 
   val teacherId, contentItem1Id, assigned1Id = 989898
-  val studentId = 989899
+  val studentId                              = 989899
 
-  val scoreDto = ScoreDto(userId = Some(studentId), contentItemId = contentItem1Id, score = 54,
-    scoreDate = Some(LocalDate.now()), streak = 5)
+  val scoreDto = ScoreDto(userId = Some(studentId), contentItemId = contentItem1Id, score = 54, scoreDate = Some(LocalDate.now()), streak = 5)
 
   before {
     database.insertStudyContent(teacherId, studentId, studentId + 1)
@@ -105,20 +99,23 @@ class StudyControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
     }
 
     it("should return 200 OK if a student") {
-      val response: Future[Result] = controller.saveStudyScore()(studentFakeRequest
-        .withJsonBody(Json.toJson(scoreDto)))
+      val response: Future[Result] = controller.saveStudyScore()(
+        studentFakeRequest
+          .withJsonBody(Json.toJson(scoreDto)))
       val extractedScore = contentAsJson(response).validate[ScoreDto]
       database.deleteScoreData(extractedScore.get)
       status(response) should be(OK)
     }
 
     it("should return 200 Ok if a duplicate studyScore is provided and update") {
-      val response: Future[Result] = controller.saveStudyScore()(studentFakeRequest
-        .withJsonBody(Json.toJson(scoreDto)))
+      val response: Future[Result] = controller.saveStudyScore()(
+        studentFakeRequest
+          .withJsonBody(Json.toJson(scoreDto)))
       val extractedScore = contentAsJson(response).validate[ScoreDto]
       extractedScore.isSuccess should be(true)
-      val duplicate: Future[Result] = controller.saveStudyScore()(studentFakeRequest
-        .withJsonBody(Json.toJson(scoreDto.copy(score = extractedScore.get.score - 2))))
+      val duplicate: Future[Result] = controller.saveStudyScore()(
+        studentFakeRequest
+          .withJsonBody(Json.toJson(scoreDto.copy(score = extractedScore.get.score - 2))))
       val extractedDuplicate = contentAsJson(duplicate).validate[ScoreDto]
       status(response) should be(OK)
       status(duplicate) should be(OK)
@@ -137,9 +134,14 @@ class StudyControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
     }
 
     it("should increment the streak count if score is 50 or more") {
-      val response: Future[Result] = controller.saveStudyScore()(studentFakeRequest
-        .withJsonBody(Json.toJson(scoreDto)))
-      val extractedScore = contentAsJson(response).validate[ScoreDto]
+      val response: Future[Result] = controller.saveStudyScore()(
+        studentFakeRequest
+          .withJsonBody(Json.toJson(scoreDto)))
+      println(s"scoreDto: $scoreDto")
+      val js: JsValue = contentAsJson(response)
+      println(s"js: $js")
+      val extractedScore: JsResult[ScoreDto] = js.validate[ScoreDto]
+      println(s"extractedScore: $extractedScore")
       database.deleteScoreData(extractedScore.get)
       status(response) should be(OK)
       extractedScore.isSuccess should be(true)
@@ -147,8 +149,9 @@ class StudyControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
     }
 
     it("should zero the streak count if score is below 50") {
-      val response: Future[Result] = controller.saveStudyScore()(studentFakeRequest
-        .withJsonBody(Json.toJson(scoreDto.copy(score = 49))))
+      val response: Future[Result] = controller.saveStudyScore()(
+        studentFakeRequest
+          .withJsonBody(Json.toJson(scoreDto.copy(score = 49))))
       val extractedScore = contentAsJson(response).validate[ScoreDto]
       database.deleteScoreData(extractedScore.get)
       status(response) should be(OK)

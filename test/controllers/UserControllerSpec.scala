@@ -1,7 +1,7 @@
 package controllers
 
-import libs.{ AppFactory, AuthHelper, TestingDbQueries }
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import libs.{AuthHelper, DatabaseSupport, TestingDbQueries}
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import play.api.test.FakeRequest
 import play.api.mvc._
 import play.api.test.Helpers._
@@ -12,11 +12,11 @@ import scala.concurrent.Future
  * @author Alexander Worton.
  */
 class UserControllerSpec extends AsyncFunSpec with Matchers with BeforeAndAfter
-  with AppFactory {
+  with DatabaseSupport {
 
-  val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
-  val controller: UserController = fakeApplication().injector.instanceOf[UserController]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val helper: AuthHelper = app.injector.instanceOf[AuthHelper]
+  val controller: UserController = app.injector.instanceOf[UserController]
+  val database: TestingDbQueries = app.injector.instanceOf[TestingDbQueries]
 
   val teacherId = 9859855
   val studentId = 9859856

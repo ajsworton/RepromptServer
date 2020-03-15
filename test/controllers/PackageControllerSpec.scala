@@ -17,9 +17,9 @@
 package controllers
 
 import akka.stream.Materializer
-import libs.{AppFactory, AuthHelper, TestingDbQueries}
+import libs.{AuthHelper, DatabaseSupport, TestingDbQueries}
 import models.dto.{AnswerDto, ContentItemDto, ContentPackageDto, QuestionDto}
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import play.api.libs.Files.TemporaryFile
 import play.api.libs.json.Json
@@ -31,35 +31,31 @@ import play.api.libs.Files.TemporaryFileCreator
 
 import scala.concurrent.Future
 
-class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar with BeforeAndAfter
-  with AppFactory {
+class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar with BeforeAndAfter with DatabaseSupport {
 
-  val helper: AuthHelper = fakeApplication().injector.instanceOf[AuthHelper]
-  val fileCreator = fakeApplication().injector.instanceOf[TemporaryFileCreator]
-  implicit val mat: Materializer = fakeApplication().injector.instanceOf[Materializer]
-  val controller: PackageController = fakeApplication().injector.instanceOf[PackageController]
-  val database: TestingDbQueries = fakeApplication().injector.instanceOf[TestingDbQueries]
+  val helper: AuthHelper            = app.injector.instanceOf[AuthHelper]
+  val fileCreator                   = app.injector.instanceOf[TemporaryFileCreator]
+  implicit val mat: Materializer    = app.injector.instanceOf[Materializer]
+  val controller: PackageController = app.injector.instanceOf[PackageController]
+  val database: TestingDbQueries    = app.injector.instanceOf[TestingDbQueries]
 
   val teacherId, contentItem1Id, assigned1Id, packageId, itemId, questionId = 987895
-  val studentId, cohortId, packageId2, contentFolderId = 987896
+  val studentId, cohortId, packageId2, contentFolderId                      = 987896
 
-  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
+  var studentFakeRequest: FakeRequest[AnyContentAsEmpty.type]  = _
   var educatorFakeRequest: FakeRequest[AnyContentAsEmpty.type] = _
 
   //multipart data
   //val file = new File("file")
   val file: TemporaryFile = fileCreator.create("image", "jpg")
-  val filePart = FilePart[TemporaryFile](key = "image", filename = "fileName.jpg", contentType = None, ref = file)
+  val filePart            = FilePart[TemporaryFile](key = "image", filename = "fileName.jpg", contentType = None, ref = file)
 
-  val fakePackage = ContentPackageDto(id = None, folderId = contentFolderId, ownerId = teacherId,
-    name = "splablopghi")
+  val fakePackage = ContentPackageDto(id = None, folderId = contentFolderId, ownerId = teacherId, name = "splablopghi")
 
-  val fakeContentItem = ContentItemDto(id = None, packageId = packageId, imageUrl = Some("url"),
-    name = "ContentItemName", content = "Content here")
+  val fakeContentItem = ContentItemDto(id = None, packageId = packageId, imageUrl = Some("url"), name = "ContentItemName", content = "Content here")
 
-  val fakeAnswer = AnswerDto(id = None, questionId = None, answer = "ans", correct = true)
+  val fakeAnswer   = AnswerDto(id = None, questionId = None, answer = "ans", correct = true)
   val fakeQuestion = QuestionDto(id = None, question = "q", format = "Sort", itemId = itemId)
-
 
   before {
     database.insertStudyContent(teacherId, studentId, studentId + 1)
@@ -151,8 +147,9 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
     }
 
     it("should return 200 OK if an educator") {
-      val response: Future[Result] = controller.savePackage()(educatorFakeRequest
-        .withJsonBody(Json.toJson(fakePackage)))
+      val response: Future[Result] = controller.savePackage()(
+        educatorFakeRequest
+          .withJsonBody(Json.toJson(fakePackage)))
       status(response) should be(OK)
     }
 
@@ -162,8 +159,9 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
     }
 
     it("should return the correct content") {
-      val response: Future[Result] = controller.savePackage()(educatorFakeRequest
-        .withJsonBody(Json.toJson(fakePackage)))
+      val response: Future[Result] = controller.savePackage()(
+        educatorFakeRequest
+          .withJsonBody(Json.toJson(fakePackage)))
       contentAsString(response).length should be > 0
       val saved = contentAsJson(response).validate[ContentPackageDto]
       saved.isSuccess should be(true)
@@ -191,8 +189,9 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
     }
 
     it("should return 200 OK if an educator") {
-      val response: Future[Result] = controller.deletePackage(packageId)(educatorFakeRequest
-        .withJsonBody(Json.toJson(fakePackage)))
+      val response: Future[Result] = controller.deletePackage(packageId)(
+        educatorFakeRequest
+          .withJsonBody(Json.toJson(fakePackage)))
       status(response) should be(OK)
     }
 
@@ -240,7 +239,7 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
       contentAsString(response).length should be > 0
       val retrieved = contentAsJson(response).validate[ContentItemDto]
       retrieved.isSuccess should be(true)
-      retrieved.get.imageUrl should be(Some("imageUrl"))
+      retrieved.get.imageUrl should be(Some("image/url.png"))
     }
   }
 
@@ -261,20 +260,23 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
     }
 
     it("should return 200 OK if an educator") {
-      val response: Future[Result] = controller.saveItem()(educatorFakeRequest
-        withJsonBody Json.toJson(fakeContentItem))
+      val response: Future[Result] = controller.saveItem()(
+        educatorFakeRequest
+          withJsonBody Json.toJson(fakeContentItem))
       status(response) should be(OK)
     }
 
     it("should return json") {
-      val response: Future[Result] = controller.saveItem()(educatorFakeRequest
-        withJsonBody Json.toJson(fakeContentItem))
+      val response: Future[Result] = controller.saveItem()(
+        educatorFakeRequest
+          withJsonBody Json.toJson(fakeContentItem))
       contentType(response) should be(Some("application/json"))
     }
 
     it("should return the correct content") {
-      val response: Future[Result] = controller.saveItem()(educatorFakeRequest
-        withJsonBody Json.toJson(fakeContentItem))
+      val response: Future[Result] = controller.saveItem()(
+        educatorFakeRequest
+          withJsonBody Json.toJson(fakeContentItem))
       contentAsString(response).length should be > 0
       val saved = contentAsJson(response).validate[ContentItemDto]
       saved.isSuccess should be(true)
@@ -286,12 +288,12 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
 
     it("should correctly handle a multipart image") {
 
-      val params: Map[String, Seq[String]] = Map("name" -> Seq("Name"),
-        "content" -> Seq("Content"), "packageId" -> Seq(fakeContentItem.packageId.toString),
-      )
+      val params: Map[String, Seq[String]] =
+        Map("name" -> Seq("Name"), "content" -> Seq("Content"), "packageId" -> Seq(fakeContentItem.packageId.toString))
 
-      val fakeMultipartRequest = educatorFakeRequest.withMethod("POST")
-        .withMultipartFormDataBody(MultipartFormData[TemporaryFile](dataParts = params, files = Seq(filePart),  badParts = Nil))
+      val fakeMultipartRequest = educatorFakeRequest
+        .withMethod("POST")
+        .withMultipartFormDataBody(MultipartFormData[TemporaryFile](dataParts = params, files = Seq(filePart), badParts = Nil))
 
       val response = controller.saveItem()(fakeMultipartRequest)
 
@@ -336,7 +338,7 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
 
     it("should return the correct content") {
       val response: Future[Result] = controller.deleteItem(itemId)(educatorFakeRequest)
-      val deleted = contentAsString(response)
+      val deleted                  = contentAsString(response)
       deleted.length should be > 0
       deleted.contains("1") should be(true)
     }
@@ -395,20 +397,23 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
     }
 
     it("should return 200 OK if an educator") {
-      val response: Future[Result] = controller.saveQuestion()(educatorFakeRequest
-        withJsonBody Json.toJson(fakeQuestion))
+      val response: Future[Result] = controller.saveQuestion()(
+        educatorFakeRequest
+          withJsonBody Json.toJson(fakeQuestion))
       status(response) should be(OK)
     }
 
     it("should return json") {
-      val response: Future[Result] = controller.saveQuestion()(educatorFakeRequest
-        withJsonBody Json.toJson(fakeQuestion))
+      val response: Future[Result] = controller.saveQuestion()(
+        educatorFakeRequest
+          withJsonBody Json.toJson(fakeQuestion))
       contentType(response) should be(Some("application/json"))
     }
 
     it("should return the correct content") {
-      val response: Future[Result] = controller.saveQuestion()(educatorFakeRequest
-        withJsonBody Json.toJson(fakeQuestion))
+      val response: Future[Result] = controller.saveQuestion()(
+        educatorFakeRequest
+          withJsonBody Json.toJson(fakeQuestion))
       contentAsString(response).length should be > 0
       val saved = contentAsJson(response).validate[QuestionDto]
       saved.isSuccess should be(true)
@@ -419,12 +424,13 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
 
     it("should update an existing question") {
       val existingRequest = controller.getQuestion(questionId)(educatorFakeRequest)
-      val existing = contentAsJson(existingRequest).validate[QuestionDto]
+      val existing        = contentAsJson(existingRequest).validate[QuestionDto]
       existing.isSuccess should be(true)
-      val fakeAnswer = AnswerDto(id = None, questionId = existing.get.id, answer = "ans", correct = true)
+      val fakeAnswer      = AnswerDto(id = None, questionId = existing.get.id, answer = "ans", correct = true)
       val updatedQuestion = existing.get.copy(answers = Some(List(fakeAnswer)))
-      val saveRequest = controller.saveQuestion()(educatorFakeRequest
-        withJsonBody Json.toJson(updatedQuestion))
+      val saveRequest = controller.saveQuestion()(
+        educatorFakeRequest
+          withJsonBody Json.toJson(updatedQuestion))
       val updated = contentAsJson(saveRequest).validate[QuestionDto]
       updated.isSuccess should be(true)
       updated.get.question should be(existing.get.question)
@@ -436,8 +442,9 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
 
     it("should save a new question with answers") {
       val newQuestion = fakeQuestion.copy(answers = Some(List(fakeAnswer)))
-      val saveRequest = controller.saveQuestion()(educatorFakeRequest
-        withJsonBody Json.toJson(newQuestion))
+      val saveRequest = controller.saveQuestion()(
+        educatorFakeRequest
+          withJsonBody Json.toJson(newQuestion))
       val updated = contentAsJson(saveRequest).validate[QuestionDto]
       updated.isSuccess should be(true)
       updated.get.question should be(newQuestion.question)
@@ -478,7 +485,7 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
 
     it("should return the correct content") {
       val response: Future[Result] = controller.deleteQuestion(questionId)(educatorFakeRequest)
-      val deleted = contentAsString(response)
+      val deleted                  = contentAsString(response)
       deleted.length should be > 0
       deleted.contains("1") should be(true)
     }
@@ -512,7 +519,7 @@ class PackageControllerSpec extends AsyncFunSpec with Matchers with MockitoSugar
 
     it("should return the correct content") {
       val response: Future[Result] = controller.deleteAnswer(questionId)(educatorFakeRequest)
-      val deleted = contentAsString(response)
+      val deleted                  = contentAsString(response)
       deleted.length should be > 0
       deleted.contains("1") should be(true)
     }

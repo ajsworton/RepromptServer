@@ -18,16 +18,16 @@ package guards
 
 import com.mohiva.play.silhouette.api.LoginInfo
 import com.mohiva.play.silhouette.impl.authenticators.JWTAuthenticator
-import libs.AppFactory
 import models.User
 import org.joda.time.DateTime
-import org.scalatest.{ AsyncFunSpec, BeforeAndAfter, Matchers }
+import org.scalatest.{AsyncFunSpec, BeforeAndAfter, Matchers}
 import play.api.test.FakeRequest
+import libs.DatabaseSupport
 
-class AuthEducatorSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with AppFactory {
+class AuthEducatorSpec extends AsyncFunSpec with Matchers with BeforeAndAfter with DatabaseSupport {
 
-  val educator = User(id = None, firstName = "", surName = "", email = "em@il", isEducator = true)
-  val student = User(id = None, firstName = "", surName = "", email = "em@ail2")
+  val educator = User(id = None, firstName = "", surname = "", email = "em@il", isEducator = true)
+  val student = User(id = None, firstName = "", surname = "", email = "em@ail2")
 
   val authenticator = JWTAuthenticator(id = "", loginInfo = new LoginInfo("", ""),
     lastUsedDateTime = DateTime.now(), expirationDateTime = DateTime.now().plusDays(1),

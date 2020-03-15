@@ -32,8 +32,7 @@ object ExamHistoryDto {
   implicit val getExamHistoryDtoResult: GetResult[ExamHistoryDto] = GetResult(r =>
     ExamHistoryDto(
       r.nextString
-    )
-  )
+    ))
 
   /**
    * implicit json conversion formatter
